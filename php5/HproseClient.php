@@ -15,7 +15,7 @@
  *                                                        *
  * hprose client library for php5.                        *
  *                                                        *
- * LastModified: Feb 11, 2014                             *
+ * LastModified: Feb 13, 2014                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -82,11 +82,7 @@ abstract class HproseClient {
         $stream = new HproseStringStream($response);
         $hproseReader = new HproseReader($stream);
         $result = NULL;
-        while (($tag = $hproseReader->checkTags(
-            array(HproseTags::TagResult,
-                  HproseTags::TagArgument,
-                  HproseTags::TagError,
-                  HproseTags::TagEnd))) !== HproseTags::TagEnd) {
+        while (($tag = $stream->getc()) !== HproseTags::TagEnd) {
             switch ($tag) {
                 case HproseTags::TagResult:
                     if ($resultMode == HproseResultMode::Serialized) {
@@ -107,6 +103,9 @@ abstract class HproseClient {
                 case HproseTags::TagError:
                     $hproseReader->reset();
                     throw new HproseException($hproseReader->readString());
+                    break;
+                default:
+                    throw new HproseException("Wrong Response: \r\n" . $response);
                     break;
             }
         }
