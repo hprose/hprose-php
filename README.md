@@ -2,11 +2,11 @@
 
 <!-- MarkdownTOC depth=6 -->
 
-- Introduction
-- Usage
-    - Hprose Server
-    - Hprose Client
-    - Exception Handling
+- [Introduction](#introduction)
+- [Usage](#usage)
+    - [Server](#server)
+    - [Client](#client)
+    - [Exception Handling](#exception-handling)
 
 <!-- /MarkdownTOC -->
 
@@ -46,7 +46,7 @@ This project is the implementation of Hprose for PHP.
 
 ## Usage
 
-### Hprose Server
+### Server
 
 Hprose for PHP is very easy to use. You can create a hprose server like this:
 
@@ -65,12 +65,12 @@ Hprose for PHP is very easy to use. You can create a hprose server like this:
 
 ```
 
-### Hprose Client
+### Client
 
 Then you can create a hprose client to invoke it like this:
 
 ```php
-&lt;?php
+<?php
     require_once("php5/HproseHttpClient.php");
     $client = new HproseHttpClient('http://127.0.0.1/server.php');
     echo $client->hello('World');
