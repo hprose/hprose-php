@@ -1,14 +1,13 @@
 # Hprose for PHP
 
-<!-- MarkdownTOC depth=6 -->
+---
+> - [Introduction](#introduction)
+> - [Usage](#usage)
+>     - [Server](#server)
+>     - [Client](#client)
+>     - [Exception Handling](#exception-handling)
 
-- [Introduction](#introduction)
-- [Usage](#usage)
-    - [Server](#server)
-    - [Client](#client)
-    - [Exception Handling](#exception-handling)
-
-<!-- /MarkdownTOC -->
+---
 
 ## Introduction
 
