@@ -1,6 +1,16 @@
-=Hprose for PHP=
+# Hprose for PHP
 
-==Introduction==
+<!-- MarkdownTOC depth=6 -->
+
+- Introduction
+- Usage
+    - Hprose Server
+    - Hprose Client
+    - Exception Handling
+
+<!-- /MarkdownTOC -->
+
+## Introduction
 
 *Hprose* is a High Performance Remote Object Service Engine.
 
@@ -34,9 +44,9 @@ programming languages.
 
 This project is the implementation of Hprose for PHP.
 
-==Usage==
+## Usage
 
-=== Hprose Server ===
+### Hprose Server
 
 Hprose for PHP is very easy to use. You can create a hprose server like this:
 
@@ -54,7 +64,7 @@ Hprose for PHP is very easy to use. You can create a hprose server like this:
 ?>
 </pre>
 
-=== Hprose Client ===
+### Hprose Client
 
 Then you can create a hprose client to invoke it like this:
 
@@ -66,7 +76,7 @@ Then you can create a hprose client to invoke it like this:
 ?>
 </pre>
 
-=== Exception Handling ===
+### Exception Handling
 
 If an error occurred on the server, or your service function/method throw an exception. it will be sent to the client, and the client will throw it as an exception. You can use the try statement to catch it.
 
