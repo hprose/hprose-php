@@ -50,7 +50,7 @@ This project is the implementation of Hprose for PHP.
 
 Hprose for PHP is very easy to use. You can create a hprose server like this:
 
-<pre lang="php">
+```php
 <?php
     require_once('php5/HproseHttpServer.php');
 
@@ -62,19 +62,20 @@ Hprose for PHP is very easy to use. You can create a hprose server like this:
     $server->addFunction('hello');
     $server->start();
 ?>
-</pre>
+
+```
 
 ### Hprose Client
 
 Then you can create a hprose client to invoke it like this:
 
-<pre lang="php">
-<?php
+```php
+&lt;?php
     require_once("php5/HproseHttpClient.php");
     $client = new HproseHttpClient('http://127.0.0.1/server.php');
     echo $client->hello('World');
 ?>
-</pre>
+```
 
 ### Exception Handling
 
