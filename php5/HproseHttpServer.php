@@ -15,7 +15,7 @@
  *                                                        *
  * hprose http server library for php5.                   *
  *                                                        *
- * LastModified: Feb 11, 2014                             *
+ * LastModified: Feb 19, 2014                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -24,6 +24,20 @@ require_once('HproseCommon.php');
 require_once('HproseIO.php');
 
 class HproseHttpServer {
+    private $magic_methods = array("__construct",
+                                   "__destruct",
+                                   "__call",
+                                   "__callStatic",
+                                   "__get",
+                                   "__set",
+                                   "__isset",
+                                   "__unset",
+                                   "__sleep",
+                                   "__wakeup",
+                                   "__toString",
+                                   "__invoke",
+                                   "__set_state",
+                                   "__clone");
     private $errorTable = array(E_ERROR => 'Error',
                                 E_WARNING => 'Warning',
                                 E_PARSE => 'Parse Error',
@@ -231,6 +245,7 @@ class HproseHttpServer {
         else {
             $result = $all;
         }
+        $result = array_diff($result, $this->magic_methods);
         return $result;
     }
     public function addMissingFunction($function, $resultMode = HproseResultMode::Normal, $simple = NULL) {
