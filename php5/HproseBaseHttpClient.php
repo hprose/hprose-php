@@ -15,7 +15,7 @@
  *                                                        *
  * hprose base http client class for php5.                *
  *                                                        *
- * LastModified: Jan 2, 2014                              *
+ * LastModified: Feb 23, 2014                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -117,7 +117,7 @@ abstract class HproseBaseHttpClient extends HproseClient {
             $this->host = strtolower($url['host']);
             $this->path = $url['path'];
             $this->timeout = 30000;
-            $this->keepAlive = false;
+            $this->keepAlive = true;
             $this->keepAliveTimeout = 300;
         }
         return $serviceProxy;
