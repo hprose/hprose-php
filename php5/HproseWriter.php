@@ -15,7 +15,7 @@
  *                                                        *
  * hprose writer class for php5.                          *
  *                                                        *
- * LastModified: Feb 11, 2014                             *
+ * LastModified: Mar 4, 2014                              *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -145,6 +145,9 @@ class HproseWriter {
             if ($var instanceof stdClass) {
                 $this->writeMapWithRef($var);
             }
+            elseif ($var instanceof DateTime) {
+                $this->writeDateTimeWithRef($var);
+            }
             elseif (($var instanceof HproseDate) || ($var instanceof HproseDateTime)) {
                 $this->writeDateWithRef($var);
             }
@@ -196,6 +199,18 @@ class HproseWriter {
     }
     public function writeBoolean($bool) {
         $this->stream->write($bool ? HproseTags::TagTrue : HproseTags::TagFalse);
+    }
+    public function writeDateTime($datetime) {
+        $this->refer->set($datetime);
+        if ($datetime->getOffset() == 0) {
+            $this->stream->write($datetime->format("\\DYmd\\THis.u\\Z"));
+        }
+        else {
+            $this->stream->write($datetime->format("\\DYmd\\THis.u;"));
+        }
+    }
+    public function writeDateTimeWithRef($datetime) {
+        if (!$this->refer->write($this->stream, $datetime)) $this->writeDate($datetime);
     }
     public function writeDate($date) {
         $this->refer->set($date);
