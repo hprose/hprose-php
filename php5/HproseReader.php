@@ -15,7 +15,7 @@
  *                                                        *
  * hprose reader class for php5.                          *
  *                                                        *
- * LastModified: Mar 8, 2014                              *
+ * LastModified: Mar 11, 2014                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -72,6 +72,7 @@ class HproseReader extends HproseRawReader {
     }
     public function &unserialize() {
         $tag = $this->stream->getc();
+        $result = NULL;
         switch ($tag) {
             case '0': return 0;
             case '1': return 1;
@@ -83,29 +84,30 @@ class HproseReader extends HproseRawReader {
             case '7': return 7;
             case '8': return 8;
             case '9': return 9;
-            case HproseTags::TagInteger: return $this->readIntegerWithoutTag();
-            case HproseTags::TagLong: return $this->readLongWithoutTag();
-            case HproseTags::TagDouble: return $this->readDoubleWithoutTag();
-            case HproseTags::TagNull: return NULL;
-            case HproseTags::TagEmpty: return '';
-            case HproseTags::TagTrue: return true;
-            case HproseTags::TagFalse: return false;
-            case HproseTags::TagNaN: return log(-1);
-            case HproseTags::TagInfinity: return $this->readInfinityWithoutTag();
-            case HproseTags::TagDate: return $this->readDateWithoutTag();
-            case HproseTags::TagTime: return $this->readTimeWithoutTag();
-            case HproseTags::TagBytes: return $this->readBytesWithoutTag();
-            case HproseTags::TagUTF8Char: return $this->readUTF8CharWithoutTag();
-            case HproseTags::TagString: return $this->readStringWithoutTag();
-            case HproseTags::TagGuid: return $this->readGuidWithoutTag();
-            case HproseTags::TagList: return $this->readListWithoutTag();
-            case HproseTags::TagMap: return $this->readMapWithoutTag();
-            case HproseTags::TagClass: $this->readClass(); return $this->readObject();
-            case HproseTags::TagObject: return $this->readObjectWithoutTag();
-            case HproseTags::TagRef: return $this->readRef();
-            case HproseTags::TagError: throw new HproseException($this->readString());
+            case HproseTags::TagInteger: $result = $this->readIntegerWithoutTag(); break;
+            case HproseTags::TagLong: $result = $this->readLongWithoutTag(); break;
+            case HproseTags::TagDouble: $result = $this->readDoubleWithoutTag(); break;
+            case HproseTags::TagNull: $result = NULL; break;
+            case HproseTags::TagEmpty: $result = ''; break;
+            case HproseTags::TagTrue: $result = true; break;
+            case HproseTags::TagFalse: $result = false; break;
+            case HproseTags::TagNaN: $result = log(-1); break;
+            case HproseTags::TagInfinity: $result = $this->readInfinityWithoutTag(); break;
+            case HproseTags::TagDate: $result = $this->readDateWithoutTag(); break;
+            case HproseTags::TagTime: $result = $this->readTimeWithoutTag(); break;
+            case HproseTags::TagBytes: $result = $this->readBytesWithoutTag(); break;
+            case HproseTags::TagUTF8Char: $result = $this->readUTF8CharWithoutTag(); break;
+            case HproseTags::TagString: $result = $this->readStringWithoutTag(); break;
+            case HproseTags::TagGuid: $result = $this->readGuidWithoutTag(); break;
+            case HproseTags::TagList: $result = &$this->readListWithoutTag(); break;
+            case HproseTags::TagMap: $result = &$this->readMapWithoutTag(); break;
+            case HproseTags::TagClass: $this->readClass(); $result = $this->readObject(); break;
+            case HproseTags::TagObject: $result = $this->readObjectWithoutTag(); break;
+            case HproseTags::TagRef: $result = &$this->readRef(); break;
+            case HproseTags::TagError: throw new HproseException($this->readString()); break;
             default: $this->unexpectedTag($tag);
         }
+        return $result;
     }
     public function checkTag($expectTag, $tag = NULL) {
         if (is_null($tag)) $tag = $this->stream->getc();
@@ -429,7 +431,7 @@ class HproseReader extends HproseRawReader {
     public function &readList() {
         $tag = $this->stream->getc();
         switch ($tag) {
-            case HproseTags::TagNull: return NULL;
+            case HproseTags::TagNull: $result = NULL; return $result;
             case HproseTags::TagList: return $this->readListWithoutTag();
             case HproseTags::TagRef: return $this->readRef();
             default: $this->unexpectedTag($tag);
@@ -449,7 +451,7 @@ class HproseReader extends HproseRawReader {
     public function &readMap() {
         $tag = $this->stream->getc();
         switch ($tag) {
-            case HproseTags::TagNull: return NULL;
+            case HproseTags::TagNull: $result = NULL; return $result;
             case HproseTags::TagMap: return $this->readMapWithoutTag();
             case HproseTags::TagRef: return $this->readRef();
             default: $this->unexpectedTag($tag);
