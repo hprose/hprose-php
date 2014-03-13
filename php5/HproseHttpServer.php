@@ -15,7 +15,7 @@
  *                                                        *
  * hprose http server library for php5.                   *
  *                                                        *
- * LastModified: Feb 19, 2014                             *
+ * LastModified: Mar 13, 2014                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -46,9 +46,11 @@ class HproseHttpServer {
                                 E_CORE_WARNING => 'Core Warning',
                                 E_COMPILE_ERROR => 'Compile Error',
                                 E_COMPILE_WARNING => 'Compile Warning',
+                                E_DEPRECATED => 'Deprecated',
                                 E_USER_ERROR => 'User Error',
                                 E_USER_WARNING => 'User Warning',
                                 E_USER_NOTICE => 'User Notice',
+                                E_USER_DEPRECATED => 'User Deprecated',
                                 E_STRICT => 'Run-time Notice',
                                 E_RECOVERABLE_ERROR => 'Error');
     private $functions;
