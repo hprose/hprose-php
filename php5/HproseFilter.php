@@ -15,14 +15,14 @@
  *                                                        *
  * hprose filter interface for php5.                      *
  *                                                        *
- * LastModified: Jan 2, 2014                              *
+ * LastModified: Mar 19, 2014                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
 
 interface HproseFilter {
-    function inputFilter($data);
-    function outputFilter($data);
+    function inputFilter($data, $context);
+    function outputFilter($data, $context);
 }
 
 ?>

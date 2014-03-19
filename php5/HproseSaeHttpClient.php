@@ -15,7 +15,7 @@
  *                                                        *
  * hprose sae http client class for php5.                 *
  *                                                        *
- * LastModified: Jan 2, 2014                              *
+ * LastModified: Mar 19, 2014                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -29,7 +29,7 @@ class HproseHttpClient extends HproseBaseHttpClient {
         }
         return '';
     }
-    protected function send($request) {
+    protected function sendAndReceive($request) {
         $f = new SaeFetchurl();
         $cookie = $this->getCookie();
         if ($cookie != '') {

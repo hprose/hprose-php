@@ -15,7 +15,7 @@
  *                                                        *
  * hprose http server library for php5.                   *
  *                                                        *
- * LastModified: Mar 13, 2014                             *
+ * LastModified: Mar 19, 2014                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -103,7 +103,7 @@ class HproseHttpServer {
                  HproseFormatter::serialize(trim($error), true) .
                  HproseTags::TagEnd;
         }
-        if ($this->filter) $data = $this->filter->outputFilter($data);
+        if ($this->filter) $data = $this->filter->outputFilter($data, $this);
         return $data;
     }
     public function __errorHandler($errno, $errstr, $errfile, $errline) {
@@ -461,7 +461,7 @@ class HproseHttpServer {
     }
     public function handle() {
         if (!isset($HTTP_RAW_POST_DATA)) $HTTP_RAW_POST_DATA = file_get_contents("php://input");
-        if ($this->filter) $HTTP_RAW_POST_DATA = $this->filter->inputFilter($HTTP_RAW_POST_DATA);
+        if ($this->filter) $HTTP_RAW_POST_DATA = $this->filter->inputFilter($HTTP_RAW_POST_DATA, $this);
         $this->input = new HproseStringStream($HTTP_RAW_POST_DATA);
         $this->output = new HproseFileStream(fopen('php://output', 'wb'));
         set_error_handler(array(&$this, '__errorHandler'), $this->error_types);
