@@ -15,7 +15,7 @@
  *                                                        *
  * hprose http server library for php5.                   *
  *                                                        *
- * LastModified: Mar 19, 2014                             *
+ * LastModified: Mar 20, 2014                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -134,6 +134,12 @@ class HproseHttpServer {
             }
         }
     }
+    private function responseEnd() {
+        ob_end_clean();
+        $data = $this->output->toString();
+        if ($this->filter) $data = $this->filter->outputFilter($data, $this);
+        print($data);
+    }
     private function sendError() {
         if ($this->onSendError) {
             call_user_func($this->onSendError, $this->error);
@@ -143,7 +149,7 @@ class HproseHttpServer {
         $writer = new HproseWriter($this->output, true);
         $writer->writeString($this->error);
         $this->output->write(HproseTags::TagEnd);
-        ob_end_flush();
+        $this->responseEnd();
     }
     private function doInvoke() {
         $simpleReader = new HproseReader($this->input, true);
@@ -228,7 +234,7 @@ class HproseHttpServer {
             }
         } while ($tag == HproseTags::TagCall);
         $this->output->write(HproseTags::TagEnd);
-        ob_end_flush();
+        $this->responseEnd();
     }
     private function doFunctionList() {
         $functions = array_values($this->funcNames);
@@ -236,7 +242,7 @@ class HproseHttpServer {
         $this->output->write(HproseTags::TagFunctions);
         $writer->writeList($functions);
         $this->output->write(HproseTags::TagEnd);
-        ob_end_flush();
+        $this->responseEnd();
     }
     private function getDeclaredOnlyMethods($class) {
         $all = get_class_methods($class);
@@ -463,7 +469,7 @@ class HproseHttpServer {
         if (!isset($HTTP_RAW_POST_DATA)) $HTTP_RAW_POST_DATA = file_get_contents("php://input");
         if ($this->filter) $HTTP_RAW_POST_DATA = $this->filter->inputFilter($HTTP_RAW_POST_DATA, $this);
         $this->input = new HproseStringStream($HTTP_RAW_POST_DATA);
-        $this->output = new HproseFileStream(fopen('php://output', 'wb'));
+        $this->output = new HproseStringStream();
         set_error_handler(array(&$this, '__errorHandler'), $this->error_types);
         ob_start(array(&$this, "__filterHandler"));
         ob_implicit_flush(0);
