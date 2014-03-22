@@ -15,7 +15,7 @@
  *                                                        *
  * hprose http server library for php5.                   *
  *                                                        *
- * LastModified: Mar 20, 2014                             *
+ * LastModified: Mar 22, 2014                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -64,7 +64,7 @@ class HproseHttpServer {
     private $input;
     private $output;
     private $error;
-    private $filter;
+    private $filters;
     private $simple;
     public $onBeforeInvoke;
     public $onAfterInvoke;
@@ -79,7 +79,7 @@ class HproseHttpServer {
         $this->crossDomain = false;
         $this->P3P = false;
         $this->get = true;
-        $this->filter = NULL;
+        $this->filters = array();
         $this->simple = false;
         $this->error_types = E_ALL & ~E_NOTICE;
         $this->onBeforeInvoke = NULL;
@@ -103,7 +103,10 @@ class HproseHttpServer {
                  HproseFormatter::serialize(trim($error), true) .
                  HproseTags::TagEnd;
         }
-        if ($this->filter) $data = $this->filter->outputFilter($data, $this);
+        $count = count($this->filters);
+        for ($i = 0; $i < $count; $i++) {
+            $data = $this->filters[$i]->outputFilter($data, $this);
+        }
         return $data;
     }
     public function __errorHandler($errno, $errstr, $errfile, $errline) {
@@ -137,7 +140,10 @@ class HproseHttpServer {
     private function responseEnd() {
         ob_end_clean();
         $data = $this->output->toString();
-        if ($this->filter) $data = $this->filter->outputFilter($data, $this);
+        $count = count($this->filters);
+        for ($i = 0; $i < $count; $i++) {
+            $data = $this->filters[$i]->outputFilter($data, $this);
+        }
         print($data);
     }
     private function sendError() {
@@ -448,10 +454,27 @@ class HproseHttpServer {
         $this->get = $enable;
     }
     public function getFilter() {
-        return $this->filter;
+        if (count($this->filters) === 0) {
+            return NULL;
+        }
+        return $this->filters[0];
     }
     public function setFilter($filter) {
-        $this->filter = $filter;
+        $this->filters = array();
+        if ($filter !== NULL) {
+            $this->filters[] = $filter;
+        }
+    }
+    public function addFilter($filter) {
+        $this->filters[] = $filter;
+    }
+    public function removeFilter($filter) {
+        $i = array_search($filter, $this->filters);
+        if ($i === false || $i === NULL) {
+            return false;
+        }
+        $this->filters = array_splice($this->filters, $i, 1);
+        return true;
     }
     public function getSimpleMode() {
         return $this->simple;
@@ -467,8 +490,12 @@ class HproseHttpServer {
     }
     public function handle() {
         if (!isset($HTTP_RAW_POST_DATA)) $HTTP_RAW_POST_DATA = file_get_contents("php://input");
-        if ($this->filter) $HTTP_RAW_POST_DATA = $this->filter->inputFilter($HTTP_RAW_POST_DATA, $this);
-        $this->input = new HproseStringStream($HTTP_RAW_POST_DATA);
+        $data = $HTTP_RAW_POST_DATA;
+        $count = count($this->filters);
+        for ($i = $count - 1; $i >= 0; $i--) {
+            $data = $this->filters[$i]->inputFilter($data, $this);
+        }
+        $this->input = new HproseStringStream($data);
         $this->output = new HproseStringStream();
         set_error_handler(array(&$this, '__errorHandler'), $this->error_types);
         ob_start(array(&$this, "__filterHandler"));

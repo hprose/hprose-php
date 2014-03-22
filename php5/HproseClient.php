@@ -15,7 +15,7 @@
  *                                                        *
  * hprose client library for php5.                        *
  *                                                        *
- * LastModified: Mar 19, 2014                             *
+ * LastModified: Mar 22, 2014                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -41,12 +41,12 @@ class HproseProxy {
 
 abstract class HproseClient {
     protected $url;
-    private $filter;
+    private $filters;
     private $simple;
     protected abstract function sendAndReceive($request);
     public function __construct($url = '') {
         $this->useService($url);
-        $this->filter = NULL;
+        $this->filters = array();
         $this->simple = false;
     }
     public function useService($url = '', $namespace = '') {
@@ -69,10 +69,15 @@ abstract class HproseClient {
         }
         $stream->write(HproseTags::TagEnd);
         $request = $stream->toString();
-        if ($this->filter) $request = $this->filter->outputFilter($request, $this);
+        $count = count($this->filters);
+        for ($i = 0; $i < $count; $i++) {
+            $request = $this->filters[$i]->outputFilter($request, $this);
+        }
         $stream->close();
         $response = $this->sendAndReceive($request);
-        if ($this->filter) $response = $this->filter->inputFilter($response, $this);
+        for ($i = $count - 1; $i >= 0; $i--) {
+            $response = $this->filters[$i]->inputFilter($response, $this);
+        }
         if ($resultMode == HproseResultMode::RawWithEndTag) {
             return $response;
         }
@@ -112,10 +117,27 @@ abstract class HproseClient {
         return $result;
     }
     public function getFilter() {
-        return $this->filter;
+        if (count($this->filters) === 0) {
+            return NULL;
+        }
+        return $this->filters[0];
     }
     public function setFilter($filter) {
-        $this->filter = $filter;
+        $this->filters = array();
+        if ($filter !== NULL) {
+            $this->filters[] = $filter;
+        }
+    }
+    public function addFilter($filter) {
+        $this->filters[] = $filter;
+    }
+    public function removeFilter($filter) {
+        $i = array_search($filter, $this->filters);
+        if ($i === false || $i === NULL) {
+            return false;
+        }
+        $this->filters = array_splice($this->filters, $i, 1);
+        return true;
     }
     public function getSimpleMode() {
         return $this->simple;
