@@ -15,7 +15,7 @@
  *                                                        *
  * hprose http server library for php5.                   *
  *                                                        *
- * LastModified: Mar 23, 2014                             *
+ * LastModified: Apr 18, 2014                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -65,6 +65,7 @@ class HproseHttpServer {
     private $output;
     private $error;
     private $filters;
+    private $origins;
     private $simple;
     public $onBeforeInvoke;
     public $onAfterInvoke;
@@ -80,6 +81,7 @@ class HproseHttpServer {
         $this->P3P = false;
         $this->get = true;
         $this->filters = array();
+        $this->origins = array();
         $this->simple = false;
         $this->error_types = E_ALL & ~E_NOTICE;
         $this->onBeforeInvoke = NULL;
@@ -125,7 +127,7 @@ class HproseHttpServer {
         }
         $this->error = $this->errorTable[$errno] . ": " . $errstr;
         $this->sendError();
-        return true;
+        exit();
     }
     private function sendHeader() {
         if ($this->onSendHeader) {
@@ -139,8 +141,10 @@ class HproseHttpServer {
         }
         if ($this->crossDomain) {
             if (array_key_exists('HTTP_ORIGIN', $_SERVER) && $_SERVER['HTTP_ORIGIN'] != "null") {
-                header("Access-Control-Allow-Origin: " . $_SERVER['HTTP_ORIGIN']);
-                header("Access-Control-Allow-Credentials: true");
+                if (count($this->origins) === 0 || array_key_exists($_SERVER['HTTP_ORIGIN'], $this->origins)) {
+                    header("Access-Control-Allow-Origin: " . $_SERVER['HTTP_ORIGIN']);
+                    header("Access-Control-Allow-Credentials: true");
+                }
             }
             else {
                 header('Access-Control-Allow-Origin: *');
@@ -148,14 +152,14 @@ class HproseHttpServer {
         }
     }
     private function responseEnd() {
-        ob_end_clean();
+        @ob_end_clean();
         print($this->outputFilter($this->output->toString()));
     }
     private function sendError() {
         if ($this->onSendError) {
             call_user_func($this->onSendError, $this->error);
         }
-        ob_clean();
+        @ob_clean();
         $this->output->write(HproseTags::TagError);
         $writer = new HproseWriter($this->output, true);
         $writer->writeString($this->error);
@@ -220,7 +224,7 @@ class HproseHttpServer {
                 call_user_func($this->onAfterInvoke, $functionName, $args, $byref, $result);
             }
             // some service functions/methods may echo content, we need clean it
-            ob_clean();
+            @ob_clean();
             if ($resultMode == HproseResultMode::RawWithEndTag) {
                 $this->output->write($result);
                 return;
@@ -481,6 +485,12 @@ class HproseHttpServer {
         $this->filters = array_splice($this->filters, $i, 1);
         return true;
     }
+    public function addAccessControlAllowOrigin($origin) {
+        $this->origins[$origin] = true;
+    }
+    public function removeAccessControlAllowOrigin($origin) {
+        unset($this->origins[$origin]);
+    }
     public function getSimpleMode() {
         return $this->simple;
     }
@@ -500,7 +510,7 @@ class HproseHttpServer {
         set_error_handler(array(&$this, '__errorHandler'), $this->error_types);
         ob_start(array(&$this, "__filterHandler"));
         ob_implicit_flush(0);
-        ob_clean();
+        @ob_clean();
         $this->sendHeader();
         if (($_SERVER['REQUEST_METHOD'] == 'GET') and $this->get) {
             return $this->doFunctionList();
