@@ -23,5 +23,3 @@
 require_once("HproseStringStream.php");
 require_once("HproseFileStream.php");
 require_once("HproseProcStream.php");
-
-?>

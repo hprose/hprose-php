@@ -136,5 +136,3 @@ class HproseProcStream extends HproseAbstractStream {
         return fwrite($this->pipes[0], $string, $length);
     }
 }
-
-?>

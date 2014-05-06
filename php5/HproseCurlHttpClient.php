@@ -92,5 +92,3 @@ class HproseHttpClient extends HproseBaseHttpClient {
         curl_close($this->curl);
     }
 }
-
-?>

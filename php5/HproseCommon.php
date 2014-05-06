@@ -35,7 +35,7 @@ class HproseBytes {
     public function __construct($val) {
         $this->value = $val;
     }
-    public function __toString() {
+    public function __toString($value) {
         return (string)$value;
     }
 }
@@ -195,4 +195,3 @@ if (!function_exists('spl_object_hash')) {
         return $match[1];
     }
 }
-?>

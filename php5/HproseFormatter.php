@@ -37,4 +37,3 @@ class HproseFormatter {
         return $hproseReader->unserialize();
     }
 }
-?>

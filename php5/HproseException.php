@@ -21,5 +21,3 @@
 \**********************************************************/
 
 class HproseException extends Exception {}
-
-?>

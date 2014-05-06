@@ -111,5 +111,3 @@ class HproseStringStream extends HproseAbstractStream {
         return $this->buffer;
     }
 }
-
-?>

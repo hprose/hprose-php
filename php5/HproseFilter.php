@@ -24,5 +24,3 @@ interface HproseFilter {
     function inputFilter($data, $context);
     function outputFilter($data, $context);
 }
-
-?>

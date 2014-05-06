@@ -59,4 +59,3 @@ class HproseTags {
     const TagError = 'E';
     const TagEnd = 'z';
 }
-?>

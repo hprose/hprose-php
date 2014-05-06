@@ -26,5 +26,3 @@ class HproseResultMode {
     const Raw = 2;
     const RawWithEndTag = 3;
 }
-
-?>

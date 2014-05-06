@@ -25,5 +25,3 @@ require_once('HproseClassManager.php');
 require_once('HproseReader.php');
 require_once('HproseWriter.php');
 require_once('HproseFormatter.php');
-
-?>

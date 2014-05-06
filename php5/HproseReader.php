@@ -512,5 +512,3 @@ class HproseReader extends HproseRawReader {
         $this->refer->reset();
     }
 }
-
-?>

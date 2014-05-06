@@ -118,5 +118,3 @@ class HproseTime {
             ($microsecond < 0) || ($microsecond > 999999));
     }
 }
-
-?>

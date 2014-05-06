@@ -33,5 +33,3 @@ abstract class HproseAbstractStream {
     public abstract function eof();
     public abstract function write($string, $length = -1);
 }
-
-?>

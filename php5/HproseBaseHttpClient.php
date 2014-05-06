@@ -53,8 +53,8 @@ abstract class HproseBaseHttpClient extends HproseClient {
                 list($name, $value) = explode('=', trim($cookies[0]), 2);
                 $cookie['name'] = $name;
                 $cookie['value'] = $value;
-                for ($i = 1; $i < count($cookies); $i++) {
-                    list($name, $value) = explode('=', trim($cookies[$i]), 2);
+                foreach($cookies as $i => $cookie){
+                    list($name, $value) = explode('=', trim($cookie), 2);
                     $cookie[strtoupper($name)] = $value;
                 }
                 // Tomcat can return SetCookie2 with path wrapped in "
@@ -157,5 +157,3 @@ abstract class HproseBaseHttpClient extends HproseClient {
         return $this->keepAliveTimeout;
     }
 }
-
-?>

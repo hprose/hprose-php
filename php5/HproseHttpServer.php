@@ -98,8 +98,10 @@ class HproseHttpServer {
     }
     private function outputFilter($data) {
         $count = count($this->filters);
-        for ($i = 0; $i < $count; $i++) {
-            $data = $this->filters[$i]->outputFilter($data, $this);
+        if($count){
+            foreach($this->filters as $i => $filter){
+                $data = $this->$filter->outputFilter($data, $this);
+            }
         }
         return $data;
     }
@@ -305,13 +307,14 @@ class HproseHttpServer {
         if (!$aliases_is_null && $count != count($aliases)) {
             throw new HproseException('The count of functions is not matched with aliases');
         }
-        for ($i = 0; $i < $count; $i++) {
-            $function = $functions[$i];
-            if ($aliases_is_null) {
-                $this->addFunction($function, NULL, $resultMode, $simple);
-            }
-            else {
-                $this->addFunction($function, $aliases[$i], $resultMode, $simple);
+        if($count){
+            foreach($functions as $i => $function){
+                if ($aliases_is_null) {
+                    $this->addFunction($function, NULL, $resultMode, $simple);
+                }
+                else {
+                    $this->addFunction($function, $aliases[$i], $resultMode, $simple);
+                }
             }
         }
     }
@@ -339,19 +342,20 @@ class HproseHttpServer {
         if (!$aliases_is_null && $count != count($aliases)) {
             throw new HproseException('The count of methods is not matched with aliases');
         }
-        for ($i = 0; $i < $count; $i++) {
-            $method = $methods[$i];
-            if (is_string($belongto)) {
-                $function = array($belongto, $method);
-            }
-            else {
-                $function = array(&$belongto, $method);
-            }
-            if ($aliases_is_null) {
-                $this->addFunction($function, $method, $resultMode, $simple);
-            }
-            else {
-                $this->addFunction($function, $aliases[$i], $resultMode, $simple);
+        if($count){
+            foreach($methods as $i => $method){
+                if (is_string($belongto)) {
+                    $function = array($belongto, $method);
+                }
+                else {
+                    $function = array(&$belongto, $method);
+                }
+                if ($aliases_is_null) {
+                    $this->addFunction($function, $method, $resultMode, $simple);
+                }
+                else {
+                    $this->addFunction($function, $aliases[$i], $resultMode, $simple);
+                }
             }
         }
     }
@@ -540,4 +544,3 @@ class HproseHttpServer {
         $this->handle();
     }
 }
-?>

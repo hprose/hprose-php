@@ -212,5 +212,3 @@ class HproseRawReader {
         $ostream->write($tag);
     }
 }
-
-?>

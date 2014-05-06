@@ -132,5 +132,3 @@ class HproseFileStream extends HproseAbstractStream {
         return fwrite($this->fp, $string, $length);
     }
 }
-
-?>

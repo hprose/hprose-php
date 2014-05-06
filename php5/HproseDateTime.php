@@ -319,5 +319,3 @@ class HproseDateTime extends HproseDate {
         return HproseTime::isValidTime($hour, $minute, $second, $microsecond);
     }
 }
-
-?>

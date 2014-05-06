@@ -61,4 +61,3 @@ class HproseHttpClient extends HproseBaseHttpClient {
         return $response;
     }
 }
-?>

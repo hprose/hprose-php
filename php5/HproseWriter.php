@@ -327,12 +327,14 @@ class HproseWriter {
         $count = count($fields);
         if ($count > 0) $this->stream->write((string)$count);
         $this->stream->write(HproseTags::TagOpenbrace);
-        for ($i = 0; $i < $count; ++$i) {
-            $field = $fields[$i];
-            if ($field{0} === "\0") {
-                $field = substr($field, strpos($field, "\0", 1) + 1);
+        if($count){
+            foreach($fields as $i => $field){
+                $field = $fields[$i];
+                if ($field{0} === "\0") {
+                    $field = substr($field, strpos($field, "\0", 1) + 1);
+                }
+                $this->writeString($field);
             }
-            $this->writeString($field);
         }
         $this->stream->write(HproseTags::TagClosebrace);
         $index = count($this->fieldsref);
@@ -346,5 +348,3 @@ class HproseWriter {
         $this->refer->reset();
     }
 }
-
-?>

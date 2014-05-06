@@ -29,5 +29,3 @@ elseif (function_exists('curl_init')) {
 else {
     require_once('HproseFgcHttpClient.php');
 }
-
-?>

@@ -268,5 +268,3 @@ class HproseDate {
         return $days[$m - 1] + $d;
     }
 }
-
-?>

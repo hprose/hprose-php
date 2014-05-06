@@ -70,8 +70,10 @@ abstract class HproseClient {
         $stream->write(HproseTags::TagEnd);
         $request = $stream->toString();
         $count = count($this->filters);
-        for ($i = 0; $i < $count; $i++) {
-            $request = $this->filters[$i]->outputFilter($request, $this);
+        if($count){
+            foreach($this->filters as $i => $filter){
+                $request = $this->$filter->outputFilter($request, $this);
+            }
         }
         $stream->close();
         $response = $this->sendAndReceive($request);
@@ -152,5 +154,3 @@ abstract class HproseClient {
         return new HproseProxy($this, $name . '_');
     }
 }
-
-?>
