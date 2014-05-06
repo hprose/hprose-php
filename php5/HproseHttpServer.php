@@ -339,19 +339,20 @@ class HproseHttpServer {
         if (!$aliases_is_null && $count != count($aliases)) {
             throw new HproseException('The count of methods is not matched with aliases');
         }
-        for ($i = 0; $i < $count; $i++) {
-            $method = $methods[$i];
-            if (is_string($belongto)) {
-                $function = array($belongto, $method);
-            }
-            else {
-                $function = array(&$belongto, $method);
-            }
-            if ($aliases_is_null) {
-                $this->addFunction($function, $method, $resultMode, $simple);
-            }
-            else {
-                $this->addFunction($function, $aliases[$i], $resultMode, $simple);
+        if($count){
+            foreach($methods as $k => $method){
+                if (is_string($belongto)) {
+                    $function = array($belongto, $method);
+                }
+                else {
+                    $function = array(&$belongto, $method);
+                }
+                if ($aliases_is_null) {
+                    $this->addFunction($function, $method, $resultMode, $simple);
+                }
+                else {
+                    $this->addFunction($function, $aliases[$k], $resultMode, $simple);
+                }
             }
         }
     }
