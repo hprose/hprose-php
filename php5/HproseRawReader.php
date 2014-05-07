@@ -15,7 +15,7 @@
  *                                                        *
  * hprose raw reader class for php5.                      *
  *                                                        *
- * LastModified: Jan 2, 2014                              *
+ * LastModified: May 7, 2014                              *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -29,7 +29,7 @@ class HproseRawReader {
     function __construct(&$stream) {
         $this->stream = &$stream;
     }
-    public function unexpectedTag($tag, $expectTags) {
+    public function unexpectedTag($tag, $expectTags = NULL) {
         if ($tag && $expectTags) {
             throw new HproseException("Tag '" . $expectTags . "' expected, but '" . $tag . "' found in stream");
         }
