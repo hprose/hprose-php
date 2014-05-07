@@ -21,11 +21,11 @@
 \**********************************************************/
 
 if (class_exists('SaeFetchurl', false)) {
-    require(dirname(__FILE__) . DIRECTORY_SEPARATOR . 'HproseSaeHttpClient.php');
+    require_once(dirname(__FILE__) . DIRECTORY_SEPARATOR . 'HproseSaeHttpClient.php');
 }
 elseif (function_exists('curl_init')) {
-    require(dirname(__FILE__) . DIRECTORY_SEPARATOR . 'HproseCurlHttpClient.php');
+    require_once(dirname(__FILE__) . DIRECTORY_SEPARATOR . 'HproseCurlHttpClient.php');
 }
 else {
-    require(dirname(__FILE__) . DIRECTORY_SEPARATOR . 'HproseFgcHttpClient.php');
+    require_once(dirname(__FILE__) . DIRECTORY_SEPARATOR . 'HproseFgcHttpClient.php');
 }

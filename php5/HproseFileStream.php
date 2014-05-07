@@ -20,7 +20,7 @@
  *                                                        *
 \**********************************************************/
 
-require(dirname(__FILE__) . DIRECTORY_SEPARATOR . "HproseAbstractStream.php");
+require_once(dirname(__FILE__) . DIRECTORY_SEPARATOR . "HproseAbstractStream.php");
 
 class HproseFileStream extends HproseAbstractStream {
     protected $fp;

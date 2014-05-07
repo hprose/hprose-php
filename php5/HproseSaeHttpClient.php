@@ -20,7 +20,7 @@
  *                                                        *
 \**********************************************************/
 
-require(dirname(__FILE__) . DIRECTORY_SEPARATOR . 'HproseBaseHttpClient.php');
+require_once(dirname(__FILE__) . DIRECTORY_SEPARATOR . 'HproseBaseHttpClient.php');
 
 class HproseHttpClient extends HproseBaseHttpClient {
     protected function formatCookie($cookies) {

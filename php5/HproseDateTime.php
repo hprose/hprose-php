@@ -20,7 +20,7 @@
  *                                                        *
 \**********************************************************/
 
-require(dirname(__FILE__) . DIRECTORY_SEPARATOR . 'HproseDate.php');
+require_once(dirname(__FILE__) . DIRECTORY_SEPARATOR . 'HproseDate.php');
 
 class HproseDateTime extends HproseDate {
     public $hour;

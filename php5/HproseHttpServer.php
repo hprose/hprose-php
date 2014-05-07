@@ -20,8 +20,8 @@
  *                                                        *
 \**********************************************************/
 
-require(dirname(__FILE__) . DIRECTORY_SEPARATOR . 'HproseCommon.php');
-require(dirname(__FILE__) . DIRECTORY_SEPARATOR . 'HproseIO.php');
+require_once(dirname(__FILE__) . DIRECTORY_SEPARATOR . 'HproseCommon.php');
+require_once(dirname(__FILE__) . DIRECTORY_SEPARATOR . 'HproseIO.php');
 
 class HproseHttpServer {
     private $magic_methods = array("__construct",

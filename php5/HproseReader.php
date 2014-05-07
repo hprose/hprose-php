@@ -20,8 +20,8 @@
  *                                                        *
 \**********************************************************/
 
-require(dirname(__FILE__) . DIRECTORY_SEPARATOR . 'HproseClassManager.php');
-require(dirname(__FILE__) . DIRECTORY_SEPARATOR . 'HproseRawReader.php');
+require_once(dirname(__FILE__) . DIRECTORY_SEPARATOR . 'HproseClassManager.php');
+require_once(dirname(__FILE__) . DIRECTORY_SEPARATOR . 'HproseRawReader.php');
 
 interface HproseReaderRefer {
     public function set(&$val);

@@ -20,12 +20,12 @@
  *                                                        *
 \**********************************************************/
 
-require(dirname(__FILE__) . DIRECTORY_SEPARATOR . 'HproseResultMode.php');
-require(dirname(__FILE__) . DIRECTORY_SEPARATOR . 'HproseException.php');
-require(dirname(__FILE__) . DIRECTORY_SEPARATOR . 'HproseFilter.php');
-require(dirname(__FILE__) . DIRECTORY_SEPARATOR . 'HproseDate.php');
-require(dirname(__FILE__) . DIRECTORY_SEPARATOR . 'HproseTime.php');
-require(dirname(__FILE__) . DIRECTORY_SEPARATOR . 'HproseDateTime.php');
+require_once(dirname(__FILE__) . DIRECTORY_SEPARATOR . 'HproseResultMode.php');
+require_once(dirname(__FILE__) . DIRECTORY_SEPARATOR . 'HproseException.php');
+require_once(dirname(__FILE__) . DIRECTORY_SEPARATOR . 'HproseFilter.php');
+require_once(dirname(__FILE__) . DIRECTORY_SEPARATOR . 'HproseDate.php');
+require_once(dirname(__FILE__) . DIRECTORY_SEPARATOR . 'HproseTime.php');
+require_once(dirname(__FILE__) . DIRECTORY_SEPARATOR . 'HproseDateTime.php');
 
 defined('E_DEPRECATED') or define('E_DEPRECATED', 8192);
 defined('E_USER_DEPRECATED') or define('E_USER_DEPRECATED', 16384);
@@ -35,8 +35,8 @@ class HproseBytes {
     public function __construct($val) {
         $this->value = $val;
     }
-    public function __toString($value) {
-        return (string)$value;
+    public function __toString() {
+        return (string)$this->value;
     }
 }
 
