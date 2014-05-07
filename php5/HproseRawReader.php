@@ -29,7 +29,7 @@ class HproseRawReader {
     function __construct(&$stream) {
         $this->stream = &$stream;
     }
-    public function unexpectedTag($tag, $expectTags) {
+    public function unexpectedTag($tag, $expectTags = NULL) {
         if ($tag && $expectTags) {
             throw new HproseException("Tag '" . $expectTags . "' expected, but '" . $tag . "' found in stream");
         }
