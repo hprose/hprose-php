@@ -20,9 +20,9 @@
  *                                                        *
 \**********************************************************/
 
-require_once('HproseCommon.php');
-require_once('HproseTags.php');
-require_once('HproseClassManager.php');
+require(dirname(__FILE__) . DIRECTORY_SEPARATOR . 'HproseCommon.php');
+require(dirname(__FILE__) . DIRECTORY_SEPARATOR . 'HproseTags.php');
+require(dirname(__FILE__) . DIRECTORY_SEPARATOR . 'HproseClassManager.php');
 
 interface HproseWriterRefer {
     public function set(&$val);

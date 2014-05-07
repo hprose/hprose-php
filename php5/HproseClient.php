@@ -20,8 +20,8 @@
  *                                                        *
 \**********************************************************/
 
-require_once('HproseCommon.php');
-require_once('HproseIO.php');
+require(dirname(__FILE__) . DIRECTORY_SEPARATOR . 'HproseCommon.php');
+require(dirname(__FILE__) . DIRECTORY_SEPARATOR . 'HproseIO.php');
 
 class HproseProxy {
     private $client;

@@ -20,9 +20,9 @@
  *                                                        *
 \**********************************************************/
 
-require_once('HproseIOStream.php');
-require_once('HproseReader.php');
-require_once('HproseWriter.php');
+require(dirname(__FILE__) . DIRECTORY_SEPARATOR . 'HproseIOStream.php');
+require(dirname(__FILE__) . DIRECTORY_SEPARATOR . 'HproseReader.php');
+require(dirname(__FILE__) . DIRECTORY_SEPARATOR . 'HproseWriter.php');
 
 class HproseFormatter {
     public static function serialize(&$var, $simple = false) {

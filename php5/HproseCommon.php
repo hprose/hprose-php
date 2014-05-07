@@ -20,12 +20,12 @@
  *                                                        *
 \**********************************************************/
 
-require_once('HproseResultMode.php');
-require_once('HproseException.php');
-require_once('HproseFilter.php');
-require_once('HproseDate.php');
-require_once('HproseTime.php');
-require_once('HproseDateTime.php');
+require(dirname(__FILE__) . DIRECTORY_SEPARATOR . 'HproseResultMode.php');
+require(dirname(__FILE__) . DIRECTORY_SEPARATOR . 'HproseException.php');
+require(dirname(__FILE__) . DIRECTORY_SEPARATOR . 'HproseFilter.php');
+require(dirname(__FILE__) . DIRECTORY_SEPARATOR . 'HproseDate.php');
+require(dirname(__FILE__) . DIRECTORY_SEPARATOR . 'HproseTime.php');
+require(dirname(__FILE__) . DIRECTORY_SEPARATOR . 'HproseDateTime.php');
 
 defined('E_DEPRECATED') or define('E_DEPRECATED', 8192);
 defined('E_USER_DEPRECATED') or define('E_USER_DEPRECATED', 16384);

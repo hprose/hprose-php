@@ -20,7 +20,7 @@
  *                                                        *
 \**********************************************************/
 
-require_once('HproseBaseHttpClient.php');
+require(dirname(__FILE__) . DIRECTORY_SEPARATOR . 'HproseBaseHttpClient.php');
 
 class HproseHttpClient extends HproseBaseHttpClient {
     private $curl;

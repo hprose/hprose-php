@@ -20,8 +20,8 @@
  *                                                        *
 \**********************************************************/
 
-require_once('HproseTags.php');
-require_once('HproseClassManager.php');
-require_once('HproseReader.php');
-require_once('HproseWriter.php');
-require_once('HproseFormatter.php');
+require(dirname(__FILE__) . DIRECTORY_SEPARATOR . 'HproseTags.php');
+require(dirname(__FILE__) . DIRECTORY_SEPARATOR . 'HproseClassManager.php');
+require(dirname(__FILE__) . DIRECTORY_SEPARATOR . 'HproseReader.php');
+require(dirname(__FILE__) . DIRECTORY_SEPARATOR . 'HproseWriter.php');
+require(dirname(__FILE__) . DIRECTORY_SEPARATOR . 'HproseFormatter.php');

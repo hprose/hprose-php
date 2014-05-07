@@ -20,6 +20,6 @@
  *                                                        *
 \**********************************************************/
 
-require_once("HproseStringStream.php");
-require_once("HproseFileStream.php");
-require_once("HproseProcStream.php");
+require(dirname(__FILE__) . DIRECTORY_SEPARATOR . "HproseStringStream.php");
+require(dirname(__FILE__) . DIRECTORY_SEPARATOR . "HproseFileStream.php");
+require(dirname(__FILE__) . DIRECTORY_SEPARATOR . "HproseProcStream.php");
