@@ -110,11 +110,11 @@ class HproseReader extends HproseRawReader {
         return $result;
     }
     public function checkTag($expectTag, $tag = NULL) {
-        if (is_null($tag)) $tag = $this->stream->getc();
+        if (null === $tag) $tag = $this->stream->getc();
         if ($tag != $expectTag) $this->unexpectedTag($tag, $expectTag);
     }
     public function checkTags($expectTags, $tag = NULL) {
-        if (is_null($tag)) $tag = $this->stream->getc();
+        if (null === $tag) $tag = $this->stream->getc();
         if (!in_array($tag, $expectTags)) {
             $this->unexpectedTag($tag, implode('', $expectTags));
         }

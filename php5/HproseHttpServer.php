@@ -415,7 +415,7 @@ class HproseHttpServer {
                 break;
             }
             case 3: {
-                if (is_callable($args[0]) && is_null($args[1]) && is_string($args[2])) {
+                if (is_callable($args[0]) && null === $args[1] && is_string($args[2])) {
                     return $this->addFunction($args[0], $args[2]);
                 }
                 elseif (is_string($args[0]) && is_string($args[2])) {
@@ -427,7 +427,7 @@ class HproseHttpServer {
                     }
                 }
                 elseif (is_array($args[0])) {
-                    if (is_null($args[1]) && is_array($args[2])) {
+                    if (null === $args[1] && is_array($args[2])) {
                         return $this->addFunctions($args[0], $args[2]);
                     }
                     else {

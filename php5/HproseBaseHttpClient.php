@@ -93,7 +93,7 @@ abstract class HproseBaseHttpClient extends HproseClient {
                     }
                     elseif (strpos($this->path, $cookie['PATH']) === 0) {
                         if ((($this->secure && $cookie['SECURE']) ||
-                             !$cookie['SECURE']) && !is_null($cookie['value'])) {
+                             !$cookie['SECURE']) && null !== ($cookie['value'])) {
                             $cookies[] = $cookie['name'] . '=' . $cookie['value'];
                         }
                     }

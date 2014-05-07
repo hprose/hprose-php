@@ -41,10 +41,10 @@ class HproseRawReader {
         }
     }
     public function readRaw($ostream = NULL, $tag = NULL) {
-        if (is_null($ostream)) {
+        if (null === $ostream) {
             $ostream = new HproseStringStream();
         }
-        if (is_null($tag)) {
+        if (null === $tag) {
             $tag = $this->stream->getc();
         }
         $ostream->write($tag);
