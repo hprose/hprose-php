@@ -15,7 +15,7 @@
  *                                                        *
  * hprose base http client class for php5.                *
  *                                                        *
- * LastModified: Feb 23, 2014                             *
+ * LastModified: May 13, 2014                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -50,12 +50,12 @@ abstract class HproseBaseHttpClient extends HproseClient {
                 strtolower($name) == 'set-cookie2') {
                 $cookies = explode(';', trim($value));
                 $cookie = array();
-                list($name, $value) = explode('=', trim($cookies[0]), 2);
-                $cookie['name'] = $name;
-                $cookie['value'] = $value;
+                $pair = explode('=', trim($cookies[0]), 2);
+                $cookie['name'] = $pair[0];
+                $cookie['value'] = (count($pair) > 1) ? $pair[1] : '';
                 for ($i = 1; $i < count($cookies); $i++) {
-                    list($name, $value) = explode('=', trim($cookies[$i]), 2);
-                    $cookie[strtoupper($name)] = $value;
+                    $pair = explode('=', trim($cookies[$i]), 2);
+                    $cookie[strtoupper($pair[0])] = (count($pair) > 1) ? $pair[1] : '';
                 }
                 // Tomcat can return SetCookie2 with path wrapped in "
                 if (array_key_exists('PATH', $cookie)) {
