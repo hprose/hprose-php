@@ -4,7 +4,6 @@
 |                          hprose                          |
 |                                                          |
 | Official WebSite: http://www.hprose.com/                 |
-|                   http://www.hprose.net/                 |
 |                   http://www.hprose.org/                 |
 |                                                          |
 \**********************************************************/
