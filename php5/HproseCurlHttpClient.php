@@ -38,7 +38,9 @@ class HproseHttpClient extends HproseBaseHttpClient {
         curl_setopt($this->curl, CURLOPT_HEADER, TRUE);
         curl_setopt($this->curl, CURLOPT_SSL_VERIFYPEER, FALSE);
         curl_setopt($this->curl, CURLOPT_RETURNTRANSFER, TRUE);
-        curl_setopt($this->curl, CURLOPT_FOLLOWLOCATION, TRUE);
+        if (!ini_get('safe_mode')) {
+            curl_setopt($this->curl, CURLOPT_FOLLOWLOCATION, TRUE);
+        }
         curl_setopt($this->curl, CURLOPT_POST, TRUE);
         curl_setopt($this->curl, CURLOPT_POSTFIELDS, $request);
         $headers_array = array($this->getCookie(),
