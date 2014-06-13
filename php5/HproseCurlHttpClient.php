@@ -14,7 +14,7 @@
  *                                                        *
  * hprose curl http client class for php5.                *
  *                                                        *
- * LastModified: Mar 19, 2014                             *
+ * LastModified: Jun 13, 2014                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -38,6 +38,7 @@ class HproseHttpClient extends HproseBaseHttpClient {
         curl_setopt($this->curl, CURLOPT_HEADER, TRUE);
         curl_setopt($this->curl, CURLOPT_SSL_VERIFYPEER, FALSE);
         curl_setopt($this->curl, CURLOPT_RETURNTRANSFER, TRUE);
+        curl_setopt($this->curl, CURLOPT_FOLLOWLOCATION, TRUE);
         curl_setopt($this->curl, CURLOPT_POST, TRUE);
         curl_setopt($this->curl, CURLOPT_POSTFIELDS, $request);
         $headers_array = array($this->getCookie(),
