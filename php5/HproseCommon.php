@@ -39,8 +39,9 @@ class HproseBytes {
     }
 }
 
-function bytes($val) {
-    return new HproseBytes($val);
+function &bytes($val) {
+    $b = new HproseBytes($val);
+    return $b;
 }
 
 class HproseMap {
@@ -53,8 +54,9 @@ class HproseMap {
     }
 }
 
-function map(&$val) {
-    return new HproseMap($val);
+function &map(&$val) {
+    $m = new HproseMap($val);
+    return $m;
 }
 
 /*
