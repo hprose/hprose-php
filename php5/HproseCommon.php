@@ -14,7 +14,7 @@
  *                                                        *
  * hprose common library for php5.                        *
  *                                                        *
- * LastModified: May 7, 2014                              *
+ * LastModified: Jun 21, 2014                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -188,7 +188,7 @@ if (!function_exists('spl_object_hash')) {
     }
 
     function spl_object_hash($object) {
-        ob_start("spl_object_callback");
+        ob_start("spl_object_hash_callback");
         var_dump($object);
         preg_match('[#(\d+)]', ob_get_clean(), $match);
         return $match[1];

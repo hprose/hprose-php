@@ -14,7 +14,7 @@
  *                                                        *
  * hprose reader class for php5.                          *
  *                                                        *
- * LastModified: Mar 11, 2014                             *
+ * LastModified: Jun 21, 2014                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -494,7 +494,7 @@ class HproseReader extends HproseRawReader {
         }
     }
     protected function readClass() {
-        $classname = HproseClassManager::getClass(self::readStringWithoutTag());
+        $classname = HproseClassManager::getClass($this->_readStringWithoutTag());
         $count = (int)$this->stream->readuntil(HproseTags::TagOpenbrace);
         $fields = array();
         for ($i = 0; $i < $count; ++$i) {

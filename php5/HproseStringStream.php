@@ -14,7 +14,7 @@
  *                                                        *
  * hprose string stream class for php5.                   *
  *                                                        *
- * LastModified: Feb 11, 2014                             *
+ * LastModified: Jun 21, 2014                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -47,6 +47,11 @@ class HproseStringStream extends HproseAbstractStream {
     public function read($length) {
         $s = substr($this->buffer, $this->pos, $length);
         $this->skip($length);
+        return $s;
+    }
+    public function readfull() {
+        $s = substr($this->buffer, $this->pos);
+        $this->pos = $this->length;
         return $s;
     }
     public function readuntil($tag) {
