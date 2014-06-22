@@ -14,7 +14,7 @@
  *                                                        *
  * hprose http server library for php5.                   *
  *                                                        *
- * LastModified: May 7, 2014                              *
+ * LastModified: Jun 22, 2014                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -115,7 +115,7 @@ class HproseHttpServer {
                 $error = preg_replace('/ in <b>.*<\/b>$/', '', $match[1]);
             }
             $data = HproseTags::TagError .
-                 HproseFormatter::serialize(trim($error), true) .
+                 hprose_serialize_string(trim($error)) .
                  HproseTags::TagEnd;
         }
         return $this->outputFilter($data);
@@ -159,16 +159,16 @@ class HproseHttpServer {
             call_user_func($this->onSendError, $this->error);
         }
         @ob_clean();
-        $this->output->write(HproseTags::TagError);
-        $writer = new HproseWriter($this->output, true);
-        $writer->writeString($this->error);
-        $this->output->write(HproseTags::TagEnd);
+        $this->output->write(HproseTags::TagError .
+                             hprose_serialize_string($this->error) .
+                             HproseTags::TagEnd);
         $this->responseEnd();
     }
     private function doInvoke() {
-        $simpleReader = new HproseReader($this->input, true);
+        // $simpleReader = new HproseReader($this->input, true);
         do {
-            $functionName = $simpleReader->readString();
+            $functionName = hprose_unserialize_with_stream($this->input, true);
+            // $functionName = $simpleReader->readString();
             $aliasName = strtolower($functionName);
             $resultMode = HproseResultMode::Normal;
             if (array_key_exists($aliasName, $this->functions)) {
@@ -185,23 +185,31 @@ class HproseHttpServer {
                 throw new HproseException("Can't find this function " . $functionName . "().");
             }
             if ($simple === NULL) $simple = $this->simple;
-            $writer = new HproseWriter($this->output, $simple);
+            // $writer = new HproseWriter($this->output, $simple);
             $args = array();
             $byref = false;
-            $tag = $simpleReader->checkTags(array(HproseTags::TagList,
-                                            HproseTags::TagEnd,
-                                            HproseTags::TagCall));
+            // $tag = $simpleReader->checkTags(array(HproseTags::TagList,
+            //                                 HproseTags::TagEnd,
+            //                                 HproseTags::TagCall));
+            $tag = $this->input->getc();
             if ($tag == HproseTags::TagList) {
-                $reader = new HproseReader($this->input);
-                $args = &$reader->readListWithoutTag();
-                $tag = $reader->checkTags(array(HproseTags::TagTrue,
-                                                HproseTags::TagEnd,
-                                                HproseTags::TagCall));
+                // $reader = new HproseReader($this->input);
+                // $args = &$reader->readListWithoutTag();
+                $args = &hprose_unserialize_list_with_stream($this->input);
+                $tag = $this->input->getc();
+                // $tag = $reader->checkTags(array(HproseTags::TagTrue,
+                //                                 HproseTags::TagEnd,
+                //                                 HproseTags::TagCall));
                 if ($tag == HproseTags::TagTrue) {
                     $byref = true;
-                    $tag = $reader->checkTags(array(HproseTags::TagEnd,
-                                                    HproseTags::TagCall));
+                    $tag = $this->input->getc();
+                    // $tag = $reader->checkTags(array(HproseTags::TagEnd,
+                    //                                 HproseTags::TagCall));
                 }
+            }
+            if (($tag != HproseTags::TagEnd) && ($tag != HproseTags::TagCall)) {
+                throw new HproseException($tag);
+                //throw new HproseException("Wrong Request: \r\n" . $GLOBALS['HTTP_RAW_POST_DATA']);
             }
             if ($this->onBeforeInvoke) {
                 call_user_func($this->onBeforeInvoke, $functionName, $args, $byref);
@@ -237,13 +245,15 @@ class HproseHttpServer {
                     $this->output->write($result);
                 }
                 else {
-                    $writer->reset();
-                    $writer->serialize($result);
+                    // $writer->reset();
+                    // $writer->serialize($result);
+                    $this->output->write(hprose_serialize($result, $simple));
                 }
                 if ($byref) {
-                    $this->output->write(HproseTags::TagArgument);
-                    $writer->reset();
-                    $writer->writeList($args);
+                    $this->output->write(HproseTags::TagArgument .
+                                         hprose_serialize_list($args, $simple));
+                    // $writer->reset();
+                    // $writer->writeList($args);
                 }
             }
         } while ($tag == HproseTags::TagCall);
@@ -252,10 +262,9 @@ class HproseHttpServer {
     }
     private function doFunctionList() {
         $functions = array_values($this->funcNames);
-        $writer = new HproseWriter($this->output, true);
-        $this->output->write(HproseTags::TagFunctions);
-        $writer->writeList($functions);
-        $this->output->write(HproseTags::TagEnd);
+        $this->output->write(HproseTags::TagFunctions .
+                             hprose_serialize_list($function, true) .
+                             HproseTags::TagEnd);
         $this->responseEnd();
     }
     private function getDeclaredOnlyMethods($class) {
@@ -504,8 +513,8 @@ class HproseHttpServer {
         $this->error_types = $error_types;
     }
     public function handle() {
-        if (!isset($HTTP_RAW_POST_DATA)) $HTTP_RAW_POST_DATA = file_get_contents("php://input");
-        $this->input = new HproseStringStream($this->inputFilter($HTTP_RAW_POST_DATA));
+        if (!isset($GLOBALS['HTTP_RAW_POST_DATA'])) $GLOBALS['HTTP_RAW_POST_DATA'] = file_get_contents("php://input");
+        $this->input = new HproseStringStream($this->inputFilter($GLOBALS['HTTP_RAW_POST_DATA'] ));
         $this->output = new HproseStringStream();
         set_error_handler(array(&$this, '__errorHandler'), $this->error_types);
         ob_start(array(&$this, "__filterHandler"));
@@ -520,7 +529,7 @@ class HproseHttpServer {
                 switch ($this->input->getc()) {
                     case HproseTags::TagCall: return $this->doInvoke();
                     case HproseTags::TagEnd: return $this->doFunctionList();
-                    default: throw new HproseException("Wrong Request: \r\n" . $HTTP_RAW_POST_DATA);
+                    default: throw new HproseException("Wrong Request: \r\n" . $GLOBALS['HTTP_RAW_POST_DATA']);
                 }
             }
             catch (Exception $e) {

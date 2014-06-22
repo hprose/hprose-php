@@ -14,7 +14,7 @@
  *                                                        *
  * hprose string stream class for php5.                   *
  *                                                        *
- * LastModified: Jun 21, 2014                             *
+ * LastModified: Jun 22, 2014                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -27,6 +27,9 @@ class HproseStringStream extends HproseAbstractStream {
     protected $mark;
     protected $length;
     public function __construct($string = '') {
+        $this->init($string);
+    }
+    public function init($string) {
         $this->buffer = $string;
         $this->pos = 0;
         $this->mark = -1;

@@ -14,7 +14,7 @@
  *                                                        *
  * hprose formatter library for php5.                     *
  *                                                        *
- * LastModified: Jun 21, 2014                             *
+ * LastModified: Jun 22, 2014                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/

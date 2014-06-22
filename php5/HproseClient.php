@@ -14,7 +14,7 @@
  *                                                        *
  * hprose client library for php5.                        *
  *                                                        *
- * LastModified: Mar 22, 2014                             *
+ * LastModified: Jun 22, 2014                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -57,13 +57,16 @@ abstract class HproseClient {
     public function invoke($functionName, &$arguments = array(), $byRef = false, $resultMode = HproseResultMode::Normal, $simple = NULL) {
         if ($simple === NULL) $simple = $this->simple;
         $stream = new HproseStringStream(HproseTags::TagCall);
-        $hproseWriter = new HproseWriter($stream, $simple);
-        $hproseWriter->writeString($functionName);
+        //$hproseWriter = new HproseWriter($stream, $simple);
+        // $hproseWriter->writeString($functionName);
+        $stream->write(hprose_serialize_string($functionName));
         if (count($arguments) > 0 || $byRef) {
-            $hproseWriter->reset();
-            $hproseWriter->writeList($arguments);
+            // $hproseWriter->reset();
+            // $hproseWriter->writeList($arguments);
+            $stream->write(hprose_serialize_list($arguments, $simple));
             if ($byRef) {
-                $hproseWriter->writeBoolean(true);
+                // $hproseWriter->writeBoolean(true);
+                $stream->write(hprose_serialize_bool(true));
             }
         }
         $stream->write(HproseTags::TagEnd);
@@ -84,7 +87,7 @@ abstract class HproseClient {
             return substr($response, 0, -1);
         }
         $stream = new HproseStringStream($response);
-        $hproseReader = new HproseReader($stream);
+        $hproseReader = new HproseRawReader($stream);
         $result = NULL;
         while (($tag = $stream->getc()) !== HproseTags::TagEnd) {
             switch ($tag) {
@@ -93,20 +96,22 @@ abstract class HproseClient {
                         $result = $hproseReader->readRaw()->toString();
                     }
                     else {
-                        $hproseReader->reset();
-                        $result = &$hproseReader->unserialize();
+                        // $hproseReader->reset();
+                        // $result = &$hproseReader->unserialize();
+                        $result = &hprose_unserialize_with_stream($stream);
                     }
                     break;
                 case HproseTags::TagArgument:
-                    $hproseReader->reset();
-                    $args = &$hproseReader->readList();
+                    // $hproseReader->reset();
+                    // $args = &$hproseReader->readList();
+                    $args = &hprose_unserialize_with_stream($stream);
                     for ($i = 0; $i < count($arguments); $i++) {
                         $arguments[$i] = &$args[$i];
                     }
                     break;
                 case HproseTags::TagError:
-                    $hproseReader->reset();
-                    throw new HproseException($hproseReader->readString());
+                    // $hproseReader->reset();
+                    throw new HproseException(hprose_unserialize_with_stream($stream));
                     break;
                 default:
                     throw new HproseException("Wrong Response: \r\n" . $response);
