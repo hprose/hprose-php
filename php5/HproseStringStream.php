@@ -14,14 +14,12 @@
  *                                                        *
  * hprose string stream class for php5.                   *
  *                                                        *
- * LastModified: Jun 22, 2014                             *
+ * LastModified: Jun 23, 2014                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
 
-require_once("HproseAbstractStream.php");
-
-class HproseStringStream extends HproseAbstractStream {
+class HproseStringStream {
     protected $buffer;
     protected $pos;
     protected $mark;
