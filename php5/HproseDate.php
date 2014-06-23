@@ -14,7 +14,7 @@
  *                                                        *
  * hprose date class for php5.                            *
  *                                                        *
- * LastModified: Jan 2, 2014                              *
+ * LastModified: Jun 24, 2014                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -35,7 +35,7 @@ class HproseDate {
                 $this->day = $time['mday'];
                 break;
             case 1:
-                $time = false;
+                $time = $args[0];
                 if (is_int($args[0])) {
                     $time = getdate($args[0]);
                 }
