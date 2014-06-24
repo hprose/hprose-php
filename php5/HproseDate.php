@@ -212,7 +212,7 @@ class HproseDate {
             $m = $this->month;
             $d = $this->day;
         }
-        $days = self::isLeapYear($y) ? $daysToMonth365 : $daysToMonth366;
+        $days = self::isLeapYear($y) ? $daysToMonth366 : $daysToMonth365;
         return $days[$m - 1] + $d;
     }
 }
