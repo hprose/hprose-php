@@ -56,23 +56,7 @@ class HproseDateTime extends HproseDate {
                     $this->hour = $time['hours'];
                     $this->minute = $time['minutes'];
                     $this->second = $time['seconds'];
-                }
-                elseif ($args[0] instanceof HproseDate) {
-                    $this->year = $args[0]->year;
-                    $this->month = $args[0]->month;
-                    $this->day = $args[0]->day;
-                    $this->hour = 0;
-                    $this->minute = 0;
-                    $this->second = 0;
-                }
-                elseif ($args[0] instanceof HproseTime) {
-                    $this->year = 1970;
-                    $this->month = 1;
-                    $this->day = 1;
-                    $this->hour = $args[0]->hour;
-                    $this->minute = $args[0]->minute;
-                    $this->second = $args[0]->second;
-                    $this->microsecond = $args[0]->microsecond;
+                    $this->utc = false;
                 }
                 elseif ($args[0] instanceof HproseDateTime) {
                     $this->year = $args[0]->year;
@@ -82,6 +66,26 @@ class HproseDateTime extends HproseDate {
                     $this->minute = $args[0]->minute;
                     $this->second = $args[0]->second;
                     $this->microsecond = $args[0]->microsecond;
+                    $this->utc = $args[0]->utc;
+                }
+                elseif ($args[0] instanceof HproseDate) {
+                    $this->year = $args[0]->year;
+                    $this->month = $args[0]->month;
+                    $this->day = $args[0]->day;
+                    $this->hour = 0;
+                    $this->minute = 0;
+                    $this->second = 0;
+                    $this->utc = $args[0]->utc;
+                }
+                elseif ($args[0] instanceof HproseTime) {
+                    $this->year = 1970;
+                    $this->month = 1;
+                    $this->day = 1;
+                    $this->hour = $args[0]->hour;
+                    $this->minute = $args[0]->minute;
+                    $this->second = $args[0]->second;
+                    $this->microsecond = $args[0]->microsecond;
+                    $this->utc = $args[0]->utc;
                 }
                 else {
                     throw new HproseException('Unexpected arguments');
@@ -96,11 +100,14 @@ class HproseDateTime extends HproseDate {
                     $this->minute = $args[1]->minute;
                     $this->second = $args[1]->second;
                     $this->microsecond = $args[1]->microsecond;
+                    $this->utc = $args[0]->utc;
                 }
                 else {
                     throw new HproseException('Unexpected arguments');
                 }
                 break;
+            case 4:
+                $this->utc = $args[3];
             case 3:
                 if (!self::isValidDate($args[0], $args[1], $args[2])) {
                     throw new HproseException('Unexpected arguments');

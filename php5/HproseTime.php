@@ -94,7 +94,7 @@ class HproseTime {
             $format = ($fullformat ? '%02d:%02d:%02d': '%02d%02d%02d');
             $str = sprintf($format, $this->hour, $this->minute, $this->second);
         }
-        if ($this->microsecond % 1000 == 0) {
+        else if ($this->microsecond % 1000 == 0) {
             $format = ($fullformat ? '%02d:%02d:%02d.%03d': '%02d%02d%02d.%03d');
             $str = sprintf($format, $this->hour, $this->minute, $this->second, (int)($this->microsecond / 1000));
         }
@@ -113,7 +113,7 @@ class HproseTime {
     public static function isValidTime($hour, $minute, $second, $microsecond = 0) {
         return !(($hour < 0) || ($hour > 23) ||
             ($minute < 0) || ($minute > 59) ||
-            ($second < 0) || ($second > 59) ||
+            ($second < 0) || ($second > 60) ||
             ($microsecond < 0) || ($microsecond > 999999));
     }
 }

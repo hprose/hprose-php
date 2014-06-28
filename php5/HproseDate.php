@@ -14,7 +14,7 @@
  *                                                        *
  * hprose date class for php5.                            *
  *                                                        *
- * LastModified: Jun 24, 2014                             *
+ * LastModified: Jun 29, 2014                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -84,7 +84,6 @@ class HproseDate {
         $year = $this->year;
         if ($days == 0) return true;
         if (!self::addDaysToYear($days, $year, 146097, 400)) return false;
-        if (!self::addDaysToYear($days, $year, 36524, 100)) return false;
         if (!self::addDaysToYear($days, $year, 1461, 4)) return false;
         $month = $this->month;
         while ($days >= 365) {
