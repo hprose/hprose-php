@@ -296,7 +296,7 @@ class HproseWriter {
     public function writeMapWithRef(&$map) {
         if (!$this->refer->write($this->stream, $map)) $this->writeMap($map);
     }
-    public function writeObject($obj, $checkRef = false) {
+    public function writeObject($obj) {
         $class = get_class($obj);
         $alias = HproseClassManager::getClassAlias($class);
         $fields = array_keys((array)$obj);

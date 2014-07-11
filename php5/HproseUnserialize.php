@@ -22,6 +22,7 @@
 require_once('HproseCommon.php');
 require_once('HproseClassManager.php');
 
+// public functions
 function &hprose_unserialize_with_stream($s, $simple = false) {
     $str = $s->readfull();
     $v = &hprose_unserialize($str, $simple);
@@ -55,6 +56,8 @@ function &hprose_unserialize(&$s, $simple = false) {
     $s = (string)substr($s, $o->p);
     return $v;
 }
+
+// private functions
 
 /* $t is a 1 byte character. */
 function hprose_readuntil($o, $t) {

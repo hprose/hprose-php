@@ -22,6 +22,8 @@
 require_once('HproseCommon.php');
 require_once('HproseClassManager.php');
 
+// private functions
+
 function hprose_hash(&$v, $ro) {
     if (is_string($v)) {
         return 's_' . $v;
@@ -44,55 +46,6 @@ function hprose_hash(&$v, $ro) {
         return 'm_' . $i;
     }
     return 'o_' . spl_object_hash($v);
-}
-
-function hprose_serialize_bool($b) {
-    return $b ? 't' : 'f';
-}
-
-function hprose_serialize_string($s) {
-    return 's' . ustrlen($s) . '"' . $s . '"';
-}
-
-function hprose_serialize_list(&$a, $simple = false) {
-    $c = count($a);
-    if ($c == 0) return 'a{}';
-    $ro = new stdClass();
-    $ro->cr = array();
-    $ro->fr = array();
-    if ($simple) {
-        $s = 'a' . $c . '{';
-        foreach ($a as &$v) {
-            $s .= hprose_simple_serialize($v, $ro);
-        }
-        return $s . '}';
-    }
-    $ro->ar = array();
-    $ro->r = array();
-    $ro->length = 0;
-    $h = hprose_hash($a, $ro);
-    if (array_key_exists($h, $ro->r)) {
-        return 'r' . $ro->r[$h] . ';';
-    }
-    $ro->r[$h] = $ro->length++;
-    $s = 'a' . $c . '{';
-    foreach ($a as &$v) {
-        $s .= hprose_fast_serialize($v, $ro);
-    }
-    return $s . '}';
-}
-
-function hprose_serialize(&$v, $simple = false) {
-    $ro = new stdClass();
-    $ro->cr = array();
-    $ro->fr = array();
-    if ($simple) {
-        return hprose_simple_serialize($v, $ro);
-    }
-    $ro->ar = array();
-    $ro->r = array();
-    $ro->length = 0;
-    return hprose_fast_serialize($v, $ro);
 }
 
 function hprose_simple_serialize(&$v, $ro) {
@@ -401,4 +354,56 @@ function hprose_fast_serialize(&$v, $ro) {
     }
     throw new HproseException('Not support to serialize this data');
 }
+
+// public functions
+
+function hprose_serialize_bool($b) {
+    return $b ? 't' : 'f';
+}
+
+function hprose_serialize_string($s) {
+    return 's' . ustrlen($s) . '"' . $s . '"';
+}
+
+function hprose_serialize_list(&$a, $simple = false) {
+    $c = count($a);
+    if ($c == 0) return 'a{}';
+    $ro = new stdClass();
+    $ro->cr = array();
+    $ro->fr = array();
+    if ($simple) {
+        $s = 'a' . $c . '{';
+        foreach ($a as &$v) {
+            $s .= hprose_simple_serialize($v, $ro);
+        }
+        return $s . '}';
+    }
+    $ro->ar = array();
+    $ro->r = array();
+    $ro->length = 0;
+    $h = hprose_hash($a, $ro);
+    if (array_key_exists($h, $ro->r)) {
+        return 'r' . $ro->r[$h] . ';';
+    }
+    $ro->r[$h] = $ro->length++;
+    $s = 'a' . $c . '{';
+    foreach ($a as &$v) {
+        $s .= hprose_fast_serialize($v, $ro);
+    }
+    return $s . '}';
+}
+
+function hprose_serialize(&$v, $simple = false) {
+    $ro = new stdClass();
+    $ro->cr = array();
+    $ro->fr = array();
+    if ($simple) {
+        return hprose_simple_serialize($v, $ro);
+    }
+    $ro->ar = array();
+    $ro->r = array();
+    $ro->length = 0;
+    return hprose_fast_serialize($v, $ro);
+}
+
 ?>

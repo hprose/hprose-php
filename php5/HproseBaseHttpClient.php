@@ -147,7 +147,7 @@ abstract class HproseBaseHttpClient extends HproseClient {
         $this->keepAlive = $keepAlive;
     }
     public function getKeepAlive() {
-        return $this->keeepAlive;
+        return $this->keepAlive;
     }
     public function setKeepAliveTimeout($timeout) {
         $this->keepAliveTimeout = $timeout;
