@@ -14,10 +14,12 @@
  *                                                        *
  * hprose date class for php5.                            *
  *                                                        *
- * LastModified: Jun 29, 2014                             *
+ * LastModified: Jul 12, 2014                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
+
+if (!extension_loaded('hprose')) {
 
 class HproseDate {
     public $year;
@@ -53,21 +55,21 @@ class HproseDate {
                     $this->day = $args[0]->day;
                 }
                 else {
-                    throw new HproseException('Unexpected arguments');
+                    throw new Exception('Unexpected arguments');
                 }
                 break;
             case 4:
                 $this->utc = $args[3];
             case 3:
                 if (!self::isValidDate($args[0], $args[1], $args[2])) {
-                    throw new HproseException('Unexpected arguments');
+                    throw new Exception('Unexpected arguments');
                 }
                 $this->year = $args[0];
                 $this->month = $args[1];
                 $this->day = $args[2];
                 break;
             default:
-                throw new HproseException('Unexpected arguments');
+                throw new Exception('Unexpected arguments');
         }
     }
     private static function addDaysToYear(&$days, &$year, $period, $times) {
@@ -216,4 +218,5 @@ class HproseDate {
     }
 }
 
+} // endif (!extension_loaded('hprose'))
 ?>

@@ -14,10 +14,12 @@
  *                                                        *
  * hprose ResultMode for php5.                            *
  *                                                        *
- * LastModified: Jan 2, 2014                              *
+ * LastModified: Jul 12, 2014                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
+
+if (!extension_loaded('hprose')) {
 
 class HproseResultMode {
     const Normal = 0;
@@ -26,4 +28,5 @@ class HproseResultMode {
     const RawWithEndTag = 3;
 }
 
+} // endif (!extension_loaded('hprose'))
 ?>

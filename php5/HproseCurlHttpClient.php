@@ -14,7 +14,7 @@
  *                                                        *
  * hprose curl http client class for php5.                *
  *                                                        *
- * LastModified: Jun 13, 2014                             *
+ * LastModified: Jul 12, 2014                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -68,7 +68,7 @@ class HproseHttpClient extends HproseBaseHttpClient {
         $response = curl_exec($this->curl);
         $errno = curl_errno($this->curl);
         if ($errno) {
-            throw new HproseException($errno . ": " . curl_error($this->curl));
+            throw new Exception($errno . ": " . curl_error($this->curl));
         }
         do {
             list($response_headers, $response) = explode("\r\n\r\n", $response, 2);
@@ -85,7 +85,7 @@ class HproseHttpClient extends HproseBaseHttpClient {
             }
         } while (substr($response_code, 0, 1) == "1");
         if ($response_code != '200') {
-            throw new HproseException($response_code . ": " . $response_status . "\r\n\r\n" . $response);
+            throw new Exception($response_code . ": " . $response_status . "\r\n\r\n" . $response);
         }
         $this->setCookie($http_response_header);
         return $response;

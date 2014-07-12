@@ -14,10 +14,12 @@
  *                                                        *
  * hprose formatter library for php5.                     *
  *                                                        *
- * LastModified: Jun 22, 2014                             *
+ * LastModified: Jul 12, 2014                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
+
+if (!extension_loaded('hprose')) {
 
 require_once('HproseIOStream.php');
 // require_once('HproseWriter.php');
@@ -40,4 +42,6 @@ class HproseFormatter {
         // return $hproseReader->unserialize();
     }
 }
+
+} // endif (!extension_loaded('hprose'))
 ?>

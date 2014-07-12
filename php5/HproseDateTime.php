@@ -14,10 +14,12 @@
  *                                                        *
  * hprose datetime class for php5.                        *
  *                                                        *
- * LastModified: Jan 2, 2014                              *
+ * LastModified: Jul 12, 2014                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
+
+if (!extension_loaded('hprose')) {
 
 require_once('HproseDate.php');
 
@@ -88,7 +90,7 @@ class HproseDateTime extends HproseDate {
                     $this->utc = $args[0]->utc;
                 }
                 else {
-                    throw new HproseException('Unexpected arguments');
+                    throw new Exception('Unexpected arguments');
                 }
                 break;
             case 2:
@@ -103,14 +105,14 @@ class HproseDateTime extends HproseDate {
                     $this->utc = $args[0]->utc;
                 }
                 else {
-                    throw new HproseException('Unexpected arguments');
+                    throw new Exception('Unexpected arguments');
                 }
                 break;
             case 4:
                 $this->utc = $args[3];
             case 3:
                 if (!self::isValidDate($args[0], $args[1], $args[2])) {
-                    throw new HproseException('Unexpected arguments');
+                    throw new Exception('Unexpected arguments');
                 }
                 $this->year = $args[0];
                 $this->month = $args[1];
@@ -123,15 +125,15 @@ class HproseDateTime extends HproseDate {
                 $this->utc = $args[7];
             case 7:
                 if (($args[6] < 0) || ($args[6] > 999999)) {
-                    throw new HproseException('Unexpected arguments');
+                    throw new Exception('Unexpected arguments');
                 }
                 $this->microsecond = $args[6];
             case 6:
                 if (!self::isValidDate($args[0], $args[1], $args[2])) {
-                    throw new HproseException('Unexpected arguments');
+                    throw new Exception('Unexpected arguments');
                 }
                 if (!self::isValidTime($args[3], $args[4], $args[5])) {
-                    throw new HproseException('Unexpected arguments');
+                    throw new Exception('Unexpected arguments');
                 }
                 $this->year = $args[0];
                 $this->month = $args[1];
@@ -141,7 +143,7 @@ class HproseDateTime extends HproseDate {
                 $this->second = $args[5];
                 break;
             default:
-                throw new HproseException('Unexpected arguments');
+                throw new Exception('Unexpected arguments');
         }
     }
 
@@ -326,4 +328,5 @@ class HproseDateTime extends HproseDate {
     }
 }
 
+} // endif (!extension_loaded('hprose'))
 ?>

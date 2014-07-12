@@ -14,10 +14,12 @@
  *                                                        *
  * hprose string stream class for php5.                   *
  *                                                        *
- * LastModified: Jun 23, 2014                             *
+ * LastModified: Jul 12, 2014                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
+
+if (!extension_loaded('hprose')) {
 
 class HproseStringStream {
     protected $buffer;
@@ -117,4 +119,5 @@ class HproseStringStream {
     }
 }
 
+} // endif (!extension_loaded('hprose'))
 ?>

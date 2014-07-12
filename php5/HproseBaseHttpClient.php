@@ -14,7 +14,7 @@
  *                                                        *
  * hprose base http client class for php5.                *
  *                                                        *
- * LastModified: May 13, 2014                             *
+ * LastModified: Jul 11, 2014                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/

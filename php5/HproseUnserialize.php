@@ -14,10 +14,12 @@
  *                                                        *
  * hprose unserialize library for php5.                   *
  *                                                        *
- * LastModified: Jun 22, 2014                             *
+ * LastModified: Jul 12, 2014                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
+
+if (!extension_loaded('hprose')) {
 
 require_once('HproseCommon.php');
 require_once('HproseClassManager.php');
@@ -97,7 +99,7 @@ function hprose_simple_read_utf8char($o) {
         case 13: return $c . $o->s[$o->p++];
         case 14: return $c . $o->s[$o->p++] . $o->s[$o->p++];
     }
-    throw new HproseException('bad utf-8 encoding');
+    throw new Exception('bad utf-8 encoding');
 }
 
 function hprose_simple_read_string($o) {
@@ -117,7 +119,7 @@ function hprose_simple_read_string($o) {
             case 13: $o->p += 2; break;
             case 14: $o->p += 3; break;
             case 15: $o->p += 4; ++$i; break;
-            default: throw new HproseException('bad utf-8 encoding');
+            default: throw new Exception('bad utf-8 encoding');
         }
     }
     $s = substr($o->s, $p, $o->p - $p);
@@ -150,9 +152,9 @@ function hprose_simple_unserialize_string($o) {
         case 's': return hprose_simple_read_string($o);
         case 'b': return hprose_simple_read_bytes($o);
         case 'g': return hprose_simple_read_guid($o);
-        case 'E': throw new HproseException(hprose_simple_read_string($o));
+        case 'E': throw new Exception(hprose_simple_read_string($o));
     }
-    throw new HproseException("Can't unserialize '$s' as string.");
+    throw new Exception("Can't unserialize '$s' as string.");
 }
 
 function hprose_fast_unserialize_string($o) {
@@ -181,9 +183,9 @@ function hprose_fast_unserialize_string($o) {
         case 'b': return $o->r[] = hprose_simple_read_bytes($o);
         case 'g': return $o->r[] = hprose_simple_read_guid($o);
         case 'r': return hprose_read_ref($o);
-        case 'E': throw new HproseException(hprose_simple_read_string($o));
+        case 'E': throw new Exception(hprose_simple_read_string($o));
     }
-    throw new HproseException("Can't unserialize '$s' as string.");
+    throw new Exception("Can't unserialize '$s' as string.");
 }
 
 function hprose_simple_read_bytes($o) {
@@ -401,8 +403,8 @@ function &hprose_simple_unserialize($o) {
         case 'c': hprose_simple_read_class($o);
                   $result = hprose_simple_unserialize($o); break;
         case 'o': $result = hprose_simple_read_object($o); break;
-        case 'E': throw new HproseException(hprose_simple_read_string($o));
-        default: throw new HproseException("Can't unserialize '$s' in simple mode.");
+        case 'E': throw new Exception(hprose_simple_read_string($o));
+        default: throw new Exception("Can't unserialize '$s' in simple mode.");
     }
     return $result;
 }
@@ -440,10 +442,11 @@ function &hprose_fast_unserialize($o) {
                   $result = hprose_fast_unserialize($o); break;
         case 'o': $result = hprose_fast_read_object($o); break;
         case 'r': $result = &hprose_read_ref($o); break;
-        case 'E': throw new HproseException(hprose_simple_read_string($o));
-        default: throw new HproseException("Can't unserialize '$s'.");
+        case 'E': throw new Exception(hprose_simple_read_string($o));
+        default: throw new Exception("Can't unserialize '$s'.");
     }
     return $result;
 }
 
+} // endif (!extension_loaded('hprose'))
 ?>

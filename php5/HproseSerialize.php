@@ -14,10 +14,12 @@
  *                                                        *
  * hprose serialize library for php5.                     *
  *                                                        *
- * LastModified: Jun 22, 2014                             *
+ * LastModified: Jul 12, 2014                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
+
+if (!extension_loaded('hprose')) {
 
 require_once('HproseCommon.php');
 require_once('HproseClassManager.php');
@@ -182,7 +184,7 @@ function hprose_simple_serialize(&$v, $ro) {
         }
         return $s . '}';
     }
-    throw new HproseException('Not support to serialize this data');
+    throw new Exception('Not support to serialize this data');
 }
 
 function hprose_fast_serialize(&$v, $ro) {
@@ -352,7 +354,7 @@ function hprose_fast_serialize(&$v, $ro) {
         }
         return $s . '}';
     }
-    throw new HproseException('Not support to serialize this data');
+    throw new Exception('Not support to serialize this data');
 }
 
 // public functions
@@ -406,4 +408,5 @@ function hprose_serialize(&$v, $simple = false) {
     return hprose_fast_serialize($v, $ro);
 }
 
+} // endif (!extension_loaded('hprose'))
 ?>

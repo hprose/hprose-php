@@ -14,7 +14,7 @@
  *                                                        *
  * hprose sae http client class for php5.                 *
  *                                                        *
- * LastModified: Mar 19, 2014                             *
+ * LastModified: Jul 12, 2014                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -51,7 +51,7 @@ class HproseHttpClient extends HproseBaseHttpClient {
         $f->setReadTimeout($this->timeout);
         $response = $f->fetch($this->url);
         if ($f->errno()) {
-            throw new HproseException($f->errno() . ": " . $f->errmsg());
+            throw new Exception($f->errno() . ": " . $f->errmsg());
         }
         $http_response_header = $f->responseHeaders(false);
         $this->setCookie($http_response_header);

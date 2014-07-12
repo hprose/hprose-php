@@ -14,10 +14,12 @@
  *                                                        *
  * hprose raw reader class for php5.                      *
  *                                                        *
- * LastModified: May 7, 2014                              *
+ * LastModified: Jul 12, 2014                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
+
+if (!extension_loaded('hprose')) {
 
 require_once('HproseCommon.php');
 require_once('HproseTags.php');
@@ -30,13 +32,13 @@ class HproseRawReader {
     }
     public function unexpectedTag($tag, $expectTags = NULL) {
         if ($tag && $expectTags) {
-            throw new HproseException("Tag '" . $expectTags . "' expected, but '" . $tag . "' found in stream");
+            throw new Exception("Tag '" . $expectTags . "' expected, but '" . $tag . "' found in stream");
         }
         else if ($tag) {
-            throw new HproseException("Unexpected serialize tag '" . $tag . "' in stream");
+            throw new Exception("Unexpected serialize tag '" . $tag . "' in stream");
         }
         else {
-            throw new HproseException('No byte found in stream');
+            throw new Exception('No byte found in stream');
         }
     }
     public function readRaw($ostream = NULL, $tag = NULL) {
@@ -133,7 +135,7 @@ class HproseRawReader {
             $s .= $this->stream->read(2);
         }
         elseif ($a > 0x7F) {
-            throw new HproseException("bad utf-8 encoding");
+            throw new Exception("bad utf-8 encoding");
         }
         $ostream->write($s);
     }
@@ -186,7 +188,7 @@ class HproseRawReader {
                     break;
                 }
                 default: {
-                    throw new HproseException('bad utf-8 encoding');
+                    throw new Exception('bad utf-8 encoding');
                 }
             }
         }
@@ -212,4 +214,5 @@ class HproseRawReader {
     }
 }
 
+} // endif (!extension_loaded('hprose'))
 ?>

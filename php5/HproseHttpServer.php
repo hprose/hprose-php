@@ -14,13 +14,16 @@
  *                                                        *
  * hprose http server library for php5.                   *
  *                                                        *
- * LastModified: Jun 22, 2014                             *
+ * LastModified: Jul 12, 2014                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
 
 require_once('HproseCommon.php');
 require_once('HproseIO.php');
+
+defined('E_DEPRECATED') or define('E_DEPRECATED', 8192);
+defined('E_USER_DEPRECATED') or define('E_USER_DEPRECATED', 16384);
 
 class HproseHttpServer {
     private $magic_methods = array("__construct",
@@ -182,7 +185,7 @@ class HproseHttpServer {
                 $simple = $this->simpleModes['*'];
             }
             else {
-                throw new HproseException("Can't find this function " . $functionName . "().");
+                throw new Exception("Can't find this function " . $functionName . "().");
             }
             if ($simple === NULL) $simple = $this->simple;
             // $writer = new HproseWriter($this->output, $simple);
@@ -208,8 +211,8 @@ class HproseHttpServer {
                 }
             }
             if (($tag != HproseTags::TagEnd) && ($tag != HproseTags::TagCall)) {
-                throw new HproseException($tag);
-                //throw new HproseException("Wrong Request: \r\n" . $GLOBALS['HTTP_RAW_POST_DATA']);
+                throw new Exception($tag);
+                //throw new Exception("Wrong Request: \r\n" . $GLOBALS['HTTP_RAW_POST_DATA']);
             }
             if ($this->onBeforeInvoke) {
                 call_user_func($this->onBeforeInvoke, $functionName, $args, $byref);
@@ -263,7 +266,7 @@ class HproseHttpServer {
     private function doFunctionList() {
         $functions = array_values($this->funcNames);
         $this->output->write(HproseTags::TagFunctions .
-                             hprose_serialize_list($function, true) .
+                             hprose_serialize_list($functions, true) .
                              HproseTags::TagEnd);
         $this->responseEnd();
     }
@@ -300,18 +303,18 @@ class HproseHttpServer {
                 $this->simpleModes[$aliasName] = $simple;
             }
             else {
-                throw new HproseException('Argument alias is not a string');
+                throw new Exception('Argument alias is not a string');
             }
         }
         else {
-            throw new HproseException('Argument function is not a callable variable');
+            throw new Exception('Argument function is not a callable variable');
         }
     }
     public function addFunctions($functions, $aliases = NULL, $resultMode = HproseResultMode::Normal, $simple = NULL) {
         $aliases_is_null = ($aliases === NULL);
         $count = count($functions);
         if (!$aliases_is_null && $count != count($aliases)) {
-            throw new HproseException('The count of functions is not matched with aliases');
+            throw new Exception('The count of functions is not matched with aliases');
         }
         for ($i = 0; $i < $count; $i++) {
             $function = $functions[$i];
@@ -345,7 +348,7 @@ class HproseHttpServer {
             }
         }
         if (!$aliases_is_null && $count != count($aliases)) {
-            throw new HproseException('The count of methods is not matched with aliases');
+            throw new Exception('The count of methods is not matched with aliases');
         }
         if($count){
             foreach($methods as $k => $method){
@@ -444,7 +447,7 @@ class HproseHttpServer {
                 }
                 break;
             }
-            throw new HproseException('Wrong arguments');
+            throw new Exception('Wrong arguments');
         }
     }
     public function isDebugEnabled() {
@@ -529,7 +532,7 @@ class HproseHttpServer {
                 switch ($this->input->getc()) {
                     case HproseTags::TagCall: return $this->doInvoke();
                     case HproseTags::TagEnd: return $this->doFunctionList();
-                    default: throw new HproseException("Wrong Request: \r\n" . $GLOBALS['HTTP_RAW_POST_DATA']);
+                    default: throw new Exception("Wrong Request: \r\n" . $GLOBALS['HTTP_RAW_POST_DATA']);
                 }
             }
             catch (Exception $e) {

@@ -14,20 +14,18 @@
  *                                                        *
  * hprose common library for php5.                        *
  *                                                        *
- * LastModified: Jul 1, 2014                              *
+ * LastModified: Jul 12, 2014                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
 
+if (!extension_loaded('hprose')) {
+
 require_once('HproseResultMode.php');
-require_once('HproseException.php');
 require_once('HproseFilter.php');
 require_once('HproseDate.php');
 require_once('HproseTime.php');
 require_once('HproseDateTime.php');
-
-defined('E_DEPRECATED') or define('E_DEPRECATED', 8192);
-defined('E_USER_DEPRECATED') or define('E_USER_DEPRECATED', 16384);
 
 class HproseBytes {
     public $value;
@@ -196,4 +194,6 @@ if (!function_exists('spl_object_hash')) {
         return $match[1];
     }
 }
+
+} // endif (!extension_loaded('hprose'))
 ?>

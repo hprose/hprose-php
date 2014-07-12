@@ -14,10 +14,12 @@
  *                                                        *
  * hprose time class for php5.                            *
  *                                                        *
- * LastModified: Jan 2, 2014                              *
+ * LastModified: Jul 12, 2014                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
+
+if (!extension_loaded('hprose')) {
 
 class HproseTime {
     public $hour;
@@ -57,26 +59,26 @@ class HproseTime {
                     $this->microsecond = $args[0]->microsecond;
                 }
                 else {
-                    throw new HproseException('Unexpected arguments');
+                    throw new Exception('Unexpected arguments');
                 }
                 break;
             case 5:
                 $this->utc = $args[4];
             case 4:
                 if (($args[3] < 0) || ($args[3] > 999999)) {
-                    throw new HproseException('Unexpected arguments');
+                    throw new Exception('Unexpected arguments');
                 }
                 $this->microsecond = $args[3];
             case 3:
                 if (!self::isValidTime($args[0], $args[1], $args[2])) {
-                    throw new HproseException('Unexpected arguments');
+                    throw new Exception('Unexpected arguments');
                 }
                 $this->hour = $args[0];
                 $this->minute = $args[1];
                 $this->second = $args[2];
                 break;
             default:
-                throw new HproseException('Unexpected arguments');
+                throw new Exception('Unexpected arguments');
         }
     }
     public function timestamp() {
@@ -118,4 +120,5 @@ class HproseTime {
     }
 }
 
+} // endif (!extension_loaded('hprose'))
 ?>

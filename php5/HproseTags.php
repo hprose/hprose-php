@@ -14,10 +14,12 @@
  *                                                        *
  * hprose tags library for php5.                          *
  *                                                        *
- * LastModified: Nov 10, 2010                             *
+ * LastModified: Jul 12, 2014                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
+
+if (!extension_loaded('hprose')) {
 
 class HproseTags {
     /* Serialize Tags */
@@ -58,4 +60,6 @@ class HproseTags {
     const TagError = 'E';
     const TagEnd = 'z';
 }
+
+} // endif (!extension_loaded('hprose'))
 ?>

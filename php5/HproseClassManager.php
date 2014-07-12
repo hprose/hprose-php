@@ -14,10 +14,12 @@
  *                                                        *
  * hprose class manager library for php5.                 *
  *                                                        *
- * LastModified: Nov 12, 2013                             *
+ * LastModified: Jul 12, 2014                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
+
+if (!extension_loaded('hprose')) {
 
 class HproseClassManager {
     private static $classCache1 = array();
@@ -49,4 +51,6 @@ class HproseClassManager {
         return $alias;
     }
 }
+
+} // endif (!extension_loaded('hprose'))
 ?>

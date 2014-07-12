@@ -14,10 +14,12 @@
  *                                                        *
  * hprose writer class for php5.                          *
  *                                                        *
- * LastModified: Mar 4, 2014                              *
+ * LastModified: Jul 12, 2014                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
+
+if (!extension_loaded('hprose')) {
 
 require_once('HproseCommon.php');
 require_once('HproseTags.php');
@@ -164,7 +166,7 @@ class HproseWriter {
             }
         }
         else {
-            throw new HproseException('Not support to serialize this data');
+            throw new Exception('Not support to serialize this data');
         }
     }
     public function writeInteger($integer) {
@@ -346,4 +348,5 @@ class HproseWriter {
     }
 }
 
+} // endif (!extension_loaded('hprose'))
 ?>

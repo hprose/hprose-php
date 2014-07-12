@@ -14,10 +14,12 @@
  *                                                        *
  * hprose reader class for php5.                          *
  *                                                        *
- * LastModified: Jun 21, 2014                             *
+ * LastModified: Jul 12, 2014                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
+
+if (!extension_loaded('hprose')) {
 
 require_once('HproseClassManager.php');
 require_once('HproseRawReader.php');
@@ -31,7 +33,7 @@ interface HproseReaderRefer {
 class HproseFakeReaderRefer implements HproseReaderRefer {
     public function set(&$val) {}
     public function &read($index) {
-        throw new HproseException("Unexpected serialize tag '" .
+        throw new Exception("Unexpected serialize tag '" .
                                    HproseTags::TagRef .
                                    "' in stream");
     }
@@ -103,7 +105,7 @@ class HproseReader extends HproseRawReader {
             case HproseTags::TagClass: $this->readClass(); $result = $this->readObject(); break;
             case HproseTags::TagObject: $result = $this->readObjectWithoutTag(); break;
             case HproseTags::TagRef: $result = &$this->readRef(); break;
-            case HproseTags::TagError: throw new HproseException($this->readString()); break;
+            case HproseTags::TagError: throw new Exception($this->readString()); break;
             default: $this->unexpectedTag($tag);
         }
         return $result;
@@ -327,7 +329,7 @@ class HproseReader extends HproseRawReader {
             $s .= $this->stream->read(2);
         }
         elseif ($a > 0x7F) {
-            throw new HproseException("bad utf-8 encoding");
+            throw new Exception("bad utf-8 encoding");
         }
         return $s;
     }
@@ -374,7 +376,7 @@ class HproseReader extends HproseRawReader {
                     break;
                 }
                 default: {
-                    throw new HproseException('bad utf-8 encoding');
+                    throw new Exception('bad utf-8 encoding');
                 }
             }
         }
@@ -512,4 +514,5 @@ class HproseReader extends HproseRawReader {
     }
 }
 
+} // endif (!extension_loaded('hprose'))
 ?>
