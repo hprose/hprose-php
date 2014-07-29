@@ -236,7 +236,7 @@ function hprose_simple_read_date($o) {
     $o->p += 2;
     $tag = $o->s[$o->p++];
     if ($tag == 'T') {
-        list($hour, $min, $sec, $msec) = hprose_read_time($o->s, $o->p);
+        list($hour, $min, $sec, $msec) = hprose_read_time($o);
         $date = new HproseDateTime($year, $mon, $day, $hour, $min, $sec, $msec, $tag == 'Z');
     }
     else {
@@ -404,7 +404,7 @@ function &hprose_simple_unserialize($o) {
                   $result = hprose_simple_unserialize($o); break;
         case 'o': $result = hprose_simple_read_object($o); break;
         case 'E': throw new Exception(hprose_simple_read_string($o));
-        default: throw new Exception("Can't unserialize '$s' in simple mode.");
+        default: throw new Exception("Can't unserialize '{$o->s}' in simple mode.");
     }
     return $result;
 }
@@ -443,7 +443,7 @@ function &hprose_fast_unserialize($o) {
         case 'o': $result = hprose_fast_read_object($o); break;
         case 'r': $result = &hprose_read_ref($o); break;
         case 'E': throw new Exception(hprose_simple_read_string($o));
-        default: throw new Exception("Can't unserialize '$s'.");
+        default: throw new Exception("Can't unserialize '{$o->s}'.");
     }
     return $result;
 }
