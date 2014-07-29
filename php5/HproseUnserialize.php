@@ -240,7 +240,7 @@ function hprose_simple_read_date($o) {
         $date = new HproseDateTime($year, $mon, $day, $hour, $min, $sec, $msec, $tag == 'Z');
     }
     else {
-        $date = new HproseDate($year, $month, $day, $tag == 'Z');
+        $date = new HproseDate($year, $mon, $day, $tag == 'Z');
     }
     return $date;
 }
