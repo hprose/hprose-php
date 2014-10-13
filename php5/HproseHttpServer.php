@@ -14,7 +14,7 @@
  *                                                        *
  * hprose http server library for php5.                   *
  *                                                        *
- * LastModified: Jul 12, 2014                             *
+ * LastModified: Oct 13, 2014                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -69,6 +69,7 @@ class HproseHttpServer {
     private $filters;
     private $origins;
     private $simple;
+    private $context;
     public $onBeforeInvoke;
     public $onAfterInvoke;
     public $onSendHeader;
@@ -86,6 +87,8 @@ class HproseHttpServer {
         $this->origins = array();
         $this->simple = false;
         $this->error_types = E_ALL & ~E_NOTICE;
+        $this->context = new stdClass();
+        $this->context->server = $this;
         $this->onBeforeInvoke = NULL;
         $this->onAfterInvoke = NULL;
         $this->onSendHeader = NULL;
@@ -94,14 +97,14 @@ class HproseHttpServer {
     private function inputFilter($data) {
         $count = count($this->filters);
         for ($i = $count - 1; $i >= 0; $i--) {
-            $data = $this->filters[$i]->inputFilter($data, $this);
+            $data = $this->filters[$i]->inputFilter($data, $this->context);
         }
         return $data;
     }
     private function outputFilter($data) {
         $count = count($this->filters);
         for ($i = 0; $i < $count; $i++) {
-            $data = $this->filters[$i]->outputFilter($data, $this);
+            $data = $this->filters[$i]->outputFilter($data, $this->context);
         }
         return $data;
     }
@@ -133,7 +136,7 @@ class HproseHttpServer {
     }
     private function sendHeader() {
         if ($this->onSendHeader) {
-            call_user_func($this->onSendHeader);
+            call_user_func($this->onSendHeader, $this->context);
         }
         header("Content-Type: text/plain");
         if ($this->P3P) {
@@ -159,7 +162,7 @@ class HproseHttpServer {
     }
     private function sendError() {
         if ($this->onSendError) {
-            call_user_func($this->onSendError, $this->error);
+            call_user_func($this->onSendError, $this->error, $this->context);
         }
         @ob_clean();
         $this->output->write(HproseTags::TagError .
@@ -215,7 +218,7 @@ class HproseHttpServer {
                 //throw new Exception("Wrong Request: \r\n" . $GLOBALS['HTTP_RAW_POST_DATA']);
             }
             if ($this->onBeforeInvoke) {
-                call_user_func($this->onBeforeInvoke, $functionName, $args, $byref);
+                call_user_func($this->onBeforeInvoke, $functionName, $args, $byref, $this->context);
             }
             if (array_key_exists('*', $this->functions) && ($function === $this->functions['*'])) {
                 $arguments = array($functionName, &$args);
@@ -231,7 +234,7 @@ class HproseHttpServer {
             }
             $result = call_user_func_array($function, $arguments);
             if ($this->onAfterInvoke) {
-                call_user_func($this->onAfterInvoke, $functionName, $args, $byref, $result);
+                call_user_func($this->onAfterInvoke, $functionName, $args, $byref, $result, $this->context);
             }
             // some service functions/methods may echo content, we need clean it
             @ob_clean();
@@ -517,7 +520,7 @@ class HproseHttpServer {
     }
     public function handle() {
         if (!isset($GLOBALS['HTTP_RAW_POST_DATA'])) $GLOBALS['HTTP_RAW_POST_DATA'] = file_get_contents("php://input");
-        $this->input = new HproseStringStream($this->inputFilter($GLOBALS['HTTP_RAW_POST_DATA'] ));
+        $this->input = new HproseStringStream($this->inputFilter($GLOBALS['HTTP_RAW_POST_DATA']));
         $this->output = new HproseStringStream();
         set_error_handler(array(&$this, '__errorHandler'), $this->error_types);
         ob_start(array(&$this, "__filterHandler"));

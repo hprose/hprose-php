@@ -14,7 +14,7 @@
  *                                                        *
  * hprose client library for php5.                        *
  *                                                        *
- * LastModified: Jul 12, 2014                             *
+ * LastModified: Oct 13, 2014                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -72,13 +72,15 @@ abstract class HproseClient {
         $stream->write(HproseTags::TagEnd);
         $request = $stream->toString();
         $count = count($this->filters);
+        $context = new stdClass();
+        $context->client = $this;
         for ($i = 0; $i < $count; $i++) {
-            $request = $this->filters[$i]->outputFilter($request, $this);
+            $request = $this->filters[$i]->outputFilter($request, $context);
         }
         $stream->close();
         $response = $this->sendAndReceive($request);
         for ($i = $count - 1; $i >= 0; $i--) {
-            $response = $this->filters[$i]->inputFilter($response, $this);
+            $response = $this->filters[$i]->inputFilter($response, $context);
         }
         if ($resultMode == HproseResultMode::RawWithEndTag) {
             return $response;
