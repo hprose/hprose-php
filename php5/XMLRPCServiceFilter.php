@@ -24,12 +24,12 @@ class XMLRPCServiceFilter implements HproseFilter {
         if ($data !== "" && $data{0} === '<') {
             $context->userdata->format = "xmlrpc";
             $method = NULL;
-            $params = xmlrpc_decode_request($data, &$method, "UTF-8");
+            $params = xmlrpc_decode_request($data, $method, "UTF-8");
             $data = "";
             if ($method) {
                 $data = HproseTags::TagCall . hprose_serialize_string($method);
                 if ($params) {
-                    $data .= hprose_serialize_list($request->params, true);
+                    $data .= hprose_serialize_list($params, true);
                 }
             }
             $data .= HproseTags::TagEnd;
