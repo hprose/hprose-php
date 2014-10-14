@@ -89,6 +89,7 @@ class HproseHttpServer {
         $this->error_types = E_ALL & ~E_NOTICE;
         $this->context = new stdClass();
         $this->context->server = $this;
+        $this->context->userdata = new stdClass();
         $this->onBeforeInvoke = NULL;
         $this->onAfterInvoke = NULL;
         $this->onSendHeader = NULL;

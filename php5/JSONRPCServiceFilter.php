@@ -22,22 +22,22 @@
 class JSONRPCServiceFilter implements HproseFilter {
     function inputFilter($data, $context) {
         if ($data !== "" && $data{0} === '{') {
-            $context->format = "jsonrpc";
+            $context->userdata->format = "jsonrpc";
             $request = json_decode($data);
             if (isset($request->id)) {
-                $context->id = $request->id;
+                $context->userdata->id = $request->id;
             }
             else {
-                $context->id = NULL;
+                $context->userdata->id = NULL;
             }
             if (isset($request->version)) {
-                $context->version = $request->version;            
+                $context->userdata->version = $request->version;            
             }
             else if (isset($request->jsonrpc)) {
-                $context->version = $request->jsonrpc;            
+                $context->userdata->version = $request->jsonrpc;            
             }
             else {
-                $context->version = "1.0";
+                $context->userdata->version = "1.0";
             }
             $data = "";
             if (isset($request->method)) {
@@ -52,11 +52,11 @@ class JSONRPCServiceFilter implements HproseFilter {
     }
 
     function outputFilter($data, $context) {
-        if (isset($context->format) && $context->format === "jsonrpc") {        
+        if (isset($context->userdata->format) && $context->userdata->format === "jsonrpc") {        
             $response = new stdClass();
-            $response->id = $context->id;
-            if ($context->version != "2.0") {
-                if ($context->version == "1.1") {
+            $response->id = $context->userdata->id;
+            if ($context->userdata->version != "2.0") {
+                if ($context->userdata->version == "1.1") {
                     $response->version = "1.1";
                 }
                 $response->result = NULL;

@@ -74,6 +74,7 @@ abstract class HproseClient {
         $count = count($this->filters);
         $context = new stdClass();
         $context->client = $this;
+        $context->userdata = new stdClass();
         for ($i = 0; $i < $count; $i++) {
             $request = $this->filters[$i]->outputFilter($request, $context);
         }
