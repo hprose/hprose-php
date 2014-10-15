@@ -14,7 +14,7 @@
  *                                                        *
  * json rpc service filter class for php5.                *
  *                                                        *
- * LastModified: Oct 14, 2014                             *
+ * LastModified: Oct 15, 2014                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -65,8 +65,8 @@ class JSONRPCServiceFilter implements HproseFilter {
             else {
                 $response->jsonrpc = "2.0";
             }
-            $stream = new HproseStringStream($data);
             if ($data !== "") {
+                $stream = new HproseStringStream($data);
                 while (($tag = $stream->getc()) !== HproseTags::TagEnd) {
                     switch ($tag) {
                         case HproseTags::TagResult:
