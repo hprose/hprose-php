@@ -14,16 +14,15 @@
  *                                                        *
  * json rpc client filter class for php5.                 *
  *                                                        *
- * LastModified: Oct 13, 2014                             *
+ * LastModified: Oct 16, 2014                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
 
 class JSONRPCClientFilter implements HproseFilter {
-    private $id;
+    private static $id = 1;
     private $version;
     public function __construct() {
-        $this->id = 1;
         $this->version = "2.0";
     }
     public function getVersion() {
@@ -38,18 +37,18 @@ class JSONRPCClientFilter implements HproseFilter {
         }
     }
     function inputFilter($data, $context) {
-        $request = json_decode($data);
-        if (!isset($request->result)) {
-            $request->result = NULL;
+        $response = json_decode($data);
+        if (!isset($response->result)) {
+            $response->result = NULL;
         }
-        if (!isset($request->error)) {
-            $request->error = NULL;
+        if (!isset($response->error)) {
+            $response->error = NULL;
         }
-        if ($request->error) {
-            $data = HproseTags::TagError . hprose_serialize_string($request->error->message);
+        if ($response->error) {
+            $data = HproseTags::TagError . hprose_serialize_string($response->error->message);
         }
         else {
-            $data = HproseTags::TagResult . hprose_serialize($request->result, true);
+            $data = HproseTags::TagResult . hprose_serialize($response->result, true);
         }
         $data .= HproseTags::TagEnd;
         return $data;
@@ -75,7 +74,7 @@ class JSONRPCClientFilter implements HproseFilter {
         else {
             throw new Exception("Error Processing Request", 1);
         }
-        $request->id = $this->id++;
+        $request->id = self::$id++;
         return json_encode($request);
     }
 }
