@@ -14,7 +14,7 @@
  *                                                        *
  * hprose class manager library for php5.                 *
  *                                                        *
- * LastModified: Jul 12, 2014                             *
+ * LastModified: Oct 21, 2014                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -46,7 +46,7 @@ class HproseClassManager {
                 self::register($class, $alias);
                 return $class;
             }
-            eval("class " . $alias . " { }");
+            eval("class " . $alias . " { public function __construct() {} }");
         }
         return $alias;
     }
