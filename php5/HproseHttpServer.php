@@ -14,7 +14,7 @@
  *                                                        *
  * hprose http server library for php5.                   *
  *                                                        *
- * LastModified: Oct 13, 2014                             *
+ * LastModified: Nov 4, 2014                              *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -347,8 +347,8 @@ class HproseHttpServer {
         if (is_string($aliases)) {
             $aliasPrefix = $aliases;
             $aliases = array();
-            foreach ($methods as $name) {
-                $aliases[] = $aliasPrefix . '_' . $name;
+            foreach ($methods as $k => $method) {
+                $aliases[$k] = $aliasPrefix . '_' . $method;
             }
         }
         if (!$aliases_is_null && $count != count($aliases)) {
