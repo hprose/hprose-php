@@ -38,6 +38,7 @@ class HproseHttpClient extends HproseBaseHttpClient {
         curl_setopt($this->curl, CURLOPT_HEADER, TRUE);
         curl_setopt($this->curl, CURLOPT_SSL_VERIFYPEER, FALSE);
         curl_setopt($this->curl, CURLOPT_RETURNTRANSFER, TRUE);
+        curl_setopt($this->curl, CURLOPT_IPRESOLVE, CURL_IPRESOLVE_V4);
         if (!ini_get('safe_mode')) {
             curl_setopt($this->curl, CURLOPT_FOLLOWLOCATION, TRUE);
         }
