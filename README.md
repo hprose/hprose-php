@@ -39,6 +39,20 @@ Through *Hprose*, You can conveniently and efficiently intercommunicate between 
 
 This project is the implementation of Hprose for PHP.
 
+## Installation
+
+### Download Source Code
+[Download Link](https://github.com/xielingwang/hprose-php/archive/master.zip)
+
+### install by `composer`
+```javascript
+{
+    "require": {
+        "hprose/hprose-php": "dev-master"
+    }
+}
+```
+
 ## Usage
 
 ### Server

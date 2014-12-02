@@ -39,6 +39,20 @@
 
 本项目是 Hprose 的 PHP 语言版本实现。
 
+## 安装
+
+### 通过下载源码
+[下载地址](https://github.com/xielingwang/hprose-php/archive/master.zip)
+
+### 通过composer
+```javascript
+{
+    "require": {
+        "hprose/hprose-php": "dev-master"
+    }
+}
+```
+
 ## 使用
 
 ### 服务器
