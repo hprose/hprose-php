@@ -15,5 +15,11 @@
     ],
     "require": {
         "php": ">=5.3.0"
+    },
+    "autoload": {
+        "classmap": [
+            "php5/HproseHttpServer.php",
+            "php5/HproseHttpClient.php"
+        ]
     }
 }
