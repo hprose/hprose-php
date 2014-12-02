@@ -18,8 +18,7 @@
     },
     "autoload": {
         "classmap": [
-            "php5/HproseHttpServer.php",
-            "php5/HproseHttpClient.php"
+            "./php5/",
         ]
     }
 }
