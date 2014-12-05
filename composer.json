@@ -1,0 +1,24 @@
+{
+    "name": "hprose/hprose-php",
+    "type": "library",
+    "description": "It is a modern, lightweight, cross-language, cross-platform, object-oriented, high performance, remote dynamic communication middleware. It is not only easy to use, but powerful. You just need a little time to learn, then you can use it to easily construct cross language cross platform distributed application system.",
+    "keywords": ["Hprose","WebService","PHPRPC","RPC"],
+    "homepage": "http://hprose.com/",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Andot",
+            "email": "andot@hprose.com",
+            "homepage": "http://hprose.com",
+            "role": "Developer"
+        }
+    ],
+    "require": {
+        "php": ">=5.3.0"
+    },
+    "autoload": {
+        "classmap": [
+            "./php5/"
+        ]
+    }
+}
