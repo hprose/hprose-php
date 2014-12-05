@@ -42,7 +42,7 @@
 ## 安装
 
 ### 通过下载源码
-[下载地址](https://github.com/xielingwang/hprose-php/archive/master.zip)
+[下载地址](https://github.com/hprose/hprose-php/archive/master.zip)
 
 ### 通过composer
 ```javascript
