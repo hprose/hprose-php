@@ -42,7 +42,7 @@ This project is the implementation of Hprose for PHP.
 ## Installation
 
 ### Download Source Code
-[Download Link](https://github.com/xielingwang/hprose-php/archive/master.zip)
+[Download Link](https://github.com/hprose/hprose-php/archive/master.zip)
 
 ### install by `composer`
 ```javascript
