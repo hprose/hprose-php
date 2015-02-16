@@ -14,7 +14,7 @@
  *                                                        *
  * hprose client library for php5.                        *
  *                                                        *
- * LastModified: Oct 13, 2014                             *
+ * LastModified: Feb 16, 2015                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -51,6 +51,9 @@ abstract class HproseClient {
     public function useService($url = '', $namespace = '') {
         if ($url) {
             $this->url = $url;
+        }
+        if ($namespace) {
+            $namespace .= "_";
         }
         return new HproseProxy($this, $namespace);
     }
