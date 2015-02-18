@@ -14,7 +14,7 @@
  *                                                        *
  * hprose writer class for php5.                          *
  *                                                        *
- * LastModified: Jul 12, 2014                             *
+ * LastModified: Feb 19, 2015                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -108,8 +108,11 @@ class HproseWriter {
                 if ($var >= 0 && $var <= 9) {
                     $this->stream->write((string)$var);
                 }
-                else {
+                elseif ($var >= -2147483648 && $var <= 2147483647) {
                     $this->writeInteger($var);
+                }
+                else {
+                    $this->writeLong($var);
                 }
             }
             elseif (is_bool($var)) {
