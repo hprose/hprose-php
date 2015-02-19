@@ -214,7 +214,7 @@ class HproseWriter {
         }
     }
     public function writeDateTimeWithRef($datetime) {
-        if (!$this->refer->write($this->stream, $datetime)) $this->writeDate($datetime);
+        if (!$this->refer->write($this->stream, $datetime)) $this->writeDateTime($datetime);
     }
     public function writeDate($date) {
         $this->refer->set($date);
