@@ -14,7 +14,7 @@
  *                                                        *
  * hprose raw reader class for php5.                      *
  *                                                        *
- * LastModified: Jul 12, 2014                             *
+ * LastModified: Feb 22, 2015                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -42,10 +42,10 @@ class HproseRawReader {
         }
     }
     public function readRaw($ostream = NULL, $tag = NULL) {
-        if (is_null($ostream)) {
+        if ($ostream === NULL) {
             $ostream = new HproseStringStream();
         }
-        if (is_null($tag)) {
+        if ($tag === NULL) {
             $tag = $this->stream->getc();
         }
         $ostream->write($tag);

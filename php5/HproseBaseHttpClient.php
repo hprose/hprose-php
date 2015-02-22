@@ -14,7 +14,7 @@
  *                                                        *
  * hprose base http client class for php5.                *
  *                                                        *
- * LastModified: Nov 10, 2014                             *
+ * LastModified: Feb 22, 2015                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -51,7 +51,7 @@ abstract class HproseBaseHttpClient extends HproseClient {
                 $cookie = array();
                 $pair = explode('=', trim($cookies[0]), 2);
                 $cookie['name'] = $pair[0];
-                $cookie['value'] = (count($pair) > 1) ? $pair[1] : '';
+                if (count($pair) > 1) $cookie['value'] = $pair[1];
                 for ($i = 1; $i < count($cookies); $i++) {
                     $pair = explode('=', trim($cookies[$i]), 2);
                     $cookie[strtoupper($pair[0])] = (count($pair) > 1) ? $pair[1] : '';
@@ -92,7 +92,7 @@ abstract class HproseBaseHttpClient extends HproseClient {
                     }
                     elseif (strpos($this->path, $cookie['PATH']) === 0) {
                         if ((($this->secure && $cookie['SECURE']) ||
-                             !$cookie['SECURE']) && !is_null($cookie['value'])) {
+                             !$cookie['SECURE']) && isset($cookie['value'])) {
                             $cookies[] = $cookie['name'] . '=' . $cookie['value'];
                         }
                     }

@@ -14,7 +14,7 @@
  *                                                        *
  * hprose http server library for php5.                   *
  *                                                        *
- * LastModified: Nov 4, 2014                              *
+ * LastModified: Feb 22, 2015                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -427,7 +427,7 @@ class HproseHttpServer {
                 break;
             }
             case 3: {
-                if (is_callable($args[0]) && is_null($args[1]) && is_string($args[2])) {
+                if (is_callable($args[0]) && $args[1] === NULL && is_string($args[2])) {
                     return $this->addFunction($args[0], $args[2]);
                 }
                 elseif (is_string($args[0]) && is_string($args[2])) {
@@ -439,7 +439,7 @@ class HproseHttpServer {
                     }
                 }
                 elseif (is_array($args[0])) {
-                    if (is_null($args[1]) && is_array($args[2])) {
+                    if ($args[1] === NULL && is_array($args[2])) {
                         return $this->addFunctions($args[0], $args[2]);
                     }
                     else {
