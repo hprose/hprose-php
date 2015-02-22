@@ -224,7 +224,7 @@ function hprose_read_time($o) {
             }
         }
     }
-    return array($hour, $min, $sec, $msec);
+    return array($hour, $min, $sec, $msec, $tag);
 }
 
 function hprose_simple_read_date($o) {
@@ -236,7 +236,7 @@ function hprose_simple_read_date($o) {
     $o->p += 2;
     $tag = $o->s[$o->p++];
     if ($tag == 'T') {
-        list($hour, $min, $sec, $msec) = hprose_read_time($o);
+        list($hour, $min, $sec, $msec, $tag) = hprose_read_time($o);
         $date = new HproseDateTime($year, $mon, $day, $hour, $min, $sec, $msec, $tag == 'Z');
     }
     else {
@@ -246,7 +246,7 @@ function hprose_simple_read_date($o) {
 }
 
 function hprose_simple_read_time($o) {
-    list($hour, $min, $sec, $msec) = hprose_read_time($o);
+    list($hour, $min, $sec, $msec, $tag) = hprose_read_time($o);
     $date = new HproseTime($hour, $min, $sec, $msec, $tag == 'Z');
     return $date;
 }
