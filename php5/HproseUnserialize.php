@@ -145,9 +145,9 @@ function hprose_simple_unserialize_string($o) {
         case 'f': return 'false';
         case 'N': return 'NaN';
         case 'I': return $o->s[$o->p++] == '-' ? '-Infinite' : 'Infinite';
-        case 'i': return readuntil($o, ';');
-        case 'l': return readuntil($o, ';');
-        case 'd': return readuntil($o, ';');
+        case 'i': return hprose_readuntil($o, ';');
+        case 'l': return hprose_readuntil($o, ';');
+        case 'd': return hprose_readuntil($o, ';');
         case 'u': return hprose_simple_read_utf8char($o);
         case 's': return hprose_simple_read_string($o);
         case 'b': return hprose_simple_read_bytes($o);
@@ -175,9 +175,9 @@ function hprose_fast_unserialize_string($o) {
         case 'f': return 'false';
         case 'N': return 'NaN';
         case 'I': return $o->s[$o->p++] == '-' ? '-Infinite' : 'Infinite';
-        case 'i': return readuntil($o, ';');
-        case 'l': return readuntil($o, ';');
-        case 'd': return readuntil($o, ';');
+        case 'i': return hprose_readuntil($o, ';');
+        case 'l': return hprose_readuntil($o, ';');
+        case 'd': return hprose_readuntil($o, ';');
         case 'u': return hprose_simple_read_utf8char($o);
         case 's': return $o->r[] = hprose_simple_read_string($o);
         case 'b': return $o->r[] = hprose_simple_read_bytes($o);
