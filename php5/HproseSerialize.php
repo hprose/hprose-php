@@ -373,7 +373,7 @@ function hprose_serialize_string($s) {
     return 's' . ustrlen($s) . '"' . $s . '"';
 }
 
-function hprose_serialize_list(&$a, $simple = false) {
+function hprose_serialize_list($a, $simple = false) {
     $c = count($a);
     if ($c == 0) return 'a{}';
     $ro = new stdClass();
@@ -388,12 +388,7 @@ function hprose_serialize_list(&$a, $simple = false) {
     }
     $ro->ar = array();
     $ro->r = array();
-    $ro->length = 0;
-    $h = hprose_hash($a, $ro);
-    if (array_key_exists($h, $ro->r)) {
-        return 'r' . $ro->r[$h] . ';';
-    }
-    $ro->r[$h] = $ro->length++;
+    $ro->length = 1;
     $s = 'a' . $c . '{';
     foreach ($a as &$v) {
         $s .= hprose_fast_serialize($v, $ro);
@@ -401,7 +396,7 @@ function hprose_serialize_list(&$a, $simple = false) {
     return $s . '}';
 }
 
-function hprose_serialize(&$v, $simple = false) {
+function hprose_serialize($v, $simple = false) {
     $ro = new stdClass();
     $ro->cr = array();
     $ro->fr = array();
