@@ -165,7 +165,7 @@ class HproseReader extends HproseRawReader {
     public function readDoubleWithoutTag() {
         return (double)($this->stream->readuntil(HproseTags::TagSemicolon));
     }
-    public function readDouble($includeTag = false) {
+    public function readDouble() {
         $tag = $this->stream->getc();
         switch ($tag) {
             case '0': return 0;
@@ -182,7 +182,7 @@ class HproseReader extends HproseRawReader {
             case HproseTags::TagLong:
             case HproseTags::TagDouble: return $this->readDoubleWithoutTag();
             case HproseTags::TagNaN: return log(-1);
-            case hproseTags::TagInfinity: return $this->readInfinityWithoutTag();
+            case HproseTags::TagInfinity: return $this->readInfinityWithoutTag();
             default: $this->unexpectedTag($tag);
         }
     }
@@ -193,7 +193,7 @@ class HproseReader extends HproseRawReader {
     public function readInfinityWithoutTag() {
         return (($this->stream->getc() == HproseTags::TagNeg) ? log(0) : -log(0));
     }
-    public function readInfinity($includeTag = false) {
+    public function readInfinity() {
         $this->checkTag(HproseTags::TagInfinity);
         return $this->readInfinityWithoutTag();
     }
