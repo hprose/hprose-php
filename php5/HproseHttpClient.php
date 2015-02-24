@@ -14,19 +14,19 @@
  *                                                        *
  * hprose http client library for php5.                   *
  *                                                        *
- * LastModified: Jan 2, 2014                              *
+ * LastModified: Feb 24, 2015                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
 
 if (class_exists('SaeFetchurl', false)) {
-    require_once('HproseSaeHttpClient.php');
+    include('HproseSaeHttpClient.php');
 }
 elseif (function_exists('curl_init')) {
-    require_once('HproseCurlHttpClient.php');
+    include('HproseCurlHttpClient.php');
 }
 else {
-    require_once('HproseFgcHttpClient.php');
+    include('HproseFgcHttpClient.php');
 }
 
 ?>
