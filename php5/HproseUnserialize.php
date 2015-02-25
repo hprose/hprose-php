@@ -133,7 +133,7 @@ function hprose_simple_unserialize_string($o) {
         case 's': return hprose_read_string($o);
         case 'E': throw new Exception(hprose_simple_unserialize_string($o));
     }
-    throw new Exception("Can't unserialize '$s' as string.");
+    throw new Exception("Can't unserialize '$o->s' as string.");
 }
 
 function hprose_fast_unserialize_string($o) {
@@ -143,7 +143,7 @@ function hprose_fast_unserialize_string($o) {
         case 'r': return hprose_read_ref($o);
         case 'E': throw new Exception(hprose_fast_unserialize_string($o));
     }
-    throw new Exception("Can't unserialize '$s' as string.");
+    throw new Exception("Can't unserialize '$o->s' as string.");
 }
 
 function hprose_read_bytes($o) {
