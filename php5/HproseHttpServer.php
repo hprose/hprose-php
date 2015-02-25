@@ -69,6 +69,7 @@ class HproseHttpServer {
     private $filters;
     private $origins;
     private $simple;
+    private $error_types;
     private $context;
     public $onBeforeInvoke;
     public $onAfterInvoke;

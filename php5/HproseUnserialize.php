@@ -14,7 +14,7 @@
  *                                                        *
  * hprose unserialize library for php5.                   *
  *                                                        *
- * LastModified: Jul 12, 2014                             *
+ * LastModified: Feb 25, 2015                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -84,7 +84,7 @@ function &hprose_read_ref($o) {
     return $r;
 }
 
-function hprose_simple_read_utf8char($o) {
+function hprose_read_utf8char($o) {
     $c = $o->s[$o->p++];
     switch (ord($c) >> 4) {
         case 0:
@@ -102,7 +102,7 @@ function hprose_simple_read_utf8char($o) {
     throw new Exception('bad utf-8 encoding');
 }
 
-function hprose_simple_read_string($o) {
+function hprose_read_string($o) {
     $l = (int)hprose_readuntil($o, '"');
     $p = $o->p;
     for ($i = 0; $i < $l; ++$i) {
@@ -129,79 +129,37 @@ function hprose_simple_read_string($o) {
 
 function hprose_simple_unserialize_string($o) {
     switch ($o->s[$o->p++]) {
-        case '0': return '0';
-        case '1': return '1';
-        case '2': return '2';
-        case '3': return '3';
-        case '4': return '4';
-        case '5': return '5';
-        case '6': return '6';
-        case '7': return '7';
-        case '8': return '8';
-        case '9': return '9';
-        case 'n': return NULL;
-        case 'e': return '';
-        case 't': return 'true';
-        case 'f': return 'false';
-        case 'N': return 'NaN';
-        case 'I': return $o->s[$o->p++] == '-' ? '-Infinite' : 'Infinite';
-        case 'i': return hprose_readuntil($o, ';');
-        case 'l': return hprose_readuntil($o, ';');
-        case 'd': return hprose_readuntil($o, ';');
-        case 'u': return hprose_simple_read_utf8char($o);
-        case 's': return hprose_simple_read_string($o);
-        case 'b': return hprose_simple_read_bytes($o);
-        case 'g': return hprose_simple_read_guid($o);
-        case 'E': throw new Exception(hprose_simple_read_string($o));
+        case 'u': return hprose_read_utf8char($o);
+        case 's': return hprose_read_string($o);
+        case 'E': throw new Exception(hprose_simple_unserialize_string($o));
     }
     throw new Exception("Can't unserialize '$s' as string.");
 }
 
 function hprose_fast_unserialize_string($o) {
     switch ($o->s[$o->p++]) {
-        case '0': return '0';
-        case '1': return '1';
-        case '2': return '2';
-        case '3': return '3';
-        case '4': return '4';
-        case '5': return '5';
-        case '6': return '6';
-        case '7': return '7';
-        case '8': return '8';
-        case '9': return '9';
-        case 'n': return NULL;
-        case 'e': return '';
-        case 't': return 'true';
-        case 'f': return 'false';
-        case 'N': return 'NaN';
-        case 'I': return $o->s[$o->p++] == '-' ? '-Infinite' : 'Infinite';
-        case 'i': return hprose_readuntil($o, ';');
-        case 'l': return hprose_readuntil($o, ';');
-        case 'd': return hprose_readuntil($o, ';');
-        case 'u': return hprose_simple_read_utf8char($o);
-        case 's': return $o->r[] = hprose_simple_read_string($o);
-        case 'b': return $o->r[] = hprose_simple_read_bytes($o);
-        case 'g': return $o->r[] = hprose_simple_read_guid($o);
+        case 'u': return hprose_read_utf8char($o);
+        case 's': return $o->r[] = hprose_read_string($o);
         case 'r': return hprose_read_ref($o);
-        case 'E': throw new Exception(hprose_simple_read_string($o));
+        case 'E': throw new Exception(hprose_fast_unserialize_string($o));
     }
     throw new Exception("Can't unserialize '$s' as string.");
 }
 
-function hprose_simple_read_bytes($o) {
+function hprose_read_bytes($o) {
     $c = (int)hprose_readuntil($o, '"');
     $bytes = substr($o->s, $o->p, $c);
     $o->p += $c + 1;
     return $bytes;
 }
 
-function hprose_simple_read_guid($o) {
+function hprose_read_guid($o) {
     $g = substr($o->s, $o->p + 1, 36);
     $o->p += 38;
     return $g;
 }
 
-function hprose_read_time($o) {
+function __hprose_read_time($o) {
     $hour = (int)substr($o->s, $o->p, 2);
     $o->p += 2;
     $min = (int)substr($o->s, $o->p, 2);
@@ -227,7 +185,7 @@ function hprose_read_time($o) {
     return array($hour, $min, $sec, $msec, $tag);
 }
 
-function hprose_simple_read_date($o) {
+function hprose_read_date($o) {
     $year = (int)substr($o->s, $o->p, 4);
     $o->p += 4;
     $mon = (int)substr($o->s, $o->p, 2);
@@ -236,7 +194,7 @@ function hprose_simple_read_date($o) {
     $o->p += 2;
     $tag = $o->s[$o->p++];
     if ($tag == 'T') {
-        list($hour, $min, $sec, $msec, $tag) = hprose_read_time($o);
+        list($hour, $min, $sec, $msec, $tag) = __hprose_read_time($o);
         $date = new HproseDateTime($year, $mon, $day, $hour, $min, $sec, $msec, $tag == 'Z');
     }
     else {
@@ -245,8 +203,8 @@ function hprose_simple_read_date($o) {
     return $date;
 }
 
-function hprose_simple_read_time($o) {
-    list($hour, $min, $sec, $msec, $tag) = hprose_read_time($o);
+function hprose_read_time($o) {
+    list($hour, $min, $sec, $msec, $tag) = __hprose_read_time($o);
     $date = new HproseTime($hour, $min, $sec, $msec, $tag == 'Z');
     return $date;
 }
@@ -296,7 +254,7 @@ function &hprose_fast_read_map($o) {
 }
 
 function hprose_simple_read_class($o) {
-    $classname = HproseClassManager::getClass(hprose_simple_read_string($o));
+    $classname = HproseClassManager::getClass(hprose_read_string($o));
     $c = (int)hprose_readuntil($o, '{');
     $fields = array();
     for ($i = 0; $i < $c; ++$i) {
@@ -307,7 +265,7 @@ function hprose_simple_read_class($o) {
 }
 
 function hprose_fast_read_class($o) {
-    $classname = HproseClassManager::getClass(hprose_simple_read_string($o));
+    $classname = HproseClassManager::getClass(hprose_read_string($o));
     $c = (int)hprose_readuntil($o, '{');
     $fields = array();
     for ($i = 0; $i < $c; ++$i) {
@@ -392,18 +350,18 @@ function &hprose_simple_unserialize($o) {
         case 'i': $result = (int)hprose_readuntil($o, ';'); break;
         case 'l': $result = hprose_readuntil($o, ';'); break;
         case 'd': $result = (double)hprose_readuntil($o, ';'); break;
-        case 'u': $result = hprose_simple_read_utf8char($o); break;
-        case 's': $result = hprose_simple_read_string($o); break;
-        case 'b': $result = hprose_simple_read_bytes($o); break;
-        case 'g': $result = hprose_simple_read_guid($o); break;
-        case 'D': $result = hprose_simple_read_date($o); break;
-        case 'T': $result = hprose_simple_read_time($o); break;
+        case 'u': $result = hprose_read_utf8char($o); break;
+        case 's': $result = hprose_read_string($o); break;
+        case 'b': $result = hprose_read_bytes($o); break;
+        case 'g': $result = hprose_read_guid($o); break;
+        case 'D': $result = hprose_read_date($o); break;
+        case 'T': $result = hprose_read_time($o); break;
         case 'a': $result = &hprose_simple_read_list($o); break;
         case 'm': $result = &hprose_simple_read_map($o); break;
         case 'c': hprose_simple_read_class($o);
                   $result = hprose_simple_unserialize($o); break;
         case 'o': $result = hprose_simple_read_object($o); break;
-        case 'E': throw new Exception(hprose_simple_read_string($o));
+        case 'E': throw new Exception(hprose_simple_unserialize_string($o));
         default: throw new Exception("Can't unserialize '{$o->s}' in simple mode.");
     }
     return $result;
@@ -430,19 +388,19 @@ function &hprose_fast_unserialize($o) {
         case 'i': $result = (int)hprose_readuntil($o, ';'); break;
         case 'l': $result = hprose_readuntil($o, ';'); break;
         case 'd': $result = (double)hprose_readuntil($o, ';'); break;
-        case 'u': $result = hprose_simple_read_utf8char($o); break;
-        case 's': $o->r[] = $result = hprose_simple_read_string($o); break;
-        case 'b': $o->r[] = $result = hprose_simple_read_bytes($o); break;
-        case 'g': $o->r[] = $result = hprose_simple_read_guid($o); break;
-        case 'D': $o->r[] = $result = hprose_simple_read_date($o); break;
-        case 'T': $o->r[] = $result = hprose_simple_read_time($o); break;
+        case 'u': $result = hprose_read_utf8char($o); break;
+        case 's': $o->r[] = $result = hprose_read_string($o); break;
+        case 'b': $o->r[] = $result = hprose_read_bytes($o); break;
+        case 'g': $o->r[] = $result = hprose_read_guid($o); break;
+        case 'D': $o->r[] = $result = hprose_read_date($o); break;
+        case 'T': $o->r[] = $result = hprose_read_time($o); break;
         case 'a': $result = &hprose_fast_read_list($o); break;
         case 'm': $result = &hprose_fast_read_map($o); break;
         case 'c': hprose_fast_read_class($o);
                   $result = hprose_fast_unserialize($o); break;
         case 'o': $result = hprose_fast_read_object($o); break;
         case 'r': $result = &hprose_read_ref($o); break;
-        case 'E': throw new Exception(hprose_simple_read_string($o));
+        case 'E': throw new Exception(hprose_fast_unserialize_string($o));
         default: throw new Exception("Can't unserialize '{$o->s}'.");
     }
     return $result;
