@@ -14,7 +14,7 @@
  *                                                        *
  * hprose curl http client class for php5.                *
  *                                                        *
- * LastModified: Jul 12, 2014                             *
+ * LastModified: Feb 27, 2015                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -60,7 +60,7 @@ class HproseHttpClient extends HproseBaseHttpClient {
         if ($this->proxy) {
             curl_setopt($this->curl, CURLOPT_PROXY, $this->proxy);
         }
-        if (defined(CURLOPT_TIMEOUT_MS)) {
+        if (defined('CURLOPT_TIMEOUT_MS')) {
             curl_setopt($this->curl, CURLOPT_TIMEOUT_MS, $this->timeout);
         }
         else {
@@ -75,6 +75,7 @@ class HproseHttpClient extends HproseBaseHttpClient {
             list($response_headers, $response) = explode("\r\n\r\n", $response, 2);
             $http_response_header = explode("\r\n", $response_headers);
             $http_response_firstline = array_shift($http_response_header);
+            $matches = array();
             if (preg_match('@^HTTP/[0-9]\.[0-9]\s([0-9]{3})\s(.*)@',
                            $http_response_firstline, $matches)) {
                 $response_code = $matches[1];
