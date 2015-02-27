@@ -14,7 +14,7 @@
  *                                                        *
  * hprose filter interface for php5.                      *
  *                                                        *
- * LastModified: Jul 12, 2014                             *
+ * LastModified: Feb 27, 2015                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -27,4 +27,3 @@ interface HproseFilter {
 }
 
 } // endif (!extension_loaded('hprose'))
-?>

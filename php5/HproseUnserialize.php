@@ -14,7 +14,7 @@
  *                                                        *
  * hprose unserialize library for php5.                   *
  *                                                        *
- * LastModified: Feb 25, 2015                             *
+ * LastModified: Feb 27, 2015                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -26,36 +26,65 @@ require_once('HproseClassManager.php');
 
 // public functions
 function &hprose_unserialize_with_stream($s, $simple = false) {
-    $str = $s->readfull();
-    $v = &hprose_unserialize($str, $simple);
-    $s->init($str);
+    $o = new stdClass();
+    $s->mark();
+    $o->s = $s->readfull();
+    $o->p = 0;
+    $o->cr = array();
+    if ($simple) {
+        $v = hprose_simple_unserialize($o);
+    }
+    else {
+        $o->r = array();
+        $v = hprose_fast_unserialize($o);
+    }
+    $s->reset();
+    $s->skip($o->p);
+    return $v;
+}
+
+function hprose_unserialize_string_with_stream($s, $simple = false) {
+    $o = new stdClass();
+    $s->mark();
+    $o->s = $s->readfull();
+    $o->p = 0;
+    if ($simple) {
+        $v = hprose_simple_unserialize_string($o);
+    }
+    else {
+        $o->r = array();
+        $v = hprose_fast_unserialize_string($o);
+    }
+    $s->reset();
+    $s->skip($o->p);
     return $v;
 }
 
 function &hprose_unserialize_list_with_stream($s) {
     $o = new stdClass();
+    $s->mark();
     $o->s = $s->readfull();
     $o->p = 0;
     $o->cr = array();
     $o->r = array();
-    $v = &hprose_fast_read_list($o);
-    $s->init((string)substr($o->s, $o->p));
+    $v = hprose_fast_read_list($o);
+    $s->reset();
+    $s->skip($o->p);
     return $v;
 }
 
-function &hprose_unserialize(&$s, $simple = false) {
+function &hprose_unserialize($s, $simple = false) {
     $o = new stdClass();
     $o->s = $s;
     $o->p = 0;
     $o->cr = array();
     if ($simple) {
-        $v = &hprose_simple_unserialize($o);
+        $v = hprose_simple_unserialize($o);
     }
     else {
         $o->r = array();
-        $v = &hprose_fast_unserialize($o);
+        $v = hprose_fast_unserialize($o);
     }
-    $s = (string)substr($s, $o->p);
     return $v;
 }
 
@@ -341,7 +370,7 @@ function &hprose_simple_unserialize($o) {
         case '7': $result = 7; break;
         case '8': $result = 8; break;
         case '9': $result = 9; break;
-        case 'n': $result = NULL; break;
+        case 'n': $result = null; break;
         case 'e': $result = ''; break;
         case 't': $result = true; break;
         case 'f': $result = false; break;
@@ -379,7 +408,7 @@ function &hprose_fast_unserialize($o) {
         case '7': $result = 7; break;
         case '8': $result = 8; break;
         case '9': $result = 9; break;
-        case 'n': $result = NULL; break;
+        case 'n': $result = null; break;
         case 'e': $result = ''; break;
         case 't': $result = true; break;
         case 'f': $result = false; break;
@@ -407,4 +436,3 @@ function &hprose_fast_unserialize($o) {
 }
 
 } // endif (!extension_loaded('hprose'))
-?>

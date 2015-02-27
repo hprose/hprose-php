@@ -14,7 +14,7 @@
  *                                                        *
  * hprose raw reader class for php5.                      *
  *                                                        *
- * LastModified: Feb 22, 2015                             *
+ * LastModified: Feb 27, 2015                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -27,10 +27,10 @@ require_once('HproseIOStream.php');
 
 class HproseRawReader {
     public $stream;
-    function __construct(&$stream) {
-        $this->stream = &$stream;
+    function __construct($stream) {
+        $this->stream = $stream;
     }
-    public function unexpectedTag($tag, $expectTags = NULL) {
+    public function unexpectedTag($tag, $expectTags = null) {
         if ($tag && $expectTags) {
             throw new Exception("Tag '" . $expectTags . "' expected, but '" . $tag . "' found in stream");
         }
@@ -41,11 +41,11 @@ class HproseRawReader {
             throw new Exception('No byte found in stream');
         }
     }
-    public function readRaw($ostream = NULL, $tag = NULL) {
-        if ($ostream === NULL) {
+    public function readRaw($ostream = null, $tag = null) {
+        if ($ostream === null) {
             $ostream = new HproseStringStream();
         }
-        if ($tag === NULL) {
+        if ($tag === null) {
             $tag = $this->stream->getc();
         }
         $ostream->write($tag);
@@ -215,4 +215,3 @@ class HproseRawReader {
 }
 
 } // endif (!extension_loaded('hprose'))
-?>

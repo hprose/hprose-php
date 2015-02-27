@@ -14,7 +14,7 @@
  *                                                        *
  * hprose string stream class for php5.                   *
  *                                                        *
- * LastModified: Jul 12, 2014                             *
+ * LastModified: Feb 27, 2015                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -27,16 +27,13 @@ class HproseStringStream {
     protected $mark;
     protected $length;
     public function __construct($string = '') {
-        $this->init($string);
-    }
-    public function init($string) {
         $this->buffer = $string;
         $this->pos = 0;
         $this->mark = -1;
         $this->length = strlen($string);
     }
     public function close() {
-        $this->buffer = NULL;
+        $this->buffer = null;
         $this->pos = 0;
         $this->mark = -1;
         $this->length = 0;
@@ -68,21 +65,6 @@ class HproseStringStream {
             $this->pos = $this->length;
         }
         return $s;
-    }
-    public function seek($offset, $whence = SEEK_SET) {
-        switch ($whence) {
-            case SEEK_SET:
-                $this->pos = $offset;
-                break;
-            case SEEK_CUR:
-                $this->pos += $offset;
-                break;
-            case SEEK_END:
-                $this->pos = $this->length + $offset;
-                break;
-        }
-        $this->mark = -1;
-        return 0;
     }
     public function mark() {
         $this->mark = $this->pos;
@@ -120,4 +102,3 @@ class HproseStringStream {
 }
 
 } // endif (!extension_loaded('hprose'))
-?>

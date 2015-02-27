@@ -14,7 +14,7 @@
  *                                                        *
  * xml-rpc service filter class for php5.                 *
  *                                                        *
- * LastModified: Oct 14, 2014                             *
+ * LastModified: Feb 27, 2015                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -23,7 +23,7 @@ class XMLRPCServiceFilter implements HproseFilter {
     function inputFilter($data, $context) {
         if ($data !== "" && $data{0} === '<') {
             $context->userdata->format = "xmlrpc";
-            $method = NULL;
+            $method = null;
             $params = xmlrpc_decode_request($data, $method, "UTF-8");
             $data = "";
             if ($method) {
@@ -38,8 +38,8 @@ class XMLRPCServiceFilter implements HproseFilter {
     }
 
     function outputFilter($data, $context) {
-        if (isset($context->userdata->format) && $context->userdata->format === "xmlrpc") {        
-            $result = NULL;
+        if (isset($context->userdata->format) && $context->userdata->format === "xmlrpc") {
+            $result = null;
             $stream = new HproseStringStream($data);
             if ($data !== "") {
                 while (($tag = $stream->getc()) !== HproseTags::TagEnd) {
@@ -65,5 +65,3 @@ class XMLRPCServiceFilter implements HproseFilter {
         return $data;
     }
 }
-
-?>

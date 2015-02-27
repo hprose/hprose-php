@@ -14,7 +14,7 @@
  *                                                        *
  * hprose file stream class for php5.                     *
  *                                                        *
- * LastModified: Jun 23, 2014                             *
+ * LastModified: Feb 27, 2015                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -88,16 +88,6 @@ class HproseFileStream {
         while ((($c = $this->getc()) != $char) && $c !== false) $s .= $c;
         return $s;
     }
-    public function seek($offset, $whence = SEEK_SET) {
-        if (fseek($this->fp, $offset, $whence) == 0) {
-            $this->buf = "";
-            $this->unmark = true;
-            $this->pos = -1;
-            $this->length = 0;
-            return 0;
-        }
-        return -1;
-    }
     public function mark() {
         $this->unmark = false;
         if ($this->pos == -1) {
@@ -129,5 +119,3 @@ class HproseFileStream {
         return fwrite($this->fp, $string, $length);
     }
 }
-
-?>

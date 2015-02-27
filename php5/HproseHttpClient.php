@@ -14,7 +14,7 @@
  *                                                        *
  * hprose http client library for php5.                   *
  *                                                        *
- * LastModified: Feb 24, 2015                             *
+ * LastModified: Feb 27, 2015                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -28,5 +28,3 @@ elseif (function_exists('curl_init')) {
 else {
     include('HproseFgcHttpClient.php');
 }
-
-?>

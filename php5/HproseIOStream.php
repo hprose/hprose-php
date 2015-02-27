@@ -14,7 +14,7 @@
  *                                                        *
  * hprose io stream library for php5.                     *
  *                                                        *
- * LastModified: Jan 2, 2014                              *
+ * LastModified: Feb 27, 2015                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -22,5 +22,3 @@
 require_once("HproseStringStream.php");
 require_once("HproseFileStream.php");
 require_once("HproseProcStream.php");
-
-?>

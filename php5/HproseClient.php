@@ -14,7 +14,7 @@
  *                                                        *
  * hprose client library for php5.                        *
  *                                                        *
- * LastModified: Feb 16, 2015                             *
+ * LastModified: Feb 27, 2015                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -57,8 +57,8 @@ abstract class HproseClient {
         }
         return new HproseProxy($this, $namespace);
     }
-    public function invoke($functionName, &$arguments = array(), $byRef = false, $resultMode = HproseResultMode::Normal, $simple = NULL) {
-        if ($simple === NULL) $simple = $this->simple;
+    public function invoke($functionName, &$arguments = array(), $byRef = false, $resultMode = HproseResultMode::Normal, $simple = null) {
+        if ($simple === null) $simple = $this->simple;
         $stream = new HproseStringStream(HproseTags::TagCall);
         //$hproseWriter = new HproseWriter($stream, $simple);
         // $hproseWriter->writeString($functionName);
@@ -94,7 +94,7 @@ abstract class HproseClient {
         }
         $stream = new HproseStringStream($response);
         $hproseReader = new HproseRawReader($stream);
-        $result = NULL;
+        $result = null;
         while (($tag = $stream->getc()) !== HproseTags::TagEnd) {
             switch ($tag) {
                 case HproseTags::TagResult:
@@ -128,13 +128,13 @@ abstract class HproseClient {
     }
     public function getFilter() {
         if (count($this->filters) === 0) {
-            return NULL;
+            return null;
         }
         return $this->filters[0];
     }
     public function setFilter($filter) {
         $this->filters = array();
-        if ($filter !== NULL) {
+        if ($filter !== null) {
             $this->filters[] = $filter;
         }
     }
@@ -143,7 +143,7 @@ abstract class HproseClient {
     }
     public function removeFilter($filter) {
         $i = array_search($filter, $this->filters);
-        if ($i === false || $i === NULL) {
+        if ($i === false || $i === null) {
             return false;
         }
         $this->filters = array_splice($this->filters, $i, 1);
@@ -162,5 +162,3 @@ abstract class HproseClient {
         return new HproseProxy($this, $name . '_');
     }
 }
-
-?>

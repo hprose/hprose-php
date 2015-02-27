@@ -14,7 +14,7 @@
  *                                                        *
  * xml-rpc client filter class for php5.                  *
  *                                                        *
- * LastModified: Oct 14, 2014                             *
+ * LastModified: Feb 27, 2015                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -33,12 +33,12 @@ class XMLRPCClientFilter implements HproseFilter {
     }
 
     function outputFilter($data, $context) {
-        $method = NULL;
+        $method = null;
         $params = array();
         $stream = new HproseStringStream($data);
         $tag = $stream->getc();
         if ($tag === HproseTags::TagCall) {
-            $method = hprose_unserialize_with_stream($stream);
+            $method = hprose_unserialize_string_with_stream($stream);
             $tag = $stream->getc();
             if ($tag == HproseTags::TagList) {
                 $params = &hprose_unserialize_list_with_stream($stream);
@@ -50,5 +50,3 @@ class XMLRPCClientFilter implements HproseFilter {
         return xmlrpc_encode_request($method, $params);
     }
 }
-
-?>

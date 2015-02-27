@@ -14,7 +14,7 @@
  *                                                        *
  * hprose common library for php5.                        *
  *                                                        *
- * LastModified: Jul 12, 2014                             *
+ * LastModified: Feb 27, 2015                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -37,22 +37,22 @@ class HproseBytes {
     }
 }
 
-function &bytes($val) {
+function bytes($val) {
     $b = new HproseBytes($val);
     return $b;
 }
 
 class HproseMap {
     public $value;
-    public function __construct(array &$val) {
-        $this->value = &$val;
+    public function __construct(array $val) {
+        $this->value = $val;
     }
     public function __toString() {
         return "Map";
     }
 }
 
-function &map($val) {
+function map($val) {
     $m = new HproseMap($val);
     return $m;
 }
@@ -156,8 +156,7 @@ else {
  */
 function is_list(array $a) {
     $count = count($a);
-    if ($count === 0) return true;
-    return !array_diff_key($a, array_fill(0, $count, NULL));
+    return ($count === 0) || ($count === 1 && array_key_exists(0, $a)) || (array_key_exists($count - 1, $a) && array_key_exists(0, $a));
 }
 
 /*
@@ -196,4 +195,3 @@ if (!function_exists('spl_object_hash')) {
 }
 
 } // endif (!extension_loaded('hprose'))
-?>

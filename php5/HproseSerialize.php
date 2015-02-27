@@ -14,7 +14,7 @@
  *                                                        *
  * hprose serialize library for php5.                     *
  *                                                        *
- * LastModified: Feb 19, 2015                             *
+ * LastModified: Feb 27, 2015                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -51,7 +51,7 @@ function hprose_hash(&$v, $ro) {
 }
 
 function hprose_simple_serialize(&$v, $ro) {
-    if ($v === NULL) {
+    if ($v === null) {
         return 'n';
     }
     if (is_int($v)) {
@@ -191,7 +191,7 @@ function hprose_simple_serialize(&$v, $ro) {
 }
 
 function hprose_fast_serialize(&$v, $ro) {
-    if ($v === NULL) {
+    if ($v === null) {
         return 'n';
     }
     if (is_int($v)) {
@@ -410,4 +410,3 @@ function hprose_serialize($v, $simple = false) {
 }
 
 } // endif (!extension_loaded('hprose'))
-?>

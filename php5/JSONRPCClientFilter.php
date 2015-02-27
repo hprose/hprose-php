@@ -14,7 +14,7 @@
  *                                                        *
  * json rpc client filter class for php5.                 *
  *                                                        *
- * LastModified: Oct 16, 2014                             *
+ * LastModified: Feb 27, 2015                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -31,7 +31,7 @@ class JSONRPCClientFilter implements HproseFilter {
     public function setVersion($version) {
         if ($version === "1.0" || $version === "1.1" || $version === "2.0") {
             $this->version = $version;
-        } 
+        }
         else {
             throw new Exception("version must be 1.0, 1.1 or 2.0 in string format.");
         }
@@ -39,10 +39,10 @@ class JSONRPCClientFilter implements HproseFilter {
     function inputFilter($data, $context) {
         $response = json_decode($data);
         if (!isset($response->result)) {
-            $response->result = NULL;
+            $response->result = null;
         }
         if (!isset($response->error)) {
-            $response->error = NULL;
+            $response->error = null;
         }
         if ($response->error) {
             $data = HproseTags::TagError . hprose_serialize_string($response->error->message);
@@ -78,5 +78,3 @@ class JSONRPCClientFilter implements HproseFilter {
         return json_encode($request);
     }
 }
-
-?>

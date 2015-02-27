@@ -14,7 +14,7 @@
  *                                                        *
  * hprose writer class for php5.                          *
  *                                                        *
- * LastModified: Feb 19, 2015                             *
+ * LastModified: Feb 27, 2015                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -93,14 +93,14 @@ class HproseWriter {
     private $classref;
     private $fieldsref;
     private $refer;
-    function __construct(&$stream, $simple = false) {
-        $this->stream = &$stream;
+    function __construct($stream, $simple = false) {
+        $this->stream = $stream;
         $this->classref = array();
         $this->fieldsref = array();
         $this->refer = $simple ? new HproseFakeWriterRefer() : new HproseRealWriterRefer();
     }
     public function serialize(&$var) {
-        if ((!isset($var)) || ($var === NULL)) {
+        if ((!isset($var)) || ($var === null)) {
             $this->writeNull();
         }
         elseif (is_scalar($var)) {
@@ -352,4 +352,3 @@ class HproseWriter {
 }
 
 } // endif (!extension_loaded('hprose'))
-?>

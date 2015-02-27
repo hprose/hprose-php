@@ -14,7 +14,7 @@
  *                                                        *
  * json rpc service filter class for php5.                *
  *                                                        *
- * LastModified: Oct 15, 2014                             *
+ * LastModified: Feb 27, 2015                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -28,13 +28,13 @@ class JSONRPCServiceFilter implements HproseFilter {
                 $context->userdata->id = $request->id;
             }
             else {
-                $context->userdata->id = NULL;
+                $context->userdata->id = null;
             }
             if (isset($request->version)) {
-                $context->userdata->version = $request->version;            
+                $context->userdata->version = $request->version;
             }
             else if (isset($request->jsonrpc)) {
-                $context->userdata->version = $request->jsonrpc;            
+                $context->userdata->version = $request->jsonrpc;
             }
             else {
                 $context->userdata->version = "1.0";
@@ -52,15 +52,15 @@ class JSONRPCServiceFilter implements HproseFilter {
     }
 
     function outputFilter($data, $context) {
-        if (isset($context->userdata->format) && $context->userdata->format === "jsonrpc") {        
+        if (isset($context->userdata->format) && $context->userdata->format === "jsonrpc") {
             $response = new stdClass();
             $response->id = $context->userdata->id;
             if ($context->userdata->version != "2.0") {
                 if ($context->userdata->version == "1.1") {
                     $response->version = "1.1";
                 }
-                $response->result = NULL;
-                $response->error = NULL;
+                $response->result = null;
+                $response->error = null;
             }
             else {
                 $response->jsonrpc = "2.0";
@@ -90,5 +90,3 @@ class JSONRPCServiceFilter implements HproseFilter {
         return $data;
     }
 }
-
-?>

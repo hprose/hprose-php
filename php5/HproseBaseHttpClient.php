@@ -14,7 +14,7 @@
  *                                                        *
  * hprose base http client class for php5.                *
  *                                                        *
- * LastModified: Feb 22, 2015                             *
+ * LastModified: Feb 27, 2015                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -134,7 +134,7 @@ abstract class HproseBaseHttpClient extends HproseClient {
             }
         }
     }
-    public function setProxy($proxy = NULL) {
+    public function setProxy($proxy = null) {
         $this->proxy = $proxy;
     }
     public function setTimeout($timeout) {
@@ -156,5 +156,3 @@ abstract class HproseBaseHttpClient extends HproseClient {
         return $this->keepAliveTimeout;
     }
 }
-
-?>

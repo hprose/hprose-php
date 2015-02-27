@@ -44,4 +44,3 @@ class HproseFormatter {
 }
 
 } // endif (!extension_loaded('hprose'))
-?>

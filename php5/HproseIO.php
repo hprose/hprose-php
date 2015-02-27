@@ -14,7 +14,7 @@
  *                                                        *
  * hprose io library for php5.                            *
  *                                                        *
- * LastModified: Jul 12, 2014                             *
+ * LastModified: Feb 27, 2015                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -28,4 +28,3 @@ require_once('HproseWriter.php');
 require_once('HproseFormatter.php');
 
 } // endif (!extension_loaded('hprose'))
-?>

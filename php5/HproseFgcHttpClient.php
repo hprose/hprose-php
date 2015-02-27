@@ -14,7 +14,7 @@
  *                                                        *
  * hprose fgc http client class for php5.                 *
  *                                                        *
- * LastModified: Mar 19, 2014                             *
+ * LastModified: Feb 27, 2015                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -60,4 +60,3 @@ class HproseHttpClient extends HproseBaseHttpClient {
         return $response;
     }
 }
-?>
