@@ -30,7 +30,7 @@ class HproseRawReader {
     function __construct($stream) {
         $this->stream = $stream;
     }
-    public function unexpectedTag($tag, $expectTags = null) {
+    public function unexpectedTag($tag, $expectTags = '') {
         if ($tag && $expectTags) {
             throw new Exception("Tag '" . $expectTags . "' expected, but '" . $tag . "' found in stream");
         }
@@ -41,11 +41,13 @@ class HproseRawReader {
             throw new Exception('No byte found in stream');
         }
     }
-    public function readRaw($ostream = null, $tag = null) {
-        if ($ostream === null) {
-            $ostream = new HproseStringStream();
-        }
-        if ($tag === null) {
+    public function readRaw() {
+        $ostream = new StringStream();
+        $this->__readRaw($ostream);
+        return $ostream;
+    }
+    private function __readRaw($ostream, $tag = '') {
+        if ($tag == '') {
             $tag = $this->stream->getc();
         }
         $ostream->write($tag);
@@ -98,10 +100,10 @@ class HproseRawReader {
                 break;
             case HproseTags::TagClass:
                 $this->readComplexRaw($ostream);
-                $this->readRaw($ostream);
+                $this->__readRaw($ostream);
                 break;
             case HproseTags::TagError:
-                $this->readRaw($ostream);
+                $this->__readRaw($ostream);
                 break;
             default: $this->unexpectedTag($tag);
         }
@@ -208,7 +210,7 @@ class HproseRawReader {
              HproseTags::TagOpenbrace;
         $ostream->write($s);
         while (($tag = $this->stream->getc()) != HproseTags::TagClosebrace) {
-            $this->readRaw($ostream, $tag);
+            $this->__readRaw($ostream, $tag);
         }
         $ostream->write($tag);
     }

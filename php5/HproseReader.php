@@ -392,6 +392,16 @@ class HproseReader extends HproseRawReader {
         return $s;
     }
 
+    public function _readString() {
+        $tag = $this->stream->getc();
+        switch ($tag) {
+            case Tags::TagUTF8Char: return $this->readUTF8CharWithoutTag();
+            case Tags::TagString: return $this->readStringWithoutTag();
+            case Tags::TagRef: return (string)$this->readRef();
+            default: throw $this->unexpectedTag($tag);
+        }
+    }
+
     public function readString() {
         $tag = $this->stream->getc();
         switch ($tag) {
@@ -403,6 +413,7 @@ class HproseReader extends HproseRawReader {
             default: $this->unexpectedTag($tag);
         }
     }
+
     public function readGuidWithoutTag() {
         $this->stream->skip(1);
         $s = $this->stream->read(36);
@@ -500,7 +511,7 @@ class HproseReader extends HproseRawReader {
         $count = (int)$this->stream->readuntil(HproseTags::TagOpenbrace);
         $fields = array();
         for ($i = 0; $i < $count; ++$i) {
-            $fields[] = $this->readString();
+            $fields[] = $this->_readString();
         }
         $this->stream->skip(1);
         $this->classref[] = array($classname, $fields);

@@ -23,54 +23,74 @@ if (!extension_loaded('hprose')) {
 
 require_once('HproseCommon.php');
 require_once('HproseClassManager.php');
+require_once('HproseReader.php');
 
 // public functions
 function &hprose_unserialize_with_stream($s, $simple = false) {
-    $o = new stdClass();
-    $s->mark();
-    $o->s = $s->readfull();
-    $o->p = 0;
-    $o->cr = array();
-    if ($simple) {
-        $v = hprose_simple_unserialize($o);
+    if ($s instanceof HproseStringStream) {
+        $o = new stdClass();
+        $s->mark();
+        $o->s = $s->readfull();
+        $o->p = 0;
+        $o->cr = array();
+        if ($simple) {
+            $v = hprose_simple_unserialize($o);
+        }
+        else {
+            $o->r = array();
+            $v = hprose_fast_unserialize($o);
+        }
+        $s->reset();
+        $s->skip($o->p);
+        return $v;
     }
     else {
-        $o->r = array();
-        $v = hprose_fast_unserialize($o);
+        $reader = new HproseReader($s, $simple);
+        return $reader->unserialize();
     }
-    $s->reset();
-    $s->skip($o->p);
-    return $v;
+
 }
 
 function hprose_unserialize_string_with_stream($s, $simple = false) {
-    $o = new stdClass();
-    $s->mark();
-    $o->s = $s->readfull();
-    $o->p = 0;
-    if ($simple) {
-        $v = hprose_simple_unserialize_string($o);
+    if ($s instanceof HproseStringStream) {
+        $o = new stdClass();
+        $s->mark();
+        $o->s = $s->readfull();
+        $o->p = 0;
+        if ($simple) {
+            $v = hprose_simple_unserialize_string($o);
+        }
+        else {
+            $o->r = array();
+            $v = hprose_fast_unserialize_string($o);
+        }
+        $s->reset();
+        $s->skip($o->p);
+        return $v;
     }
     else {
-        $o->r = array();
-        $v = hprose_fast_unserialize_string($o);
+        $reader = new HproseReader($s, $simple);
+        return $reader->_readString();
     }
-    $s->reset();
-    $s->skip($o->p);
-    return $v;
 }
 
 function &hprose_unserialize_list_with_stream($s) {
-    $o = new stdClass();
-    $s->mark();
-    $o->s = $s->readfull();
-    $o->p = 0;
-    $o->cr = array();
-    $o->r = array();
-    $v = hprose_fast_read_list($o);
-    $s->reset();
-    $s->skip($o->p);
-    return $v;
+    if ($s instanceof HproseStringStream) {
+        $o = new stdClass();
+        $s->mark();
+        $o->s = $s->readfull();
+        $o->p = 0;
+        $o->cr = array();
+        $o->r = array();
+        $v = hprose_fast_read_list($o);
+        $s->reset();
+        $s->skip($o->p);
+        return $v;
+    }
+    else {
+        $reader = new HproseReader($s);
+        return $reader->readListWithoutTag();
+    }
 }
 
 function &hprose_unserialize($s, $simple = false) {
