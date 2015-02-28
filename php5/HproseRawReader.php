@@ -27,7 +27,7 @@ require_once('HproseIOStream.php');
 
 class HproseRawReader {
     public $stream;
-    function __construct($stream) {
+    public function __construct($stream) {
         $this->stream = $stream;
     }
     public function unexpectedTag($tag, $expectTags = '') {

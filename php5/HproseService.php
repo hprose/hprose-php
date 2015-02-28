@@ -14,7 +14,7 @@
  *                                                        *
  * hprose service library for php.                        *
  *                                                        *
- * LastModified: Feb 27, 2015                             *
+ * LastModified: Feb 28, 2015                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -449,9 +449,5 @@ abstract class HproseService {
             }
             return $this->sendError($error, $context);
         }
-    }
-    public abstract function handle();
-    public function start() {
-        $this->handle();
     }
 }

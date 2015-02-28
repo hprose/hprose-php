@@ -42,7 +42,7 @@ class HproseFakeReaderRefer implements HproseReaderRefer {
 
 class HproseRealReaderRefer implements HproseReaderRefer {
     private $ref;
-    function __construct() {
+    public function __construct() {
         $this->reset();
     }
     public function set(&$val) {
@@ -66,7 +66,7 @@ class HproseRealReaderRefer implements HproseReaderRefer {
 class HproseReader extends HproseRawReader {
     private $classref;
     private $refer;
-    function __construct($stream, $simple = false) {
+    public function __construct($stream, $simple = false) {
         parent::__construct($stream);
         $this->classref = array();
         $this->refer = $simple ? new HproseFakeReaderRefer() : new HproseRealReaderRefer();

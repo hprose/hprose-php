@@ -41,7 +41,7 @@ class HproseRealWriterRefer implements HproseWriterRefer {
     private $ref;
     private $arrayref;
     private $refcount;
-    function __construct() {
+    public function __construct() {
         $this->reset();
     }
     private function getKey(&$obj) {
@@ -93,7 +93,7 @@ class HproseWriter {
     private $classref;
     private $fieldsref;
     private $refer;
-    function __construct($stream, $simple = false) {
+    public function __construct($stream, $simple = false) {
         $this->stream = $stream;
         $this->classref = array();
         $this->fieldsref = array();

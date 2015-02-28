@@ -10,23 +10,22 @@
 
 /**********************************************************\
  *                                                        *
- * HproseHttpServer.php                                   *
+ * HproseSwooleHttpServer.php                             *
  *                                                        *
- * hprose http server library for php.                    *
+ * hprose swoole http server library for php.             *
  *                                                        *
- * LastModified: Feb 27, 2015                             *
+ * LastModified: Feb 28, 2015                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
 
 require_once('HproseService.php');
 
-class HproseHttpService extends HproseService {
+class HproseSwooleHttpService extends HproseService {
     private $crossDomain = false;
     private $P3P = false;
     private $get = true;
     private $origins = array();
-    private $context;
     public $onSendHeader = null;
 
     private function sendHeader($context) {
@@ -34,24 +33,28 @@ class HproseHttpService extends HproseService {
             $sendHeader = $this->onSendHeader;
             $sendHeader($context);
         }
-        header("Content-Type: text/plain");
+        $request = $context->request;
+        $response = $context->response;
+        $response->header('Content-Type', 'text/plain');
         if ($this->P3P) {
-            header('P3P: CP="CAO DSP COR CUR ADM DEV TAI PSA PSD ' .
+            $response->header('P3P',
+                   'CP="CAO DSP COR CUR ADM DEV TAI PSA PSD ' .
                    'IVAi IVDi CONi TELo OTPi OUR DELi SAMi OTRi ' .
                    'UNRi PUBi IND PHY ONL UNI PUR FIN COM NAV ' .
                    'INT DEM CNT STA POL HEA PRE GOV"');
         }
         if ($this->crossDomain) {
-            if (array_key_exists('HTTP_ORIGIN', $_SERVER) &&
-                $_SERVER['HTTP_ORIGIN'] != "null") {
-                $origin = $_SERVER['HTTP_ORIGIN'];
+            if (array_key_exists('http_origin', $request->header) &&
+                $request->header['http_origin'] != "null") {
+                $origin = $request->header['http_origin'];
                 if (array_key_exists($origin, $this->origins)) {
-                    header("Access-Control-Allow-Origin: " . $origin);
-                    header("Access-Control-Allow-Credentials: true");
+                    $response->header('Access-Control-Allow-Origin', $origin);
+                    $response->header('Access-Control-Allow-Credentials',
+                                     'true');
                 }
             }
             else {
-                header('Access-Control-Allow-Origin: *');
+                $response->header('Access-Control-Allow-Origin', '*');
             }
         }
     }
@@ -79,58 +82,68 @@ class HproseHttpService extends HproseService {
     public function removeAccessControlAllowOrigin($origin) {
         unset($this->origins[$origin]);
     }
-    /*
-      __errorHandler and __filterHandler must be public,
-      however we should never call them directly.
-    */
-    public function __errorHandler($errno, $errstr, $errfile, $errline) {
-        if ($this->debug) {
-            $errstr .= " in $errfile on line $errline";
-        }
-        $error = self::$errorTable[$errno] . ": " . $errstr;
-        exit($this->sendError($error, $this->context));
-    }
-    public function __filterHandler($data) {
-        $match = array();
-        if (preg_match('/<b>.*? error<\/b>:(.*?)<br/', $data, $match)) {
-            if ($this->debug) {
-                $error = preg_replace('/<.*?>/', '', $match[1]);
-            }
-            else {
-                $error = preg_replace('/ in <b>.*<\/b>$/', '', $match[1]);
-            }
-            return $this->sendError(trim($error), $this->context);
-        }
-        return $this->outputFilter($data, $this->context);
-    }
-    public function handle() {
-        $request = file_get_contents("php://input");
+
+    public function handle($request, $response) {
+        $data = $request->rawContent();
 
         $context = new stdClass();
         $context->server = $this;
+        $context->request = $request;
+        $context->response = $response;
         $context->userdata = new stdClass();
-        $this->context = $context;
 
-        set_error_handler(array($this, '__errorHandler'), $this->error_types);
-        ob_start(array($this, '__filterHandler'));
+        $self = $this;
+        $errorTable = self::$errorTable;
 
+        set_error_handler(function ($errno, $errstr, $errfile, $errline) use ($self, $errorTable, $context) {
+            if ($self->debug) {
+                $errstr .= " in $errfile on line $errline";
+            }
+            $error = $errorTable[$errno] . ": " . $errstr;
+            $context->response->end($self->sendError($error, $context));
+        }, $this->error_types);
+        ob_start(function ($data) use ($self, $context) {
+            $match = array();
+            if (preg_match('/<b>.*? error<\/b>:(.*?)<br/', $data, $match)) {
+                if ($self->debug) {
+                    $error = preg_replace('/<.*?>/', '', $match[1]);
+                }
+                else {
+                    $error = preg_replace('/ in <b>.*<\/b>$/', '', $match[1]);
+                }
+                $data = $self->sendError(trim($error), $context);
+                $context->response->end($data);
+            }
+            return '';
+        });
         ob_implicit_flush(0);
         @ob_clean();
         $this->sendHeader($context);
         $result = '';
-        if (($_SERVER['REQUEST_METHOD'] == 'GET') && $this->get) {
+        if (($request->server['request_method'] == 'GET') && $this->get) {
             $result = $this->doFunctionList($context);
         }
-        elseif ($_SERVER['REQUEST_METHOD'] == 'POST') {
-            $result = $this->defaultHandle($request, $context);
+        elseif ($request->server['request_method'] == 'POST') {
+            $result = $this->defaultHandle($data, $context);
         }
         @ob_end_clean();
-        exit($result);
+        restore_error_handler();
+        $response->end($result);
     }
 }
 
-class HproseHttpServer extends HproseHttpService {
+class HproseSwooleHttpServer extends HproseSwooleHttpService {
+    private $http;
+    public function __construct($host, $port) {
+        $this->http = new swoole_http_server($host, $port);
+    }
+
+    public function set($setting) {
+        $this->http->set($setting);
+    }
+
     public function start() {
-        $this->handle();
+        $this->http->on('request', array($this, 'handle'));
+        $this->http->start();
     }
 }
