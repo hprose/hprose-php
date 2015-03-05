@@ -14,7 +14,7 @@
  *                                                        *
  * hprose fgc http client class for php5.                 *
  *                                                        *
- * LastModified: Feb 27, 2015                             *
+ * LastModified: Mar 5, 2015                              *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -32,6 +32,8 @@ class HproseHttpClient extends HproseBaseHttpClient {
         throw new Exception($errstr, $errno);
     }
     protected function sendAndReceive($request) {
+        // file_get_contents can't work with keepAlive.
+        $this->keepAlive = false;
         $opts = array (
             'http' => array (
                 'method' => 'POST',
