@@ -14,7 +14,7 @@
  *                                                        *
  * hprose service library for php.                        *
  *                                                        *
- * LastModified: Feb 28, 2015                             *
+ * LastModified: Mar 5, 2015                              *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -128,6 +128,9 @@ abstract class HproseService {
             $tag = $input->getc();
             if ($tag == HproseTags::TagList) {
                 $args = hprose_unserialize_list_with_stream($input);
+                $_args = array();
+                foreach($args as &$arg) $_args[] = &$arg;
+                $args = $_args;
                 $tag = $input->getc();
                 if ($tag == HproseTags::TagTrue) {
                     $byref = true;
