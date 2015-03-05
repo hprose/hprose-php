@@ -57,7 +57,7 @@
 
 ### 服务器
 
-Hprose for PHP 使用起来很简单，你可以像这样来创建一个 Hprose 的 http 服务:
+Hprose for PHP 使用起来很简单，你可以像这样来创建一个 Hprose 的 http 服务：
 
 ```php
 <?php
@@ -70,9 +70,29 @@ Hprose for PHP 使用起来很简单，你可以像这样来创建一个 Hprose 
     $server = new HproseHttpServer();
     $server->addFunction('hello');
     $server->start();
-?>
-
 ```
+
+你也可以使用 HproseSwooleHttpServer 来创建一个独立的 hprose 服务：
+
+`server.php`
+```php
+<?php
+    require_once("php5/HproseSwooleHttpServer.php");
+
+    function hello($name) {
+        return 'Hello ' . $name;
+    }
+
+    $server = new HproseSwooleHttpServer('0.0.0.0', 8080);
+    $server->addFunction('hello');
+    $server->start();
+```
+
+然后使用命令行来启动它：
+
+`php server.php`
+
+要使用 HproseSwooleHttpServer, 你首先需要安装 [swoole](http://www.swoole.com/)。[swoole](https://github.com/swoole/swoole-src) 被支持的最低版本为 1.7.11.
 
 ### 客户端
 

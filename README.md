@@ -70,9 +70,30 @@ Hprose for PHP is very easy to use. You can create a hprose server like this:
     $server = new HproseHttpServer();
     $server->addFunction('hello');
     $server->start();
-?>
 
 ```
+
+You can also use HproseSwooleHttpServer to create a standalone hprose server:
+
+`server.php`
+```php
+<?php
+    require_once("php5/HproseSwooleHttpServer.php");
+
+    function hello($name) {
+        return 'Hello ' . $name;
+    }
+
+    $server = new HproseSwooleHttpServer('0.0.0.0', 8080);
+    $server->addFunction('hello');
+    $server->start();
+```
+
+then use command line to start it:
+
+`php server.php`
+
+To use HproseSwooleHttpServer, you need install [swoole](http://www.swoole.com/) first. The minimum version of [swoole](https://github.com/swoole/swoole-src) been supported is 1.7.11.
 
 ### Client
 
@@ -83,10 +104,8 @@ Then you can create a hprose client to invoke it like this:
     require_once("php5/HproseHttpClient.php");
     $client = new HproseHttpClient('http://127.0.0.1/server.php');
     echo $client->hello('World');
-?>
 ```
 
 ### Exception Handling
 
 If an error occurred on the server, or your service function/method throw an exception. it will be sent to the client, and the client will throw it as an exception. You can use the try statement to catch it.
-
