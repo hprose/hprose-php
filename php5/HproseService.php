@@ -128,13 +128,13 @@ abstract class HproseService {
             $tag = $input->getc();
             if ($tag == HproseTags::TagList) {
                 $args = hprose_unserialize_list_with_stream($input);
-                $_args = array();
-                foreach($args as &$arg) $_args[] = &$arg;
-                $args = $_args;
                 $tag = $input->getc();
                 if ($tag == HproseTags::TagTrue) {
                     $byref = true;
                     $tag = $input->getc();
+                    $_args = array();
+                    foreach($args as &$arg) $_args[] = &$arg;
+                    $args = $_args;
                 }
             }
             if (($tag != HproseTags::TagEnd) && ($tag != HproseTags::TagCall)) {
