@@ -42,7 +42,6 @@ namespace Hprose {
         private $P3P = false;
         private $get = true;
         private $origins = array();
-        private $context;
         public $onSendHeader = null;
 
         private function sendHeader($context) {
@@ -101,7 +100,6 @@ namespace Hprose {
             $context = new \stdClass();
             $context->server = $this;
             $context->userdata = new \stdClass();
-            $this->context = $context;
             $self = $this;
             $errorTable = self::$errorTable;
 
