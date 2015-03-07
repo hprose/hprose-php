@@ -200,24 +200,16 @@ namespace Hprose {
             $this->callbacks[] = $callback;
         }
         public function loop() {
-            if (count($this->curls) === 0) return;
-            $active = 0;
+            $count = count($this->curls);
+            if ($count === 0) return;
             try {
+                $active = null;
                 do {
                     $status = curl_multi_exec($this->multicurl, $active);
-                    if($status > 0 && function_exists('curl_multi_strerror')) {
-                        throw new \Exception(curl_multi_strerror($status));
-                    }
                 } while ($status === CURLM_CALL_MULTI_PERFORM);
-                while ($active && $status === CURLM_OK) {
-                    if (curl_multi_select($this->multicurl) === -1) {
-                        usleep(100);
-                    }
+                while ($status === CURLM_OK && $count > 0) {
                     do {
                         $status = curl_multi_exec($this->multicurl, $active);
-                        if($status > 0 && function_exists('curl_multi_strerror')) {
-                            throw new \Exception(curl_multi_strerror($status));
-                        }
                     } while ($status === CURLM_CALL_MULTI_PERFORM);
                     $msgs_in_queue = null;
                     while ($info = curl_multi_info_read($this->multicurl, $msgs_in_queue)) {
@@ -231,6 +223,7 @@ namespace Hprose {
                         else {
                             $callback('', new \Exception($info['result'] . ": " . curl_error($h)));
                         }
+                        --$count;
                         if ($msgs_in_queue === 0) break;
                     }
                 }
