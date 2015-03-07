@@ -201,11 +201,11 @@ namespace Hprose {
         }
         public function loop() {
             if (count($this->curls) === 0) return;
-            $active = null;
+            $active = 0;
             try {
                 do {
                     $status = curl_multi_exec($this->multicurl, $active);
-                    if($status > 0) {
+                    if($status > 0 && function_exists('curl_multi_strerror')) {
                         throw new \Exception(curl_multi_strerror($status));
                     }
                 } while ($status === CURLM_CALL_MULTI_PERFORM);
@@ -215,7 +215,7 @@ namespace Hprose {
                     }
                     do {
                         $status = curl_multi_exec($this->multicurl, $active);
-                        if($status > 0) {
+                        if($status > 0 && function_exists('curl_multi_strerror')) {
                             throw new \Exception(curl_multi_strerror($status));
                         }
                     } while ($status === CURLM_CALL_MULTI_PERFORM);
