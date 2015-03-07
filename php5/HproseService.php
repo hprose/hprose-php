@@ -98,7 +98,6 @@ abstract class HproseService {
             $sendError = $this->onSendError;
             $sendError($error, $context);
         }
-        @ob_clean();
         $data = HproseTags::TagError .
                 hprose_serialize_string($error) .
                 HproseTags::TagEnd;
