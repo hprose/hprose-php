@@ -55,10 +55,10 @@ namespace Hprose {
             throw new \Exception("This client can't support asynchronous invoke.");
         }
         public function __construct($url = '') {
-            parent::__construct($this, '');
             $this->url = $url;
             $this->filters = array();
             $this->simple = false;
+            parent::__construct($this, '');
         }
         public function useService($url = '', $namespace = '') {
             if ($url) {
@@ -163,11 +163,11 @@ namespace Hprose {
                         $result = $self->doInput($response, $args, $mode, $context);
                         switch($n) {
                             case 0:
-                                $callback->invoke();
+                                $callback->invoke(); break;
                             case 1:
-                                $callback->invoke($result);
+                                $callback->invoke($result); break;
                             case 2:
-                                $callback->invoke($result, $args);
+                                $callback->invoke($result, $args); break;
                         }
                     }
                 });
