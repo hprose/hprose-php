@@ -48,7 +48,7 @@
 ```javascript
 {
     "require": {
-        "hprose/hprose-php": "dev-master"
+        "hprose/hprose": "dev-master"
     }
 }
 ```

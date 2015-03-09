@@ -48,7 +48,7 @@ This project is the implementation of Hprose for PHP.
 ```javascript
 {
     "require": {
-        "hprose/hprose-php": "dev-master"
+        "hprose/hprose": "dev-master"
     }
 }
 ```
