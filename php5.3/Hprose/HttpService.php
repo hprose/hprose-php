@@ -14,7 +14,7 @@
  *                                                        *
  * hprose http server class for php 5.3+                  *
  *                                                        *
- * LastModified: Mar 7, 2015                              *
+ * LastModified: Mar 14, 2015                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -60,7 +60,8 @@ namespace Hprose {
                 if (isset($_SERVER['HTTP_ORIGIN']) &&
                     $_SERVER['HTTP_ORIGIN'] != "null") {
                     $origin = $_SERVER['HTTP_ORIGIN'];
-                    if (isset($this->origins[$origin])) {
+                    if (count($this->origins) === 0 ||
+                        isset($this->origins[strtolower($origin)])) {
                         header("Access-Control-Allow-Origin: " . $origin);
                         header("Access-Control-Allow-Credentials: true");
                     }
@@ -89,10 +90,18 @@ namespace Hprose {
             $this->get = $enable;
         }
         public function addAccessControlAllowOrigin($origin) {
-            $this->origins[$origin] = true;
+            $count = count($origin);
+            if (($count > 0) && ($origin[$count - 1] === "/")) {
+                $origin = substr($origin, 0, -1);
+            }
+            $this->origins[strtolower($origin)] = true;
         }
         public function removeAccessControlAllowOrigin($origin) {
-            unset($this->origins[$origin]);
+            $count = count($origin);
+            if (($count > 0) && ($origin[$count - 1] === "/")) {
+                $origin = substr($origin, 0, -1);
+            }
+            unset($this->origins[strtolower($origin)]);
         }
         public function handle() {
             $request = file_get_contents("php://input");

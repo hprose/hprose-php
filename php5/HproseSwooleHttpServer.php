@@ -14,7 +14,7 @@
  *                                                        *
  * hprose swoole http server library for php.             *
  *                                                        *
- * LastModified: Feb 28, 2015                             *
+ * LastModified: Mar 14, 2015                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -47,7 +47,8 @@ class HproseSwooleHttpService extends HproseService {
             if (array_key_exists('http_origin', $request->header) &&
                 $request->header['http_origin'] != "null") {
                 $origin = $request->header['http_origin'];
-                if (array_key_exists($origin, $this->origins)) {
+                if (count($this->origins) === 0 ||
+                    array_key_exists(strtolower($origin), $this->origins)) {
                     $response->header('Access-Control-Allow-Origin', $origin);
                     $response->header('Access-Control-Allow-Credentials',
                                      'true');
@@ -77,12 +78,19 @@ class HproseSwooleHttpService extends HproseService {
         $this->get = $enable;
     }
     public function addAccessControlAllowOrigin($origin) {
-        $this->origins[$origin] = true;
+        $count = count($origin);
+        if (($count > 0) && ($origin[$count - 1] === "/")) {
+            $origin = substr($origin, 0, -1);
+        }
+        $this->origins[strtolower($origin)] = true;
     }
     public function removeAccessControlAllowOrigin($origin) {
-        unset($this->origins[$origin]);
+        $count = count($origin);
+        if (($count > 0) && ($origin[$count - 1] === "/")) {
+            $origin = substr($origin, 0, -1);
+        }
+        unset($this->origins[strtolower($origin)]);
     }
-
     public function handle($request, $response) {
         $data = $request->rawContent();
 

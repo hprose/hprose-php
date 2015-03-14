@@ -14,7 +14,7 @@
  *                                                        *
  * hprose http server library for php.                    *
  *                                                        *
- * LastModified: Feb 27, 2015                             *
+ * LastModified: Mar 14, 2015                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -45,7 +45,8 @@ class HproseHttpService extends HproseService {
             if (array_key_exists('HTTP_ORIGIN', $_SERVER) &&
                 $_SERVER['HTTP_ORIGIN'] != "null") {
                 $origin = $_SERVER['HTTP_ORIGIN'];
-                if (array_key_exists($origin, $this->origins)) {
+                if (count($this->origins) === 0 ||
+                    array_key_exists(strtolower($origin), $this->origins)) {
                     header("Access-Control-Allow-Origin: " . $origin);
                     header("Access-Control-Allow-Credentials: true");
                 }
@@ -74,10 +75,18 @@ class HproseHttpService extends HproseService {
         $this->get = $enable;
     }
     public function addAccessControlAllowOrigin($origin) {
-        $this->origins[$origin] = true;
+        $count = count($origin);
+        if (($count > 0) && ($origin[$count - 1] === "/")) {
+            $origin = substr($origin, 0, -1);
+        }
+        $this->origins[strtolower($origin)] = true;
     }
     public function removeAccessControlAllowOrigin($origin) {
-        unset($this->origins[$origin]);
+        $count = count($origin);
+        if (($count > 0) && ($origin[$count - 1] === "/")) {
+            $origin = substr($origin, 0, -1);
+        }
+        unset($this->origins[strtolower($origin)]);
     }
     /*
       __errorHandler and __filterHandler must be public,

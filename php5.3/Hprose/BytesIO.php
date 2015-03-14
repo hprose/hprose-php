@@ -39,7 +39,10 @@ namespace Hprose {
             return $this->length;
         }
         public function getc() {
-            return $this->buffer[$this->pos++];
+            if ($this->pos < $this->length) {
+                return $this->buffer[$this->pos++];
+            }
+            return '';
         }
         public function read($n) {
             $s = substr($this->buffer, $this->pos, $n);
