@@ -14,7 +14,7 @@
  *                                                        *
  * hprose writer class for php 5.3+                       *
  *                                                        *
- * LastModified: Mar 6, 2015                              *
+ * LastModified: Mar 20, 2015                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -134,7 +134,7 @@ namespace Hprose {
             }
             elseif (is_array($val)) {
                 if (self::is_list($val)) {
-                    $this->writeList($val);
+                    $this->writeArray($val);
                 }
                 else {
                     $this->writeAssocArray($val);
@@ -238,7 +238,34 @@ namespace Hprose {
                 $this->writeDateTime($datetime);
             }
         }
-        public function writeList($list) {
+        public function writeArray(array $array) {
+            $this->refer->set($array);
+            $count = count($array);
+            $this->stream->write(Tags::TagList);
+            if ($count > 0) {
+                $this->stream->write((string)$count);
+            }
+            $this->stream->write(Tags::TagOpenbrace);
+            foreach ($array as $e) {
+                $this->serialize($e);
+            }
+            $this->stream->write(Tags::TagClosebrace);
+        }
+        public function writeAssocArray(array $map) {
+            $this->refer->set($map);
+            $count = count($map);
+            $this->stream->write(Tags::TagMap);
+            if ($count > 0) {
+                $this->stream->write((string)$count);
+            }
+            $this->stream->write(Tags::TagOpenbrace);
+            foreach ($map as $key => $value) {
+                $this->serialize($key);
+                $this->serialize($value);
+            }
+            $this->stream->write(Tags::TagClosebrace);
+        }
+        public function writeList(\Traversable $list) {
             $this->refer->set($list);
             $count = count($list);
             $this->stream->write(Tags::TagList);
@@ -255,20 +282,6 @@ namespace Hprose {
             if (!$this->refer->write($this->stream, $list)) {
                 $this->writeList($list);
             }
-        }
-        public function writeAssocArray(array $map) {
-            $this->refer->set($map);
-            $count = count($map);
-            $this->stream->write(Tags::TagMap);
-            if ($count > 0) {
-                $this->stream->write((string)$count);
-            }
-            $this->stream->write(Tags::TagOpenbrace);
-            foreach ($map as $key => $value) {
-                $this->serialize($key);
-                $this->serialize($value);
-            }
-            $this->stream->write(Tags::TagClosebrace);
         }
         public function writeMap(\SplObjectStorage $map) {
             $this->refer->set($map);

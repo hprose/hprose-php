@@ -14,7 +14,7 @@
  *                                                        *
  * hprose service class for php 5.3+                      *
  *                                                        *
- * LastModified: Mar 7, 2015                              *
+ * LastModified: Mar 20, 2015                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -186,7 +186,7 @@ namespace Hprose {
                     if ($byref) {
                         $output->write(Tags::TagArgument);
                         $writer->reset();
-                        $writer->writeList($args);
+                        $writer->writeArray($args);
                     }
                 }
             } while ($tag == Tags::TagCall);
@@ -197,7 +197,7 @@ namespace Hprose {
             $stream = new BytesIO();
             $writer = new Writer($stream, true);
             $stream->write(Tags::TagFunctions);
-            $writer->writeList($this->names);
+            $writer->writeArray($this->names);
             $stream->write(Tags::TagEnd);
             $data = $stream->toString();
             $stream->close();

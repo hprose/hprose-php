@@ -14,7 +14,7 @@
  *                                                        *
  * hprose client class for php 5.3+                       *
  *                                                        *
- * LastModified: Mar 7, 2015                              *
+ * LastModified: Mar 20, 2015                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -78,7 +78,7 @@ namespace Hprose {
             $writer->writeString($name);
             if (count($args) > 0 || $byref) {
                 $writer->reset();
-                $writer->writeList($args);
+                $writer->writeArray($args);
                 if ($byref) {
                     $writer->writeBoolean(true);
                 }
