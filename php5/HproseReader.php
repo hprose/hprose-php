@@ -14,7 +14,7 @@
  *                                                        *
  * hprose reader class for php5.                          *
  *                                                        *
- * LastModified: Feb 27, 2015                             *
+ * LastModified: Mar 23, 2015                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -116,8 +116,8 @@ class HproseReader extends HproseRawReader {
     }
     public function checkTags($expectTags, $tag = null) {
         if ($tag === null) $tag = $this->stream->getc();
-        if (!in_array($tag, $expectTags)) {
-            $this->unexpectedTag($tag, implode('', $expectTags));
+        if (!strchr($expectTags, $tag)) {
+            $this->unexpectedTag($tag, $expectTags);
         }
         return $tag;
     }
