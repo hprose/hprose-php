@@ -14,7 +14,7 @@
  *                                                        *
  * hprose reader class for php 5.3+                       *
  *                                                        *
- * LastModified: Mar 6, 2015                              *
+ * LastModified: Mar 23, 2015                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -137,7 +137,7 @@ namespace Hprose {
             }
         }
         public function checkTags($expectTags, $tag = null) {
-            if ($tag == '') {
+            if ($tag === null) {
                 $tag = $this->stream->getc();
             }
             if (!in_array($tag, $expectTags)) {
@@ -388,14 +388,14 @@ namespace Hprose {
             }
         }
         public function readListWithoutTag() {
-            $count = (int)$this->stream->readuntil(Tags::TagOpenbrace);
-            $list = new \SplFixedArray($count);
+            $list = array();
             $this->refer->set($list);
+            $count = (int)$this->stream->readuntil(Tags::TagOpenbrace);
             for ($i = 0; $i < $count; ++$i) {
                 $list[$i] = $this->unserialize();
             }
             $this->stream->skip(1);
-            return $list->toArray();
+            return $list;
         }
         public function readList() {
             $tag = $this->stream->getc();
