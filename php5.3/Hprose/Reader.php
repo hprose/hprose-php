@@ -140,8 +140,8 @@ namespace Hprose {
             if ($tag === null) {
                 $tag = $this->stream->getc();
             }
-            if (!in_array($tag, $expectTags)) {
-                throw $this->unexpectedTag($tag, implode('', $expectTags));
+            if (!strchr($expectTags, $tag)) {
+                throw $this->unexpectedTag($tag, $expectTags);
             }
             return $tag;
         }
