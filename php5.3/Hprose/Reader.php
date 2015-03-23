@@ -351,7 +351,7 @@ namespace Hprose {
             $this->refer->set($s);
             return $s;
         }
-        public function _readString() {
+        private function _readString() {
             $tag = $this->stream->getc();
             switch ($tag) {
                 case Tags::TagUTF8Char: return $this->readUTF8CharWithoutTag();
