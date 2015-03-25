@@ -57,8 +57,12 @@ namespace Hprose {
         protected function sendAndReceiveCallback($response, $error, $use) {
             list($args, $mode, $context, $callback) = $use;
             $result = null;
-            $callback = new \ReflectionFunction($callback);
-            $n = $callback->getNumberOfParameters();
+            if (is_array($callback)) {
+                $n = (new \ReflectionMethod($callback[0], $callback[1]))->getNumberOfParameters();
+            }
+            else {
+                $n = (new \ReflectionFunction($callback))->getNumberOfParameters();;
+            }
             if ($n === 3) {
                 if ($error === null) {
                     try {
@@ -68,18 +72,15 @@ namespace Hprose {
                         $error = $e;
                     }
                 }
-                $callback->invoke($result, $args, $error);
+                call_user_func($callback, $result, $args, $error);
             }
             else {
                 if ($error !== null) throw $error;
                 $result = $this->doInput($response, $args, $mode, $context);
                 switch($n) {
-                    case 0:
-                        $callback->invoke(); break;
-                    case 1:
-                        $callback->invoke($result); break;
-                    case 2:
-                        $callback->invoke($result, $args); break;
+                    case 0: call_user_func($callback); break;
+                    case 1: call_user_func($callback, $result); break;
+                    case 2: call_user_func($callback, $result, $args); break;
                 }
             }
         }
