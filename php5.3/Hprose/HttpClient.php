@@ -14,7 +14,7 @@
  *                                                        *
  * hprose http client class for php 5.3+                  *
  *                                                        *
- * LastModified: Mar 7, 2015                              *
+ * LastModified: Mar 25, 2015                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -33,6 +33,7 @@ namespace Hprose {
         private $curl;
         private $multicurl;
         private $callbacks = array();
+        private $uses = array();
         private $curls = array();
         public static function keepSession() {
             if (isset($_SESSION['HPROSE_COOKIE_MANAGER'])) {
@@ -192,12 +193,13 @@ namespace Hprose {
             }
             return $this->getContents($data);
         }
-        protected function asyncSendAndReceive($request, $callback) {
+        protected function asyncSendAndReceive($request, $callback, $use) {
             $curl = curl_init();
             $this->initCurl($curl, $request);
             curl_multi_add_handle($this->multicurl, $curl);
             $this->curls[] = $curl;
             $this->callbacks[] = $callback;
+            $this->uses[] = $use;
         }
         public function loop() {
             $count = count($this->curls);
@@ -216,12 +218,13 @@ namespace Hprose {
                         $h = $info['handle'];
                         $index = array_search($h, $this->curls, true);
                         $callback = $this->callbacks[$index];
+                        $use = $this->uses[$index];
                         if ($info['result'] === CURLM_OK) {
                             $data = curl_multi_getcontent($h);
-                            $callback($this->getContents($data), null);
+                            $callback($this->getContents($data), null, $use);
                         }
                         else {
-                            $callback('', new \Exception($info['result'] . ": " . curl_error($h)));
+                            $callback('', new \Exception($info['result'] . ": " . curl_error($h)), $use);
                         }
                         --$count;
                         if ($msgs_in_queue === 0) break;
@@ -235,6 +238,7 @@ namespace Hprose {
                 }
                 $this->curls = array();
                 $this->callbacks = array();
+                $this->uses = array();
             }
         }
         public function setHeader($name, $value) {

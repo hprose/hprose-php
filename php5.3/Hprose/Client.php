@@ -14,7 +14,7 @@
  *                                                        *
  * hprose client class for php 5.3+                       *
  *                                                        *
- * LastModified: Mar 20, 2015                             *
+ * LastModified: Mar 25, 2015                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -51,7 +51,7 @@ namespace Hprose {
         protected function sendAndReceive($request) {
            throw new \Exception("This client can't support synchronous invoke.");
         }
-        protected function asyncSendAndReceive($request, $callback) {
+        protected function asyncSendAndReceive($request, $callback, $use) {
             throw new \Exception("This client can't support asynchronous invoke.");
         }
         public function __construct($url = '') {
@@ -136,41 +136,43 @@ namespace Hprose {
             }
             return $result;
         }
+        public function _sendAndReceiveCallback($response, $error, $use) {
+            list($args, $mode, $context, $callback) = $use;
+            $result = null;
+            $callback = new \ReflectionFunction($callback);
+            $n = $callback->getNumberOfParameters();
+            if ($n === 3) {
+                if ($error === null) {
+                    try {
+                        $result = $this->doInput($response, $args, $mode, $context);
+                    }
+                    catch (\Exception $e) {
+                        $error = $e;
+                    }
+                }
+                $callback->invoke($result, $args, $error);
+            }
+            else {
+                if ($error !== null) throw $error;
+                $result = $this->doInput($response, $args, $mode, $context);
+                switch($n) {
+                    case 0:
+                        $callback->invoke(); break;
+                    case 1:
+                        $callback->invoke($result); break;
+                    case 2:
+                        $callback->invoke($result, $args); break;
+                }
+            }
+        }
         public function invoke($name, &$args = array(), $byref = false, $mode = ResultMode::Normal, $simple = null, $callback = null) {
             $context = new \stdClass();
             $context->client = $this;
             $context->userdata = new \stdClass();
             $request = $this->doOutput($name, $args, $byref, $simple, $context);
             if (is_callable($callback)) {
-                $self = $this;
-                $this->asyncSendAndReceive($request, function($response, $error) use ($self, &$args, $mode, $context, $callback) {
-                    $result = null;
-                    $callback = new \ReflectionFunction($callback);
-                    $n = $callback->getNumberOfParameters();
-                    if ($n === 3) {
-                        if ($error === null) {
-                            try {
-                                $result = $self->doInput($response, $args, $mode, $context);
-                            }
-                            catch (\Exception $e) {
-                                $error = $e;
-                            }
-                        }
-                        $callback->invoke($result, $args, $error);
-                    }
-                    else {
-                        if ($error !== null) throw $error;
-                        $result = $self->doInput($response, $args, $mode, $context);
-                        switch($n) {
-                            case 0:
-                                $callback->invoke(); break;
-                            case 1:
-                                $callback->invoke($result); break;
-                            case 2:
-                                $callback->invoke($result, $args); break;
-                        }
-                    }
-                });
+                $use = array(&$args, $mode, $context, $callback);
+                $this->asyncSendAndReceive($request, array($this, '_sendAndReceiveCallback'), $use);
             }
             else {
                 $response = $this->sendAndReceive($request);
