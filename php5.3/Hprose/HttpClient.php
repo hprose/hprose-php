@@ -32,7 +32,6 @@ namespace Hprose {
         private $header;
         private $curl;
         private $multicurl;
-        private $callbacks = array();
         private $uses = array();
         private $curls = array();
         public static function keepSession() {
@@ -193,12 +192,11 @@ namespace Hprose {
             }
             return $this->getContents($data);
         }
-        protected function asyncSendAndReceive($request, $callback, $use) {
+        protected function asyncSendAndReceive($request, $use) {
             $curl = curl_init();
             $this->initCurl($curl, $request);
             curl_multi_add_handle($this->multicurl, $curl);
             $this->curls[] = $curl;
-            $this->callbacks[] = $callback;
             $this->uses[] = $use;
         }
         public function loop() {
@@ -217,14 +215,21 @@ namespace Hprose {
                     while ($info = curl_multi_info_read($this->multicurl, $msgs_in_queue)) {
                         $h = $info['handle'];
                         $index = array_search($h, $this->curls, true);
-                        $callback = $this->callbacks[$index];
                         $use = $this->uses[$index];
                         if ($info['result'] === CURLM_OK) {
                             $data = curl_multi_getcontent($h);
-                            $callback($this->getContents($data), null, $use);
+                            try {
+                                $response = $this->getContents($data);
+                                $error = null;
+                            }
+                            catch (Exception $e) {
+                                $response = "";
+                                $error = $e;
+                            }
+                            $this->sendAndReceiveCallback($response, $error, $use);
                         }
                         else {
-                            $callback('', new \Exception($info['result'] . ": " . curl_error($h)), $use);
+                            $this->sendAndReceiveCallback('', new \Exception($info['result'] . ": " . curl_error($h)), $use);
                         }
                         --$count;
                         if ($msgs_in_queue === 0) break;
@@ -237,7 +242,6 @@ namespace Hprose {
                     curl_close($curl);
                 }
                 $this->curls = array();
-                $this->callbacks = array();
                 $this->uses = array();
             }
         }
