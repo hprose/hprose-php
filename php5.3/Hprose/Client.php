@@ -54,7 +54,7 @@ namespace Hprose {
         protected function asyncSendAndReceive($request, $use) {
             throw new \Exception("This client can't support asynchronous invoke.");
         }
-        public function sendAndReceiveCallback($response, $error, $use) {
+        protected function sendAndReceiveCallback($response, $error, $use) {
             list($args, $mode, $context, $callback) = $use;
             $result = null;
             $callback = new \ReflectionFunction($callback);
