@@ -14,7 +14,7 @@
  *                                                        *
  * hprose http client class for php 5.3+                  *
  *                                                        *
- * LastModified: Mar 25, 2015                             *
+ * LastModified: Mar 26, 2015                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -32,6 +32,7 @@ namespace Hprose {
         private $header;
         private $curl;
         private $multicurl;
+        private $curl_version_lt_720;
         private $uses = array();
         private $curls = array();
         public static function keepSession() {
@@ -122,6 +123,8 @@ namespace Hprose {
             $this->header = array('Content-type' => 'application/hprose');
             $this->curl = curl_init();
             $this->multicurl = curl_multi_init();
+            $curl_version = curl_version();
+            $this->curl_version_lt_720 = (1 == version_compare('7.20.0', $curl_version['version']));
         }
         public function useService($url = '', $namespace = '') {
             $this->initUrl($url);
@@ -204,13 +207,23 @@ namespace Hprose {
             if ($count === 0) return;
             try {
                 $active = null;
-                do {
-                    $status = curl_multi_exec($this->multicurl, $active);
-                } while ($status === CURLM_CALL_MULTI_PERFORM);
-                while ($status === CURLM_OK && $count > 0) {
+                if ($this->curl_version_lt_720) {
                     do {
                         $status = curl_multi_exec($this->multicurl, $active);
                     } while ($status === CURLM_CALL_MULTI_PERFORM);
+                }
+                else {
+                    $status = curl_multi_exec($this->multicurl, $active);
+                }
+                while ($status === CURLM_OK && $count > 0) {
+                    if ($this->curl_version_lt_720) {
+                        do {
+                            $status = curl_multi_exec($this->multicurl, $active);
+                        } while ($status === CURLM_CALL_MULTI_PERFORM);
+                    }
+                    else {
+                        $status = curl_multi_exec($this->multicurl, $active);
+                    }
                     $msgs_in_queue = null;
                     while ($info = curl_multi_info_read($this->multicurl, $msgs_in_queue)) {
                         $h = $info['handle'];
