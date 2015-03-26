@@ -205,6 +205,7 @@ namespace Hprose {
         public function loop() {
             $count = count($this->curls);
             if ($count === 0) return;
+            $err = null;
             try {
                 $active = null;
                 if ($this->curl_version_lt_720) {
@@ -249,13 +250,17 @@ namespace Hprose {
                     }
                 }
             }
-            finally {
-                foreach($this->curls as $i => $curl) {
-                    curl_multi_remove_handle($this->multicurl, $curl);
-                    curl_close($curl);
-                }
-                $this->curls = array();
-                $this->uses = array();
+            catch (\Exception $e) {
+                $err = $e;
+            }
+            foreach($this->curls as $i => $curl) {
+                curl_multi_remove_handle($this->multicurl, $curl);
+                curl_close($curl);
+            }
+            $this->curls = array();
+            $this->uses = array();
+            if ($err !== null) {
+                throw $err;
             }
         }
         public function setHeader($name, $value) {
@@ -293,13 +298,16 @@ namespace Hprose {
             return $this->keepAliveTimeout;
         }
         public function __destruct() {
+            $err = null;
             try {
                 $this->loop();
             }
-            finally {
-                curl_multi_close($this->multicurl);
-                curl_close($this->curl);
+            catch (\Exception $e) {
+                $err = $e;
             }
+            curl_multi_close($this->multicurl);
+            curl_close($this->curl);
+            if ($err !== null) throw $err;
         }
     }
 }

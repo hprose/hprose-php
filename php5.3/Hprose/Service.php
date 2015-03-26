@@ -14,7 +14,7 @@
  *                                                        *
  * hprose service class for php 5.3+                      *
  *                                                        *
- * LastModified: Mar 20, 2015                             *
+ * LastModified: Mar 26, 2015                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -31,11 +31,12 @@ namespace Hprose {
             $this->mode = $mode;
             $this->simple = $simple;
             if (is_array($func)) {
-                $this->params = (new \ReflectionMethod($func[0], $func[1]))->getParameters();
+                $tmp = new \ReflectionMethod($func[0], $func[1]);
             }
             else {
-                $this->params = (new \ReflectionFunction($func))->getParameters();
+                $tmp = new \ReflectionFunction($func);
             }
+            $this->params = $tmp->getParameters();
             $this->byref = false;
             foreach($this->params as $param) {
                 if ($param->isPassedByReference()) {
