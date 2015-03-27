@@ -126,6 +126,18 @@ namespace Hprose {
             $curl_version = curl_version();
             $this->curl_version_lt_720 = (1 == version_compare('7.20.0', $curl_version['version']));
         }
+        public function __destruct() {
+            $err = null;
+            try {
+                $this->loop();
+            }
+            catch (\Exception $e) {
+                $err = $e;
+            }
+            curl_multi_close($this->multicurl);
+            curl_close($this->curl);
+            parent::__destruct();
+        }
         public function useService($url = '', $namespace = '') {
             $this->initUrl($url);
             return parent::useService($url, $namespace);
@@ -296,18 +308,6 @@ namespace Hprose {
         }
         public function getKeepAliveTimeout() {
             return $this->keepAliveTimeout;
-        }
-        public function __destruct() {
-            $err = null;
-            try {
-                $this->loop();
-            }
-            catch (\Exception $e) {
-                $err = $e;
-            }
-            curl_multi_close($this->multicurl);
-            curl_close($this->curl);
-            if ($err !== null) throw $err;
         }
     }
 }
