@@ -14,12 +14,13 @@
  *                                                        *
  * hprose for php 5.3+                                    *
  *                                                        *
- * LastModified: Mar 7, 2015                              *
+ * LastModified: Mar 28, 2015                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
 
 namespace {
+if (!extension_loaded('hprose')) {
     require('Hprose/Tags.php');
     require('Hprose/ResultMode.php');
     require('Hprose/BytesIO.php');
@@ -30,9 +31,7 @@ namespace {
     require('Hprose/Formatter.php');
     require('Hprose/Filter.php');
     require('Hprose/Client.php');
-    require('Hprose/HttpClient.php');
     require('Hprose/Service.php');
-    require('Hprose/HttpService.php');
 
     class_alias('Hprose\\Tags', 'HproseTags');
     class_alias('Hprose\\ResultMode', 'HproseResultMode');
@@ -44,10 +43,7 @@ namespace {
     class_alias('Hprose\\Formatter', 'HproseFormatter');
     class_alias('Hprose\\Filter', 'HproseFilter');
     class_alias('Hprose\\Client', 'HproseClient');
-    class_alias('Hprose\\HttpClient', 'HproseHttpClient');
     class_alias('Hprose\\Service', 'HproseService');
-    class_alias('Hprose\\HttpService', 'HproseHttpService');
-    class_alias('Hprose\\HttpServer', 'HproseHttpServer');
 
     function hprose_serialize($var, $simple = false) {
         return HproseFormatter::serialize($var, $simple);
@@ -56,5 +52,11 @@ namespace {
     function hprose_unserialize($data, $simple = false) {
         return HproseFormatter::unserialize($data, $simple);
     }
+}
+    require('Hprose/HttpClient.php');
+    require('Hprose/HttpService.php');
 
+    class_alias('Hprose\\HttpClient', 'HproseHttpClient');
+    class_alias('Hprose\\HttpService', 'HproseHttpService');
+    class_alias('Hprose\\HttpServer', 'HproseHttpServer');
 }
