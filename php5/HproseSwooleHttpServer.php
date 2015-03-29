@@ -14,7 +14,7 @@
  *                                                        *
  * hprose swoole http server library for php.             *
  *                                                        *
- * LastModified: Mar 14, 2015                             *
+ * LastModified: Mar 29, 2015                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -122,10 +122,9 @@ class HproseSwooleHttpService extends HproseService {
                 $data = $self->sendError(trim($error), $context);
                 $context->response->end($data);
             }
-            return '';
         });
         ob_implicit_flush(0);
-        @ob_clean();
+
         $this->sendHeader($context);
         $result = '';
         if (($request->server['request_method'] == 'GET') && $this->get) {
@@ -134,7 +133,8 @@ class HproseSwooleHttpService extends HproseService {
         elseif ($request->server['request_method'] == 'POST') {
             $result = $this->defaultHandle($data, $context);
         }
-        @ob_end_clean();
+        @ob_clean();
+        @ob_end_flush();
         restore_error_handler();
         $response->end($result);
     }

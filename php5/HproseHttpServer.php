@@ -14,7 +14,7 @@
  *                                                        *
  * hprose http server library for php.                    *
  *                                                        *
- * LastModified: Mar 14, 2015                             *
+ * LastModified: Mar 29, 2015                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -97,7 +97,7 @@ class HproseHttpService extends HproseService {
             $errstr .= " in $errfile on line $errline";
         }
         $error = self::$errorTable[$errno] . ": " . $errstr;
-        exit($this->sendError($error, $this->context));
+        echo $this->sendError($error, $this->context);
     }
     public function __filterHandler($data) {
         $match = array();
@@ -110,7 +110,6 @@ class HproseHttpService extends HproseService {
             }
             return $this->sendError(trim($error), $this->context);
         }
-        return $this->outputFilter($data, $this->context);
     }
     public function handle() {
         $request = file_get_contents("php://input");
@@ -124,17 +123,23 @@ class HproseHttpService extends HproseService {
         ob_start(array($this, '__filterHandler'));
 
         ob_implicit_flush(0);
-        @ob_clean();
+
         $this->sendHeader($context);
         $result = '';
-        if (($_SERVER['REQUEST_METHOD'] == 'GET') && $this->get) {
+        if (isset($_SERVER['REQUEST_METHOD'])) {
+            if (($_SERVER['REQUEST_METHOD'] == 'GET') && $this->get) {
+                $result = $this->doFunctionList($context);
+            }
+            elseif ($_SERVER['REQUEST_METHOD'] == 'POST') {
+                $result = $this->defaultHandle($request, $context);
+            }
+        }
+        else {
             $result = $this->doFunctionList($context);
         }
-        elseif ($_SERVER['REQUEST_METHOD'] == 'POST') {
-            $result = $this->defaultHandle($request, $context);
-        }
-        @ob_end_clean();
-        exit($result);
+        @ob_clean();
+        @ob_end_flush();
+        echo $result;
     }
 }
 

@@ -14,7 +14,7 @@
  *                                                        *
  * hprose http server class for php 5.3+                  *
  *                                                        *
- * LastModified: Mar 28, 2015                             *
+ * LastModified: Mar 29, 2015                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -131,19 +131,25 @@ namespace Hprose {
                     }
                     return $self->sendError(trim($error), $context);
                 }
-                return $self->outputFilter($data, $context);
             });
             ob_implicit_flush(0);
-            @ob_clean();
+
             $this->sendHeader($context);
             $result = '';
-            if (($_SERVER['REQUEST_METHOD'] == 'GET') && $this->get) {
+
+            if (isset($_SERVER['REQUEST_METHOD'])) {
+                if (($_SERVER['REQUEST_METHOD'] == 'GET') && $this->get) {
+                    $result = $this->doFunctionList($context);
+                }
+                elseif ($_SERVER['REQUEST_METHOD'] == 'POST') {
+                    $result = $this->defaultHandle($request, $context);
+                }
+            }
+            else {
                 $result = $this->doFunctionList($context);
             }
-            elseif ($_SERVER['REQUEST_METHOD'] == 'POST') {
-                $result = $this->defaultHandle($request, $context);
-            }
-            @ob_end_clean();
+            @ob_clean();
+            @ob_end_flush();
             echo $result;
         }
     }
