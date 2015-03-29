@@ -63,6 +63,23 @@ namespace Hprose {
             "__set_state",
             "__clone"
         );
+        protected static $errorTable = array(
+            E_ERROR => 'Error',
+            E_WARNING => 'Warning',
+            E_PARSE => 'Parse Error',
+            E_NOTICE => 'Notice',
+            E_CORE_ERROR => 'Core Error',
+            E_CORE_WARNING => 'Core Warning',
+            E_COMPILE_ERROR => 'Compile Error',
+            E_COMPILE_WARNING => 'Compile Warning',
+            E_DEPRECATED => 'Deprecated',
+            E_USER_ERROR => 'User Error',
+            E_USER_WARNING => 'User Warning',
+            E_USER_NOTICE => 'User Notice',
+            E_USER_DEPRECATED => 'User Deprecated',
+            E_STRICT => 'Runtime Notice',
+            E_RECOVERABLE_ERROR  => 'Catchable Fatal Error'
+        );
         private $calls = array();
         private $names = array();
         private $filters = array();
@@ -76,14 +93,14 @@ namespace Hprose {
         public function __construct() {
             $this->error_types = E_ALL & ~E_NOTICE;
         }
-        protected function inputFilter($data, $context) {
+        private function inputFilter($data, $context) {
             $count = count($this->filters);
             for ($i = $count - 1; $i >= 0; $i--) {
                 $data = $this->filters[$i]->inputFilter($data, $context);
             }
             return $data;
         }
-        protected function outputFilter($data, $context) {
+        private function outputFilter($data, $context) {
             $count = count($this->filters);
             for ($i = 0; $i < $count; $i++) {
                 $data = $this->filters[$i]->outputFilter($data, $context);

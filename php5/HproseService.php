@@ -79,14 +79,14 @@ abstract class HproseService {
     public function __construct() {
         $this->error_types = E_ALL & ~E_NOTICE;
     }
-    protected function inputFilter($data, $context) {
+    private function inputFilter($data, $context) {
         $count = count($this->filters);
         for ($i = $count - 1; $i >= 0; $i--) {
             $data = $this->filters[$i]->inputFilter($data, $context);
         }
         return $data;
     }
-    protected function outputFilter($data, $context) {
+    private function outputFilter($data, $context) {
         $count = count($this->filters);
         for ($i = 0; $i < $count; $i++) {
             $data = $this->filters[$i]->outputFilter($data, $context);
