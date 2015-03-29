@@ -27,6 +27,8 @@ namespace Hprose {
             $this->client = $client;
             $this->namespace = $namespace;
         }
+        public function __destruct() {
+        }
         public function __call($name, array $arguments) {
             $name = $this->namespace . $name;
             $n = count($arguments);
@@ -89,8 +91,6 @@ namespace Hprose {
             $this->filters = array();
             $this->simple = false;
             parent::__construct($this, '');
-        }
-        public function __destruct() {
         }
         public function useService($url = '', $namespace = '') {
             if ($url) {
