@@ -90,6 +90,8 @@ namespace Hprose {
             $this->simple = false;
             parent::__construct($this, '');
         }
+        public function __destruct() {
+        }
         public function useService($url = '', $namespace = '') {
             if ($url) {
                 $this->url = $url;
