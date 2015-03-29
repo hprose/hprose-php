@@ -133,8 +133,8 @@ class HproseSwooleHttpService extends HproseService {
         elseif ($request->server['request_method'] == 'POST') {
             $result = $this->defaultHandle($data, $context);
         }
-        @ob_clean();
-        @ob_end_flush();
+        ob_clean();
+        ob_end_flush();
         restore_error_handler();
         $response->end($result);
     }

@@ -137,8 +137,8 @@ class HproseHttpService extends HproseService {
         else {
             $result = $this->doFunctionList($context);
         }
-        @ob_clean();
-        @ob_end_flush();
+        ob_clean();
+        ob_end_flush();
         echo $result;
     }
 }
