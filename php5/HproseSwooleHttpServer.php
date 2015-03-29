@@ -101,13 +101,12 @@ class HproseSwooleHttpService extends HproseService {
         $context->userdata = new stdClass();
 
         $self = $this;
-        $errorTable = self::$errorTable;
 
-        set_error_handler(function ($errno, $errstr, $errfile, $errline) use ($self, $errorTable, $context) {
+        set_error_handler(function ($errno, $errstr, $errfile, $errline) use ($self, $context) {
             if ($self->debug) {
                 $errstr .= " in $errfile on line $errline";
             }
-            $error = $errorTable[$errno] . ": " . $errstr;
+            $error = $self->getErrorTypeString($errno) . ": " . $errstr;
             $context->response->end($self->sendError($error, $context));
         }, $this->error_types);
         ob_start(function ($data) use ($self, $context) {

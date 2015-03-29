@@ -93,13 +93,12 @@ namespace Hprose {
             $context->server = $this;
             $context->userdata = new \stdClass();
             $self = $this;
-            $errorTable = self::$errorTable;
 
-            set_error_handler(function($errno, $errstr, $errfile, $errline) use ($self, $errorTable, $context) {
+            set_error_handler(function($errno, $errstr, $errfile, $errline) use ($self, $context) {
                 if ($self->debug) {
                     $errstr .= " in $errfile on line $errline";
                 }
-                $error = $errorTable[$errno] . ": " . $errstr;
+                $error = $self->getErrorTypeString($errno) . ": " . $errstr;
                 echo $self->sendError($error, $context);
             }, $this->error_types);
 

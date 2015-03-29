@@ -96,7 +96,7 @@ class HproseHttpService extends HproseService {
         if ($this->debug) {
             $errstr .= " in $errfile on line $errline";
         }
-        $error = self::$errorTable[$errno] . ": " . $errstr;
+        $error = $this->getErrorTypeString($errno) . ": " . $errstr;
         echo $this->sendError($error, $this->context);
     }
     public function __filterHandler($data) {

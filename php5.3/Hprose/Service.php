@@ -63,7 +63,7 @@ namespace Hprose {
             "__set_state",
             "__clone"
         );
-        protected static $errorTable = array(
+        private static $errorTable = array(
             E_ERROR => 'Error',
             E_WARNING => 'Warning',
             E_PARSE => 'Parse Error',
@@ -106,6 +106,9 @@ namespace Hprose {
                 $data = $this->filters[$i]->outputFilter($data, $context);
             }
             return $data;
+        }
+        protected function getErrorTypeString($errno) {
+            return self::$errorTable[$errno];
         }
         protected function sendError($error, $context) {
             if ($this->onSendError !== null) {
