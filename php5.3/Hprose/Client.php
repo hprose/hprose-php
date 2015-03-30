@@ -14,7 +14,7 @@
  *                                                        *
  * hprose client class for php 5.3+                       *
  *                                                        *
- * LastModified: Mar 25, 2015                             *
+ * LastModified: Mar 30, 2015                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -60,11 +60,12 @@ namespace Hprose {
             list($args, $mode, $context, $callback) = $use;
             $result = null;
             if (is_array($callback)) {
-                $n = (new \ReflectionMethod($callback[0], $callback[1]))->getNumberOfParameters();
+                $f = new \ReflectionMethod($callback[0], $callback[1]);
             }
             else {
-                $n = (new \ReflectionFunction($callback))->getNumberOfParameters();;
+                $f = new \ReflectionFunction($callback);
             }
+            $n = $f->getNumberOfParameters();
             if ($n === 3) {
                 if ($error === null) {
                     try {
