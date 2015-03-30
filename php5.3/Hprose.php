@@ -14,24 +14,24 @@
  *                                                        *
  * hprose for php 5.3+                                    *
  *                                                        *
- * LastModified: Mar 28, 2015                             *
+ * LastModified: Mar 29, 2015                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
 
 namespace {
 if (!extension_loaded('hprose')) {
-    require('Hprose/Tags.php');
-    require('Hprose/ResultMode.php');
-    require('Hprose/BytesIO.php');
-    require('Hprose/ClassManager.php');
-    require('Hprose/Writer.php');
-    require('Hprose/RawReader.php');
-    require('Hprose/Reader.php');
-    require('Hprose/Formatter.php');
-    require('Hprose/Filter.php');
-    require('Hprose/Client.php');
-    require('Hprose/Service.php');
+    require(dirname(__FILE__).'/Hprose/Tags.php');
+    require(dirname(__FILE__).'/Hprose/ResultMode.php');
+    require(dirname(__FILE__).'/Hprose/BytesIO.php');
+    require(dirname(__FILE__).'/Hprose/ClassManager.php');
+    require(dirname(__FILE__).'/Hprose/Writer.php');
+    require(dirname(__FILE__).'/Hprose/RawReader.php');
+    require(dirname(__FILE__).'/Hprose/Reader.php');
+    require(dirname(__FILE__).'/Hprose/Formatter.php');
+    require(dirname(__FILE__).'/Hprose/Filter.php');
+    require(dirname(__FILE__).'/Hprose/Client.php');
+    require(dirname(__FILE__).'/Hprose/Service.php');
 
     class_alias('Hprose\\Tags', 'HproseTags');
     class_alias('Hprose\\ResultMode', 'HproseResultMode');
@@ -53,10 +53,13 @@ if (!extension_loaded('hprose')) {
         return HproseFormatter::unserialize($data, $simple);
     }
 }
-    require('Hprose/HttpClient.php');
-    require('Hprose/HttpService.php');
+    require(dirname(__FILE__).'/Hprose/HttpClient.php');
+    require(dirname(__FILE__).'/Hprose/HttpService.php');
+    require(dirname(__FILE__).'/Hprose/SwooleHttpService.php');
 
     class_alias('Hprose\\HttpClient', 'HproseHttpClient');
     class_alias('Hprose\\HttpService', 'HproseHttpService');
     class_alias('Hprose\\HttpServer', 'HproseHttpServer');
+    class_alias('Hprose\\SwooleHttpService', 'HproseSwooleHttpService');
+    class_alias('Hprose\\SwooleHttpServer', 'HproseSwooleHttpServer');
 }
