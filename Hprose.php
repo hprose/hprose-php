@@ -14,7 +14,7 @@
  *                                                        *
  * hprose for php 5.3+                                    *
  *                                                        *
- * LastModified: Apr 1, 2015                              *
+ * LastModified: Apr 2, 2015                              *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -54,19 +54,19 @@ namespace {
         }
     }
 
-    require('Hprose/HttpClient.php');
-    require('Hprose/HttpService.php');
-    require('Hprose/Swoole/HttpService.php');
+    require('Hprose/Http/Client.php');
+    require('Hprose/Http/Service.php');
+    require('Hprose/Swoole/Http/Service.php');
     require('Hprose/Filter/JSONRPC/ClientFilter.php');
     require('Hprose/Filter/JSONRPC/ServiceFilter.php');
     require('Hprose/Filter/XMLRPC/ClientFilter.php');
     require('Hprose/Filter/XMLRPC/ServiceFilter.php');
 
-    class_alias('Hprose\\HttpClient', 'HproseHttpClient');
-    class_alias('Hprose\\HttpService', 'HproseHttpService');
-    class_alias('Hprose\\HttpServer', 'HproseHttpServer');
-    class_alias('Hprose\\Swoole\\HttpService', 'HproseSwooleHttpService');
-    class_alias('Hprose\\Swoole\\HttpServer', 'HproseSwooleHttpServer');
+    class_alias('Hprose\\Http\\Client', 'HproseHttpClient');
+    class_alias('Hprose\\Http\\Service', 'HproseHttpService');
+    class_alias('Hprose\\Http\\Server', 'HproseHttpServer');
+    class_alias('Hprose\\Swoole\\Http\\Service', 'HproseSwooleHttpService');
+    class_alias('Hprose\\Swoole\\Http\\Server', 'HproseSwooleHttpServer');
     class_alias('Hprose\\Filter\\JSONRPC\\ClientFilter', 'HproseJSONRPCClientFilter');
     class_alias('Hprose\\Filter\\JSONRPC\\ServiceFilter', 'HproseJSONRPCServiceFilter');
     class_alias('Hprose\\Filter\\XMLRPC\\ClientFilter', 'HproseXMLRPCClientFilter');

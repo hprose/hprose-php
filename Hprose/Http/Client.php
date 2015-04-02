@@ -10,17 +10,17 @@
 
 /**********************************************************\
  *                                                        *
- * Hprose/HttpClient.php                                  *
+ * Hprose/Http/Client.php                                 *
  *                                                        *
  * hprose http client class for php 5.3+                  *
  *                                                        *
- * LastModified: Mar 26, 2015                             *
+ * LastModified: Apr 2, 2015                              *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
 
-namespace Hprose {
-    class HttpClient extends Client {
+namespace Hprose\Http {
+    class Client extends \Hprose\Client {
         private static $cookieManager = array();
         private $host = '';
         private $path = '';
