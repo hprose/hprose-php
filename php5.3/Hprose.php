@@ -14,52 +14,61 @@
  *                                                        *
  * hprose for php 5.3+                                    *
  *                                                        *
- * LastModified: Mar 29, 2015                             *
+ * LastModified: Apr 1, 2015                              *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
 
 namespace {
-if (!extension_loaded('hprose')) {
-    require(dirname(__FILE__).'/Hprose/Tags.php');
-    require(dirname(__FILE__).'/Hprose/ResultMode.php');
-    require(dirname(__FILE__).'/Hprose/BytesIO.php');
-    require(dirname(__FILE__).'/Hprose/ClassManager.php');
-    require(dirname(__FILE__).'/Hprose/Writer.php');
-    require(dirname(__FILE__).'/Hprose/RawReader.php');
-    require(dirname(__FILE__).'/Hprose/Reader.php');
-    require(dirname(__FILE__).'/Hprose/Formatter.php');
-    require(dirname(__FILE__).'/Hprose/Filter.php');
-    require(dirname(__FILE__).'/Hprose/Client.php');
-    require(dirname(__FILE__).'/Hprose/Service.php');
+    if (!extension_loaded('hprose')) {
+        require('Hprose/Tags.php');
+        require('Hprose/ResultMode.php');
+        require('Hprose/BytesIO.php');
+        require('Hprose/ClassManager.php');
+        require('Hprose/Writer.php');
+        require('Hprose/RawReader.php');
+        require('Hprose/Reader.php');
+        require('Hprose/Formatter.php');
+        require('Hprose/Filter.php');
+        require('Hprose/Client.php');
+        require('Hprose/Service.php');
 
-    class_alias('Hprose\\Tags', 'HproseTags');
-    class_alias('Hprose\\ResultMode', 'HproseResultMode');
-    class_alias('Hprose\\BytesIO', 'HproseBytesIO');
-    class_alias('Hprose\\ClassManager', 'HproseClassManager');
-    class_alias('Hprose\\Writer', 'HproseWriter');
-    class_alias('Hprose\\RawReader', 'HproseRawReader');
-    class_alias('Hprose\\Reader', 'HproseReader');
-    class_alias('Hprose\\Formatter', 'HproseFormatter');
-    class_alias('Hprose\\Filter', 'HproseFilter');
-    class_alias('Hprose\\Client', 'HproseClient');
-    class_alias('Hprose\\Service', 'HproseService');
+        class_alias('Hprose\\Tags', 'HproseTags');
+        class_alias('Hprose\\ResultMode', 'HproseResultMode');
+        class_alias('Hprose\\BytesIO', 'HproseBytesIO');
+        class_alias('Hprose\\ClassManager', 'HproseClassManager');
+        class_alias('Hprose\\Writer', 'HproseWriter');
+        class_alias('Hprose\\RawReader', 'HproseRawReader');
+        class_alias('Hprose\\Reader', 'HproseReader');
+        class_alias('Hprose\\Formatter', 'HproseFormatter');
+        class_alias('Hprose\\Filter', 'HproseFilter');
+        class_alias('Hprose\\Client', 'HproseClient');
+        class_alias('Hprose\\Service', 'HproseService');
 
-    function hprose_serialize($var, $simple = false) {
-        return HproseFormatter::serialize($var, $simple);
+        function hprose_serialize($var, $simple = false) {
+            return HproseFormatter::serialize($var, $simple);
+        }
+
+        function hprose_unserialize($data, $simple = false) {
+            return HproseFormatter::unserialize($data, $simple);
+        }
     }
 
-    function hprose_unserialize($data, $simple = false) {
-        return HproseFormatter::unserialize($data, $simple);
-    }
-}
-    require(dirname(__FILE__).'/Hprose/HttpClient.php');
-    require(dirname(__FILE__).'/Hprose/HttpService.php');
-    require(dirname(__FILE__).'/Hprose/SwooleHttpService.php');
+    require('Hprose/HttpClient.php');
+    require('Hprose/HttpService.php');
+    require('Hprose/Swoole/HttpService.php');
+    require('Hprose/Filter/JSONRPC/ClientFilter.php');
+    require('Hprose/Filter/JSONRPC/ServiceFilter.php');
+    require('Hprose/Filter/XMLRPC/ClientFilter.php');
+    require('Hprose/Filter/XMLRPC/ServiceFilter.php');
 
     class_alias('Hprose\\HttpClient', 'HproseHttpClient');
     class_alias('Hprose\\HttpService', 'HproseHttpService');
     class_alias('Hprose\\HttpServer', 'HproseHttpServer');
-    class_alias('Hprose\\SwooleHttpService', 'HproseSwooleHttpService');
-    class_alias('Hprose\\SwooleHttpServer', 'HproseSwooleHttpServer');
+    class_alias('Hprose\\Swoole\\HttpService', 'HproseSwooleHttpService');
+    class_alias('Hprose\\Swoole\\HttpServer', 'HproseSwooleHttpServer');
+    class_alias('Hprose\\Filter\\JSONRPC\\ClientFilter', 'HproseJSONRPCClientFilter');
+    class_alias('Hprose\\Filter\\JSONRPC\\ServiceFilter', 'HproseJSONRPCServiceFilter');
+    class_alias('Hprose\\Filter\\XMLRPC\\ClientFilter', 'HproseXMLRPCClientFilter');
+    class_alias('Hprose\\Filter\\XMLRPC\\ServiceFilter', 'HproseXMLRPCServiceFilter');
 }

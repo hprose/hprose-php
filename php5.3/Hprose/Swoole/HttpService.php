@@ -10,17 +10,17 @@
 
 /**********************************************************\
  *                                                        *
- * Hprose/SwooleHttpService.php                           *
+ * Hprose/Swoole/HttpService.php                          *
  *                                                        *
- * hprose swoole http service library for php 5.3.        *
+ * hprose swoole http service library for php 5.3+        *
  *                                                        *
- * LastModified: Mar 29, 2015                             *
+ * LastModified: Apr 1, 2015                              *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
 
-namespace Hprose {
-    class SwooleHttpService extends Service {
+namespace Hprose\Swoole {
+    class HttpService extends \Hprose\Service {
         private $crossDomain = false;
         private $P3P = false;
         private $get = true;
@@ -138,7 +138,7 @@ namespace Hprose {
         }
     }
 
-    class SwooleHttpServer extends SwooleHttpService {
+    class HttpServer extends HttpService {
         private $http;
         public function __construct($host, $port) {
             $this->http = new \swoole_http_server($host, $port);
@@ -155,4 +155,3 @@ namespace Hprose {
         }
     }
 }
-
