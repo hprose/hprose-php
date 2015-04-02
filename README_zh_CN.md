@@ -61,7 +61,7 @@ Hprose for PHP 使用起来很简单，你可以像这样来创建一个 Hprose 
 
 ```php
 <?php
-    require_once('php5/HproseHttpServer.php');
+    require_once('Hprose.php');
 
     function hello($name) {
         return 'Hello ' . $name;
@@ -77,7 +77,7 @@ Hprose for PHP 使用起来很简单，你可以像这样来创建一个 Hprose 
 `server.php`
 ```php
 <?php
-    require_once("php5/HproseSwooleHttpServer.php");
+    require_once("Hprose.php");
 
     function hello($name) {
         return 'Hello ' . $name;
@@ -100,7 +100,7 @@ Hprose for PHP 使用起来很简单，你可以像这样来创建一个 Hprose 
 
 ```php
 <?php
-    require_once("php5/HproseHttpClient.php");
+    require_once("Hprose.php");
     $client = new HproseHttpClient('http://127.0.0.1/server.php');
     echo $client->hello('World');
 ?>

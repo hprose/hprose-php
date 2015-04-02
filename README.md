@@ -61,7 +61,7 @@ Hprose for PHP is very easy to use. You can create a hprose server like this:
 
 ```php
 <?php
-    require_once('php5/HproseHttpServer.php');
+    require_once('Hprose.php');
 
     function hello($name) {
         return 'Hello ' . $name;
@@ -78,7 +78,7 @@ You can also use HproseSwooleHttpServer to create a standalone hprose server:
 `server.php`
 ```php
 <?php
-    require_once("php5/HproseSwooleHttpServer.php");
+    require_once("Hprose.php");
 
     function hello($name) {
         return 'Hello ' . $name;
@@ -101,7 +101,7 @@ Then you can create a hprose client to invoke it like this:
 
 ```php
 <?php
-    require_once("php5/HproseHttpClient.php");
+    require_once("Hprose.php");
     $client = new HproseHttpClient('http://127.0.0.1/server.php');
     echo $client->hello('World');
 ```
