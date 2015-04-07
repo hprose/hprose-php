@@ -14,7 +14,7 @@
  *                                                        *
  * hprose writer class for php 5.3+                       *
  *                                                        *
- * LastModified: Mar 20, 2015                             *
+ * LastModified: Apr 6, 2015                              *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -141,7 +141,10 @@ namespace Hprose {
                 }
             }
             elseif (is_object($val)) {
-                if ($val instanceof \DateTime) {
+                if ($val instanceof BytesIO) {
+                    $this->writeBytesIOWithRef($val);
+                }
+                elseif ($val instanceof \DateTime) {
                     $this->writeDateTimeWithRef($val);
                 }
                 elseif ($val instanceof \SplObjectStorage) {
@@ -222,6 +225,20 @@ namespace Hprose {
         public function writeBytesWithRef($bytes) {
             if (!$this->refer->write($this->stream, $bytes)) {
                 $this->writeBytes($bytes);
+            }
+        }
+        public function writeBytesIO($bytes) {
+            $this->refer->set($bytes);
+            $len = $bytes->length();
+            $this->stream->write(Tags::TagBytes);
+            if ($len > 0) {
+                $this->stream->write((string)$len);
+            }
+            $this->stream->write(Tags::TagQuote . $bytes->toString() . Tags::TagQuote);
+        }
+        public function writeBytesIOWithRef($bytes) {
+            if (!$this->refer->write($this->stream, $bytes)) {
+                $this->writeBytesIO($bytes);
             }
         }
         public function writeDateTime(\DateTime $datetime) {
