@@ -14,7 +14,7 @@
  *                                                        *
  * hprose BytesIO class for php 5.3+                      *
  *                                                        *
- * LastModified: Mar 6, 2015                              *
+ * LastModified: Apr 6, 2015                              *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -136,6 +136,18 @@ namespace Hprose {
                 $this->buffer .= substr($str, 0, $n);
             }
             $this->length += $n;
+        }
+        public function load($filename) {
+            $str = file_get_contents($filename);
+            if ($str === false) return false;
+            $this->buffer = $str;
+            $this->pos = 0;
+            $this->mark = -1;
+            $this->length = strlen($str);
+            return true;
+        }
+        public function save($filename) {
+            return file_put_contents($filename, $this->buffer);
         }
         public function toString() {
             return $this->buffer;
