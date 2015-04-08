@@ -14,7 +14,7 @@
  *                                                        *
  * hprose client class for php 5.3+                       *
  *                                                        *
- * LastModified: Mar 30, 2015                             *
+ * LastModified: Apr 8, 2015                              *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -26,8 +26,6 @@ namespace Hprose {
         public function __construct(Client $client, $namespace = '') {
             $this->client = $client;
             $this->namespace = $namespace;
-        }
-        public function __destruct() {
         }
         public function __call($name, array $arguments) {
             $name = $this->namespace . $name;

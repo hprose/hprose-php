@@ -14,7 +14,7 @@
  *                                                        *
  * hprose http client class for php 5.3+                  *
  *                                                        *
- * LastModified: Apr 2, 2015                              *
+ * LastModified: Apr 8, 2015                              *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -136,7 +136,6 @@ namespace Hprose\Http {
             }
             curl_multi_close($this->multicurl);
             curl_close($this->curl);
-            parent::__destruct();
         }
         public function useService($url = '', $namespace = '') {
             $this->initUrl($url);

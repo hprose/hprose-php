@@ -14,7 +14,7 @@
  *                                                        *
  * hprose service class for php 5.3+                      *
  *                                                        *
- * LastModified: Apr 1, 2015                              *
+ * LastModified: Apr 8, 2015                              *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -85,14 +85,11 @@ namespace Hprose {
         private $filters = array();
         private $simple = false;
         protected $debug = false;
-        protected $error_types;
+        protected $error_types = E_ALL & ~E_NOTICE;
         public $onBeforeInvoke = null;
         public $onAfterInvoke = null;
         public $onSendError = null;
 
-        public function __construct() {
-            $this->error_types = E_ALL & ~E_NOTICE;
-        }
         private function inputFilter($data, $context) {
             $count = count($this->filters);
             for ($i = $count - 1; $i >= 0; $i--) {
