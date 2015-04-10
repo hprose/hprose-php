@@ -14,7 +14,7 @@
  *                                                        *
  * hprose for php 5.3+                                    *
  *                                                        *
- * LastModified: Apr 2, 2015                              *
+ * LastModified: Apr 10, 2015                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -56,6 +56,7 @@ namespace {
 
     require('Hprose/Http/Client.php');
     require('Hprose/Http/Service.php');
+    require('Hprose/Swoole/Service.php');
     require('Hprose/Swoole/Http/Service.php');
     require('Hprose/Filter/JSONRPC/ClientFilter.php');
     require('Hprose/Filter/JSONRPC/ServiceFilter.php');
@@ -65,6 +66,8 @@ namespace {
     class_alias('Hprose\\Http\\Client', 'HproseHttpClient');
     class_alias('Hprose\\Http\\Service', 'HproseHttpService');
     class_alias('Hprose\\Http\\Server', 'HproseHttpServer');
+    class_alias('Hprose\\Swoole\\Service', 'HproseSwooleService');
+    class_alias('Hprose\\Swoole\\Server', 'HproseSwooleServer');
     class_alias('Hprose\\Swoole\\Http\\Service', 'HproseSwooleHttpService');
     class_alias('Hprose\\Swoole\\Http\\Server', 'HproseSwooleHttpServer');
     class_alias('Hprose\\Filter\\JSONRPC\\ClientFilter', 'HproseJSONRPCClientFilter');
