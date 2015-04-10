@@ -14,12 +14,15 @@
  *                                                        *
  * hprose service class for php 5.3+                      *
  *                                                        *
- * LastModified: Apr 8, 2015                              *
+ * LastModified: Apr 10, 2015                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
 
 namespace Hprose {
+
+    define('HPROSE_DEFAULT_ERROR_TYPES', E_ALL & ~E_NOTICE);
+
     class RemoteCall {
         public $func;
         public $mode;
@@ -85,7 +88,7 @@ namespace Hprose {
         private $filters = array();
         private $simple = false;
         protected $debug = false;
-        protected $error_types = E_ALL & ~E_NOTICE;
+        protected $error_types = HPROSE_DEFAULT_ERROR_TYPES;
         public $onBeforeInvoke = null;
         public $onAfterInvoke = null;
         public $onSendError = null;
