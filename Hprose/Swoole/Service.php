@@ -77,6 +77,7 @@ namespace Hprose\Swoole {
                 $context->server = $server;
                 $context->fd = $fd;
                 $context->from_id = $from_id;
+                $context->userdata = new \stdClass();
 
                 set_error_handler(function ($errno, $errstr, $errfile, $errline) use ($self, $context) {
                     if ($self->debug) {
@@ -113,11 +114,44 @@ namespace Hprose\Swoole {
     }
     class Server extends Service {
         private $server;
-        public function __construct($host, $port, $mode = SWOOLE_PROCESS, $type = SWOOLE_SOCK_TCP) {
-            $this->server = new \swoole_server($host, $port, $mode, $type);
+        private function parseUrl($url) {
+            $result = new \stdClass();
+            $p = parse_url($url);
+            if ($p) {
+                switch (strtolower($p['scheme'])) {
+                    case 'tcp':
+                    case 'tcp4':
+                        $result->type = SWOOLE_TCP;
+                        $result->host = $p['host'];
+                        $result->port = $p['port'];
+                        break;
+                    case 'tcp6':
+                        $result->type = SWOOLE_TCP6;
+                        $result->host = $p['host'];
+                        $result->port = $p['port'];
+                        break;
+                    case 'unix':
+                        $result->type = SWOOLE_UNIX_STREAM;
+                        $result->host = $p['path'];
+                        $result->port = 0;
+                        break;
+                    default:
+                        throw new \Exception("Only support tcp, tcp4, tcp6 or unix scheme");
+                        break;
+                }
+            }
+            else {
+                throw new \Exception("Can't parse this url: " . $url);
+            }
+            return $result;
         }
-        public function addListener($host, $port, $type = SWOOLE_SOCK_TCP) {
-            $this->server->addListener($host, $port, $type);
+        public function __construct($url, $mode = SWOOLE_PROCESS) {
+            $url = $this->parseUrl($url);
+            $this->server = new \swoole_server($url->host, $url->port, $mode, $url->type);
+        }
+        public function addListener($url) {
+            $url = $this->parseUrl($url);
+            $this->server->addListener($url->host, $url->port, $url->type);
         }
         public function start() {
             $this->handle($this->server);

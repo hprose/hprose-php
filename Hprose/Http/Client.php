@@ -14,7 +14,7 @@
  *                                                        *
  * hprose http client class for php 5.3+                  *
  *                                                        *
- * LastModified: Apr 8, 2015                              *
+ * LastModified: Apr 10, 2015                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -127,12 +127,10 @@ namespace Hprose\Http {
             $this->curl_version_lt_720 = (1 == version_compare('7.20.0', $curl_version['version']));
         }
         public function __destruct() {
-            $err = null;
             try {
                 $this->loop();
             }
             catch (\Exception $e) {
-                $err = $e;
             }
             curl_multi_close($this->multicurl);
             curl_close($this->curl);

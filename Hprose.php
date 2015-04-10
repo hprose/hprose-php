@@ -56,6 +56,7 @@ namespace {
 
     require('Hprose/Http/Client.php');
     require('Hprose/Http/Service.php');
+    require('Hprose/Swoole/Client.php');
     require('Hprose/Swoole/Service.php');
     require('Hprose/Swoole/Http/Service.php');
     require('Hprose/Filter/JSONRPC/ClientFilter.php');
@@ -66,6 +67,7 @@ namespace {
     class_alias('Hprose\\Http\\Client', 'HproseHttpClient');
     class_alias('Hprose\\Http\\Service', 'HproseHttpService');
     class_alias('Hprose\\Http\\Server', 'HproseHttpServer');
+    class_alias('Hprose\\Swoole\\Client', 'HproseSwooleClient');
     class_alias('Hprose\\Swoole\\Service', 'HproseSwooleService');
     class_alias('Hprose\\Swoole\\Server', 'HproseSwooleServer');
     class_alias('Hprose\\Swoole\\Http\\Service', 'HproseSwooleHttpService');
