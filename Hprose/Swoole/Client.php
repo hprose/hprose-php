@@ -166,6 +166,7 @@ namespace Hprose\Swoole {
                         $buffer = array();
                         $len = "";
                         $self->sendAndReceiveCallback($response, null, $use);
+                        swoole_timer_clear($cli->timer);
                         $cli->close();
                         return;
                     }
@@ -186,9 +187,11 @@ namespace Hprose\Swoole {
                     }
                 } while(true);
             });
-            $client->on("close", function($cli) {
+            $client->on("close", function($cli) {});
+            $client->connect($this->host, $this->port);
+            $client->timer = swoole_timer_after($this->timeout, function () use ($client) {
+                $client->close();
             });
-            $client->connect($this->host, $this->port, $this->timeout / 1000);
         }
         public function setTimeout($timeout) {
             $this->timeout = $timeout;
