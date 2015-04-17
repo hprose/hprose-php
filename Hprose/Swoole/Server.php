@@ -32,11 +32,16 @@ namespace Hprose\Swoole {
                     case 'http':
                     case 'https':
                         if ($this->real_server) {
-                            throw new \Exception($p['scheme'] . " server didn't support addListener method.");
+                            if ($this->type == "http" || $this->type == "https") {
+                                $this->real_server->addListener($p['host'], $p['port']);
+                            }
+                            else {
+                                throw new \Exception($this->type . " server didn't support add " . $p['scheme'] . " scheme");
+                            }
                         }
                         else {
                             $this->real_server = new \Hprose\Swoole\Http\Server($p['host'], $p['port']);
-                            $this->type = $p['scheme'];
+                            $this->type = strtolower($p['scheme']);
                         }
                         break;
                     case 'tcp':
@@ -48,7 +53,7 @@ namespace Hprose\Swoole {
                                 $this->real_server->addListener($url);
                             }
                             else {
-                                throw new \Exception($this->type . " server didn't support addListener method.");
+                                throw new \Exception($this->type . " server didn't support add " . $p['scheme'] . " scheme");
                             }
                         }
                         else {

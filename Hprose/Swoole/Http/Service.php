@@ -14,7 +14,7 @@
  *                                                        *
  * hprose swoole http service library for php 5.3+        *
  *                                                        *
- * LastModified: Apr 8, 2015                              *
+ * LastModified: Apr 17, 2015                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -143,11 +143,12 @@ namespace Hprose\Swoole\Http {
         public function __construct($host, $port) {
             $this->http = new \swoole_http_server($host, $port);
         }
-
         public function set($setting) {
             $this->http->set($setting);
         }
-
+        public function addListener($host, $port) {
+            $this->http->addListener($host, $port);
+        }
         public function start() {
             $this->http->on('request', array($this, 'handle'));
             $this->http->start();
