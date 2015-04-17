@@ -129,7 +129,7 @@ namespace Hprose\Swoole\Socket {
         protected function asyncSendAndReceive($request, $use) {
             $self = $this;
             $client = new \swoole_client($this->type, SWOOLE_SOCK_ASYNC);
-            $buffer = array();
+            $buffer = "";
             $len = "";
             $client->on("connect", function($cli) use ($self, $request, $use) {
                 if (!$self->send($cli, $request)) {
@@ -141,7 +141,7 @@ namespace Hprose\Swoole\Socket {
             });
             $client->on("receive", function($cli, $data) use ($self, &$buffer, &$len, $use) {
                 do {
-                    if (count($buffer) == 0) {
+                    if (count($buffer) == 0 || is_string($len)) {
                         $left = 4 - strlen($len);
                         if (strlen($data) < $left) {
                             $len .= $data;
@@ -157,27 +157,29 @@ namespace Hprose\Swoole\Socket {
                         $n = strlen($data);
                     }
                     if ($n == 0) {
-                        $buffer[] = '';
+                        $buffer = "";
                         return;
                     }
                     if ($len == $n) {
-                        $buffer[] = substr($data, $left);
-                        $response = join($buffer);
-                        $buffer = array();
+                        $response = $buffer . substr($data, $left);
+                        $buffer = "";
                         $len = "";
-                        $self->sendAndReceiveCallback($response, null, $use);
+                        try {
+                            $self->sendAndReceiveCallback($response, null, $use);
+                        }
+                        catch(\Exception $e) {
+                        }
                         swoole_timer_clear($cli->timer);
                         $cli->close();
                         return;
                     }
                     if ($len > $n) {
-                        $buffer[] = substr($data, $left);
+                        $buffer .= substr($data, $left);
                         $len -= $n;
                         return;
                     }
-                    $buffer[] = substr($data, $left, $len);
-                    $response = join($buffer);
-                    $buffer = array();
+                    $response = $buffer . substr($data, $left, $len);
+                    $buffer = "";
                     $data = substr($data, $left + $len);
                     $len = "";
                     try {

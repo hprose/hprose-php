@@ -10,7 +10,7 @@
 
 /**********************************************************\
  *                                                        *
- * Hprose/Swoole/HttpService.php                          *
+ * Hprose/Swoole/Http/Service.php                         *
  *                                                        *
  * hprose swoole http service library for php 5.3+        *
  *                                                        *

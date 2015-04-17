@@ -29,6 +29,21 @@ namespace Hprose\Swoole {
             $p = parse_url($url);
             if ($p) {
                 switch (strtolower($p['scheme'])) {
+                    case 'ws':
+                    case 'wss':
+                        if ($this->real_server) {
+                            if ($this->type == "ws" || $this->type == "wss") {
+                                $this->real_server->addListener($p['host'], $p['port']);
+                            }
+                            else {
+                                throw new \Exception($this->type . " server didn't support add " . $p['scheme'] . " scheme");
+                            }
+                        }
+                        else {
+                            $this->real_server = new \Hprose\Swoole\WebSocket\Server($p['host'], $p['port']);
+                            $this->type = strtolower($p['scheme']);
+                        }
+                        break;
                     case 'http':
                     case 'https':
                         if ($this->real_server) {
@@ -62,7 +77,7 @@ namespace Hprose\Swoole {
                         }
                         break;
                     default:
-                        throw new \Exception("Only support http, https, tcp, tcp4, tcp6 or unix scheme");
+                        throw new \Exception("Only support ws, wss, http, https, tcp, tcp4, tcp6 or unix scheme");
                         break;
                 }
             }
