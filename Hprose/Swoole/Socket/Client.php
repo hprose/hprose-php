@@ -10,16 +10,16 @@
 
 /**********************************************************\
  *                                                        *
- * Hprose/Swoole/Client.php                               *
+ * Hprose/Swoole/Socket/Client.php                        *
  *                                                        *
- * hprose swoole client library for php 5.3+              *
+ * hprose swoole socket client library for php 5.3+       *
  *                                                        *
- * LastModified: Apr 10, 2015                             *
+ * LastModified: Apr 17, 2015                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
 
-namespace Hprose\Swoole {
+namespace Hprose\Swoole\Socket {
     class Client extends \Hprose\Client {
         const MAX_PACK_LEN = 0x200000;
         private function send($client, $data) {

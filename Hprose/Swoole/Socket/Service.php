@@ -10,16 +10,16 @@
 
 /**********************************************************\
  *                                                        *
- * Hprose/Swoole/Service.php                              *
+ * Hprose/Swoole/Socket/Service.php                       *
  *                                                        *
- * hprose swoole service library for php 5.3+             *
+ * hprose swoole socket service library for php 5.3+      *
  *                                                        *
- * LastModified: Apr 10, 2015                             *
+ * LastModified: Apr 17, 2015                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
 
-namespace Hprose\Swoole {
+namespace Hprose\Swoole\Socket {
     class Service extends \Hprose\Service {
         const MAX_PACK_LEN = 0x200000;
         static private $default_setting = array(

@@ -56,9 +56,11 @@ namespace {
 
     require('Hprose/Http/Client.php');
     require('Hprose/Http/Service.php');
-    require('Hprose/Swoole/Client.php');
-    require('Hprose/Swoole/Service.php');
     require('Hprose/Swoole/Http/Service.php');
+    require('Hprose/Swoole/Socket/Client.php');
+    require('Hprose/Swoole/Socket/Service.php');
+    require('Hprose/Swoole/Client.php');
+    require('Hprose/Swoole/Server.php');
     require('Hprose/Filter/JSONRPC/ClientFilter.php');
     require('Hprose/Filter/JSONRPC/ServiceFilter.php');
     require('Hprose/Filter/XMLRPC/ClientFilter.php');
@@ -68,8 +70,10 @@ namespace {
     class_alias('Hprose\\Http\\Service', 'HproseHttpService');
     class_alias('Hprose\\Http\\Server', 'HproseHttpServer');
     class_alias('Hprose\\Swoole\\Client', 'HproseSwooleClient');
-    class_alias('Hprose\\Swoole\\Service', 'HproseSwooleService');
     class_alias('Hprose\\Swoole\\Server', 'HproseSwooleServer');
+    class_alias('Hprose\\Swoole\\Socket\\Client', 'HproseSwooleSocketClient');
+    class_alias('Hprose\\Swoole\\Socket\\Service', 'HproseSwooleSocketService');
+    class_alias('Hprose\\Swoole\\Socket\\Server', 'HproseSwooleSocketServer');
     class_alias('Hprose\\Swoole\\Http\\Service', 'HproseSwooleHttpService');
     class_alias('Hprose\\Swoole\\Http\\Server', 'HproseSwooleHttpServer');
     class_alias('Hprose\\Filter\\JSONRPC\\ClientFilter', 'HproseJSONRPCClientFilter');
