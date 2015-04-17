@@ -27,6 +27,8 @@ namespace Hprose\Swoole\WebSocket {
             $context->fd = $fd;
             $context->userdata = new \stdClass();
             $self = $this;
+            $id = substr($data, 0, 4);
+            $data = substr($data, 4);
 
             set_error_handler(function ($errno, $errstr, $errfile, $errline) use ($self, $context) {
                 if ($self->debug) {
@@ -34,7 +36,7 @@ namespace Hprose\Swoole\WebSocket {
                 }
                 $error = $self->getErrorTypeString($errno) . ": " . $errstr;
                 $data = $self->sendError($error, $context);
-                $context->server->push($context->fd, $data, true);
+                $context->server->push($context->fd, $id . $data, true);
             }, $this->error_types);
 
             ob_start(function ($data) use ($self, $context) {
@@ -47,22 +49,17 @@ namespace Hprose\Swoole\WebSocket {
                         $error = preg_replace('/ in <b>.*<\/b>$/', '', $match[1]);
                     }
                     $data = $self->sendError(trim($error), $context);
-                    $context->server->push($context->fd, $data, true);
+                    $context->server->push($context->fd, $id . $data, true);
                 }
             });
             ob_implicit_flush(0);
 
-            $result = '';
-            if (($request->server['request_method'] == 'GET') && $this->get) {
-                $result = $this->doFunctionList($context);
-            }
-            elseif ($request->server['request_method'] == 'POST') {
-                $result = $this->defaultHandle($data, $context);
-            }
+            $result = $this->defaultHandle($data, $context);
+
             ob_clean();
             ob_end_flush();
             restore_error_handler();
-            $server->push($fd, $result, true);
+            $server->push($fd, $id . $result, true);
         }
         public function set_ws_handle($server) {
             $self = $this;
