@@ -69,7 +69,7 @@ namespace Hprose\Swoole\Socket {
                 $setting['package_max_length'] = $this->return_bytes(ini_get('memory_limit'));
             }
             if ($setting['package_max_length'] < 0) {
-                $setting['package_max_length'] = 0x80000000;
+                $setting['package_max_length'] = 0x7fffffff;
             }
             $server->set($setting);
             $server->on("receive", function ($server, $fd, $from_id, $data) use($self) {
