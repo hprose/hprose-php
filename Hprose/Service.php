@@ -110,7 +110,7 @@ namespace Hprose {
             }
             return $data;
         }
-        protected function sendError($error, $context) {
+        public function sendError($error, $context) {
             if ($this->onSendError !== null) {
                 $sendError = $this->onSendError;
                 $sendError($error, $context);
