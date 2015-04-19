@@ -30,7 +30,7 @@ namespace Hprose\Swoole\WebSocket {
             $id = substr($data, 0, 4);
             $data = substr($data, 4);
 
-            set_error_handler(function ($errno, $errstr, $errfile, $errline) use ($self, $context) {
+            set_error_handler(function ($errno, $errstr, $errfile, $errline) use ($self, $context, $id) {
                 if ($self->debug) {
                     $errstr .= " in $errfile on line $errline";
                 }
@@ -39,7 +39,7 @@ namespace Hprose\Swoole\WebSocket {
                 $context->server->push($context->fd, $id . $data, true);
             }, $this->error_types);
 
-            ob_start(function ($data) use ($self, $context) {
+            ob_start(function ($data) use ($self, $context, $id) {
                 $match = array();
                 if (preg_match('/<b>.*? error<\/b>:(.*?)<br/', $data, $match)) {
                     if ($self->debug) {

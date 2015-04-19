@@ -14,7 +14,7 @@
  *                                                        *
  * hprose swoole client library for php 5.3+              *
  *                                                        *
- * LastModified: Apr 17, 2015                             *
+ * LastModified: Apr 19, 2015                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -39,7 +39,6 @@ namespace Hprose\Swoole {
                             break;
                         default:
                             throw new \Exception("Only support http, https, tcp, tcp4, tcp6 or unix scheme");
-                            break;
                     }
                 }
                 else {

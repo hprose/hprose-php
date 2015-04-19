@@ -14,7 +14,7 @@
  *                                                        *
  * hprose swoole socket client library for php 5.3+       *
  *                                                        *
- * LastModified: Apr 17, 2015                             *
+ * LastModified: Apr 19, 2015                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -90,7 +90,6 @@ namespace Hprose\Swoole\Socket {
                             break;
                         default:
                             throw new \Exception("Only support tcp, tcp4, tcp6 or unix scheme");
-                            break;
                     }
                 }
                 else {
@@ -134,7 +133,7 @@ namespace Hprose\Swoole\Socket {
             $client->on("connect", function($cli) use ($self, $request, $use) {
                 if (!$self->send($cli, $request)) {
                     $self->sendAndReceiveCallback('', new \Exception(socket_strerror($cli->errCode)), $use);
-                };
+                }
             });
             $client->on("error", function($cli) use ($self, $use) {
                 $self->sendAndReceiveCallback('', new \Exception(socket_strerror($cli->errCode)), $use);
