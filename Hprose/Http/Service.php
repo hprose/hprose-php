@@ -14,7 +14,7 @@
  *                                                        *
  * hprose http server class for php 5.3+                  *
  *                                                        *
- * LastModified: Apr 2, 2015                              *
+ * LastModified: Apr 20, 2015                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -99,7 +99,7 @@ namespace Hprose\Http {
             $self = $this;
 
             set_error_handler(function($errno, $errstr, $errfile, $errline) use ($self, $context) {
-                if ($self->debug) {
+                if ($self->isDebugEnabled()) {
                     $errstr .= " in $errfile on line $errline";
                 }
                 $error = $self->getErrorTypeString($errno) . ": " . $errstr;
@@ -109,7 +109,7 @@ namespace Hprose\Http {
             ob_start(function($data) use ($self, $context) {
                 $match = array();
                 if (preg_match('/<b>.*? error<\/b>:(.*?)<br/', $data, $match)) {
-                    if ($self->debug) {
+                    if ($self->isDebugEnabled()) {
                         $error = preg_replace('/<.*?>/', '', $match[1]);
                     }
                     else {
