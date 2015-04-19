@@ -123,7 +123,7 @@ namespace Hprose\Symfony {
             $this->sendHeader($context);
             $result = '';
 
-            if (isset($request->server->get('REQUEST_METHOD'))) {
+            if ($request->server->has('REQUEST_METHOD')) {
                 if (($request->server->get('REQUEST_METHOD') == 'GET') && $this->get) {
                     $result = $this->doFunctionList($context);
                 }
