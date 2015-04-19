@@ -64,9 +64,14 @@ namespace Hprose\Swoole\WebSocket {
         public function set_ws_handle($server) {
             $self = $this;
             $buffers = array();
-            $server->on('open', function ($server, $request) {
+            $server->on('open', function ($server, $request) use (&$buffers) {
                 if (isset($buffers[$request->fd])) {
                     unset($buffers[$request->fd]);
+                }
+            });
+            $server->on('close', function ($server, $fd) use (&$buffers) {
+                if (isset($buffers[$fd])) {
+                    unset($buffers[$fd]);
                 }
             });
             $server->on('message', function($server, $frame) use (&$buffers, $self) {
