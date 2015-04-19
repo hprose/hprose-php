@@ -14,7 +14,7 @@
  *                                                        *
  * hprose service class for php 5.3+                      *
  *                                                        *
- * LastModified: Apr 10, 2015                             *
+ * LastModified: Apr 20, 2015                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -83,6 +83,9 @@ namespace Hprose {
             E_STRICT => 'Runtime Notice',
             E_RECOVERABLE_ERROR  => 'Catchable Fatal Error'
         );
+        public static function getErrorTypeString($errno) {
+            return self::$errorTable[$errno];
+        }
         private $calls = array();
         private $names = array();
         private $filters = array();
@@ -106,9 +109,6 @@ namespace Hprose {
                 $data = $this->filters[$i]->outputFilter($data, $context);
             }
             return $data;
-        }
-        protected function getErrorTypeString($errno) {
-            return self::$errorTable[$errno];
         }
         protected function sendError($error, $context) {
             if ($this->onSendError !== null) {
