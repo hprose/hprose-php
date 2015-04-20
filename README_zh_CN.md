@@ -72,7 +72,7 @@ Hprose for PHP 使用起来很简单，你可以像这样来创建一个 Hprose 
     $server->start();
 ```
 
-你也可以使用 HproseSwooleHttpServer 来创建一个独立的 hprose 服务：
+你也可以使用 HproseSwooleServer 来创建一个独立的 hprose 服务：
 
 `server.php`
 ```php
@@ -83,7 +83,7 @@ Hprose for PHP 使用起来很简单，你可以像这样来创建一个 Hprose 
         return 'Hello ' . $name;
     }
 
-    $server = new HproseSwooleHttpServer('0.0.0.0', 8080);
+    $server = new HproseSwooleServer('http://0.0.0.0:8080/');
     $server->addFunction('hello');
     $server->start();
 ```
@@ -92,7 +92,53 @@ Hprose for PHP 使用起来很简单，你可以像这样来创建一个 Hprose 
 
 `php server.php`
 
-要使用 HproseSwooleHttpServer, 你首先需要安装 [swoole](http://www.swoole.com/)。[swoole](https://github.com/swoole/swoole-src) 被支持的最低版本为 1.7.11.
+要使用 `HproseSwooleServer`, 你首先需要安装 [swoole](http://www.swoole.com/)。[swoole](https://github.com/swoole/swoole-src) 被支持的最低版本为 1.7.15.
+
+`HproseSwooleServer` 不仅仅支持 http 服务器，还支持 tcp, unix 和 websocket 服务器。使用方法仅仅是创建时的 url 不同。例如：
+
+`tcp_server.php`
+```php
+<?php
+    require_once("Hprose.php");
+
+    function hello($name) {
+        return 'Hello ' . $name;
+    }
+
+    $server = new HproseSwooleServer('tcp://0.0.0.0:1234');
+    $server->addFunction('hello');
+    $server->start();
+```
+
+`unix_server.php`
+```php
+<?php
+    require_once("Hprose.php");
+
+    function hello($name) {
+        return 'Hello ' . $name;
+    }
+
+    $server = new HproseSwooleServer('unix:/tmp/my.sock');
+    $server->addFunction('hello');
+    $server->start();
+```
+
+`websocket_server.php`
+```php
+<?php
+    require_once("Hprose.php");
+
+    function hello($name) {
+        return 'Hello ' . $name;
+    }
+
+    $server = new HproseSwooleServer('ws://0.0.0.0:8000/');
+    $server->addFunction('hello');
+    $server->start();
+```
+
+另外，WebSocket 服务器同时也是 http 服务器，所以既可以用 WebSocket 客户端访问，也可以用 http 客户端访问。
 
 ### 客户端
 
@@ -105,6 +151,44 @@ Hprose for PHP 使用起来很简单，你可以像这样来创建一个 Hprose 
     echo $client->hello('World');
 ?>
 ```
+
+Hprose 也提供了 HproseSwooleClient，它目前支持 http，tcp 和 unix 三种方式的调用。
+
+```php
+<?php
+    require_once("Hprose.php");
+    $client = new HproseSwooleClient('tcp://0.0.0.0:1234');
+    echo $client->hello('World');
+?>
+```
+
+新的版本现在也支持异步并发调用，例如：
+
+```php
+<?php
+    require_once("Hprose.php");
+    $client = new HproseSwooleClient('tcp://0.0.0.0:1234');
+    $client->hello('World', function() {
+        echo "ok\r\n";
+    });
+    $client->hello('World 1', function($result) {
+        echo $result . "\r\n";
+    });
+    $client->hello('World 2', function($result, $args) {
+        echo $result . "\r\n";
+    });
+    $client->hello('World 3', function($result, $args, $error) {
+        echo $result . "\r\n";
+    });
+?>
+```
+
+异步调用的回调函数支持 0 - 3 个参数。它们分别表示：
+
+|------:|:-------------------------------------------------------|
+|结果    |就是服务器端的返回结果，如果没有结果则为 null。                |
+|调用参数 |是一个包含了调用参数的数组，如果调用没有参数，则为 0 个元素的数组。|
+|错误    |一个 Exception 对象，如果没有错误则为 null。                 |
 
 ### 异常处理
 
