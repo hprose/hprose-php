@@ -73,7 +73,7 @@ Hprose for PHP is very easy to use. You can create a hprose server like this:
 
 ```
 
-You can also use HproseSwooleHttpServer to create a standalone hprose server:
+You can also use `HproseSwooleServer` to create a standalone hprose server:
 
 `server.php`
 ```php
@@ -84,7 +84,7 @@ You can also use HproseSwooleHttpServer to create a standalone hprose server:
         return 'Hello ' . $name;
     }
 
-    $server = new HproseSwooleHttpServer('0.0.0.0', 8080);
+    $server = new HproseSwooleServer('http://0.0.0.0:8080/');
     $server->addFunction('hello');
     $server->start();
 ```
@@ -93,7 +93,53 @@ then use command line to start it:
 
 `php server.php`
 
-To use HproseSwooleHttpServer, you need install [swoole](http://www.swoole.com/) first. The minimum version of [swoole](https://github.com/swoole/swoole-src) been supported is 1.7.11.
+To use `HproseSwooleServer`, you need install [swoole](http://www.swoole.com/) first. The minimum version of [swoole](https://github.com/swoole/swoole-src) been supported is 1.7.15.
+
+`HproseSwooleServer` not only support creating http server，but also support create tcp, unix and websocket server. For examples:
+
+`tcp_server.php`
+```php
+<?php
+    require_once("Hprose.php");
+
+    function hello($name) {
+        return 'Hello ' . $name;
+    }
+
+    $server = new HproseSwooleServer('tcp://0.0.0.0:1234');
+    $server->addFunction('hello');
+    $server->start();
+```
+
+`unix_server.php`
+```php
+<?php
+    require_once("Hprose.php");
+
+    function hello($name) {
+        return 'Hello ' . $name;
+    }
+
+    $server = new HproseSwooleServer('unix:/tmp/my.sock');
+    $server->addFunction('hello');
+    $server->start();
+```
+
+`websocket_server.php`
+```php
+<?php
+    require_once("Hprose.php");
+
+    function hello($name) {
+        return 'Hello ' . $name;
+    }
+
+    $server = new HproseSwooleServer('ws://0.0.0.0:8000/');
+    $server->addFunction('hello');
+    $server->start();
+```
+
+The websocket server is also a http server.
 
 ### Client
 
@@ -106,6 +152,47 @@ Then you can create a hprose client to invoke it like this:
     echo $client->hello('World');
 ```
 
+Hprose also suplied `HproseSwooleClient`，it supports http，tcp and unix. For example:
+
+```php
+<?php
+    require_once("Hprose.php");
+    $client = new HproseSwooleClient('tcp://0.0.0.0:1234');
+    echo $client->hello('World');
+?>
+```
+
+It also support asynchronous concurrency invoke. For example:
+
+```php
+<?php
+    require_once("Hprose.php");
+    $client = new HproseSwooleClient('tcp://0.0.0.0:1234');
+    $client->hello('World', function() {
+        echo "ok\r\n";
+    });
+    $client->hello('World 1', function($result) {
+        echo $result . "\r\n";
+    });
+    $client->hello('World 2', function($result, $args) {
+        echo $result . "\r\n";
+    });
+    $client->hello('World 3', function($result, $args, $error) {
+        echo $result . "\r\n";
+    });
+?>
+```
+
+the callback function of asynchronous concurrency invoking supports 0 - 3 parameters:
+
+|params   |comments                                                           |
+|--------:|:------------------------------------------------------------------|
+|result   |The result is the server returned, if no result, its value is null.|
+|arguments|It is an array of arguments. if no argument, it is an empty array. |
+|error    |It is an object of Exception, if no error, its value is null.      |
+
 ### Exception Handling
 
 If an error occurred on the server, or your service function/method throw an exception. it will be sent to the client, and the client will throw it as an exception. You can use the try statement to catch it.
+
+No exception throwed on asynchonous invoking. The exception object will be passed to the callback function as the third argument.
