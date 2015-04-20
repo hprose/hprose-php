@@ -57,13 +57,18 @@ namespace {
     require('Hprose/Base/Service.php');
     require('Hprose/Http/Client.php');
     require('Hprose/Http/Service.php');
+    require('Hprose/Http/Server.php');
     require('Hprose/Swoole/Http/Service.php');
+    require('Hprose/Swoole/Http/Server.php');
     require('Hprose/Swoole/WebSocket/Service.php');
+    require('Hprose/Swoole/WebSocket/Server.php');
     require('Hprose/Swoole/Socket/Client.php');
     require('Hprose/Swoole/Socket/Service.php');
+    require('Hprose/Swoole/Socket/Server.php');
     require('Hprose/Swoole/Client.php');
     require('Hprose/Swoole/Server.php');
     require('Hprose/Symfony/Service.php');
+    require('Hprose/Symfony/Server.php');
     require('Hprose/Filter/JSONRPC/ClientFilter.php');
     require('Hprose/Filter/JSONRPC/ServiceFilter.php');
     require('Hprose/Filter/XMLRPC/ClientFilter.php');

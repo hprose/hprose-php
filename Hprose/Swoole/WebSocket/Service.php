@@ -76,23 +76,4 @@ namespace Hprose\Swoole\WebSocket {
             });
         }
     }
-
-    class Server extends Service {
-        private $ws;
-        public function __construct($host, $port) {
-            parent::__construct();
-            $this->ws = new \swoole_websocket_server($host, $port);
-        }
-        public function set($setting) {
-            $this->ws->set($setting);
-        }
-        public function addListener($host, $port) {
-            $this->ws->addListener($host, $port);
-        }
-        public function start() {
-            $this->set_ws_handle($this->ws);
-            $this->ws->on('request', array($this, 'handle'));
-            $this->ws->start();
-        }
-    }
 }

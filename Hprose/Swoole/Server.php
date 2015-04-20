@@ -10,9 +10,9 @@
 
 /**********************************************************\
  *                                                        *
- * Hprose/Swoole/Service.php                              *
+ * Hprose/Swoole/Server.php                               *
  *                                                        *
- * hprose swoole service library for php 5.3+             *
+ * hprose swoole server library for php 5.3+              *
  *                                                        *
  * LastModified: Apr 19, 2015                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
