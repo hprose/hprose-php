@@ -20,7 +20,7 @@
 \**********************************************************/
 
 namespace Hprose\Swoole\Http {
-    class Service extends \Hprose\Service {
+    class Service extends \Hprose\Base\Service {
         private $crossDomain = false;
         private $P3P = false;
         private $get = true;
@@ -100,28 +100,10 @@ namespace Hprose\Swoole\Http {
             $context->userdata = new \stdClass();
 
             $self = $this;
-
-            set_error_handler(function ($errno, $errstr, $errfile, $errline) use ($self, $context) {
-                if ($self->isDebugEnabled()) {
-                    $errstr .= " in $errfile on line $errline";
-                }
-                $error = $self->getErrorTypeString($errno) . ": " . $errstr;
+            $this->user_fatal_error_handler = function($error) use ($self, $context) {
+                @ob_end_clean();
                 $context->response->end($self->sendError($error, $context));
-            }, $this->error_types);
-            ob_start(function ($data) use ($self, $context) {
-                $match = array();
-                if (preg_match('/<b>.*? error<\/b>:(.*?)<br/', $data, $match)) {
-                    if ($self->isDebugEnabled()) {
-                        $error = preg_replace('/<.*?>/', '', $match[1]);
-                    }
-                    else {
-                        $error = preg_replace('/ in <b>.*<\/b>$/', '', $match[1]);
-                    }
-                    $data = $self->sendError(trim($error), $context);
-                    $context->response->end($data);
-                }
-            });
-            ob_implicit_flush(0);
+            };
 
             $this->sendHeader($context);
             $result = '';
@@ -131,9 +113,7 @@ namespace Hprose\Swoole\Http {
             elseif ($request->server['request_method'] == 'POST') {
                 $result = $this->defaultHandle($data, $context);
             }
-            ob_clean();
-            ob_end_flush();
-            restore_error_handler();
+
             $response->end($result);
         }
     }
@@ -141,6 +121,7 @@ namespace Hprose\Swoole\Http {
     class Server extends Service {
         private $http;
         public function __construct($host, $port) {
+            parent::__construct();
             $this->http = new \swoole_http_server($host, $port);
         }
         public function set($setting) {

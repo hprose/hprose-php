@@ -20,7 +20,7 @@
 \**********************************************************/
 
 namespace Hprose\Http {
-    class Service extends \Hprose\Service {
+    class Service extends \Hprose\Base\Service {
         private $crossDomain = false;
         private $P3P = false;
         private $get = true;
@@ -96,47 +96,26 @@ namespace Hprose\Http {
             $context = new \stdClass();
             $context->server = $this;
             $context->userdata = new \stdClass();
+
             $self = $this;
-
-            set_error_handler(function($errno, $errstr, $errfile, $errline) use ($self, $context) {
-                if ($self->isDebugEnabled()) {
-                    $errstr .= " in $errfile on line $errline";
-                }
-                $error = $self->getErrorTypeString($errno) . ": " . $errstr;
+            $this->user_fatal_error_handler = function($error) use ($self, $context) {
+                @ob_end_clean();
                 echo $self->sendError($error, $context);
-            }, $this->error_types);
-
-            ob_start(function($data) use ($self, $context) {
-                $match = array();
-                if (preg_match('/<b>.*? error<\/b>:(.*?)<br/', $data, $match)) {
-                    if ($self->isDebugEnabled()) {
-                        $error = preg_replace('/<.*?>/', '', $match[1]);
-                    }
-                    else {
-                        $error = preg_replace('/ in <b>.*<\/b>$/', '', $match[1]);
-                    }
-                    return $self->sendError(trim($error), $context);
-                }
-            });
-            ob_implicit_flush(0);
+            };
 
             $this->sendHeader($context);
-            $result = '';
 
             if (isset($_SERVER['REQUEST_METHOD'])) {
                 if (($_SERVER['REQUEST_METHOD'] == 'GET') && $this->get) {
-                    $result = $this->doFunctionList($context);
+                    echo $this->doFunctionList($context);
                 }
                 elseif ($_SERVER['REQUEST_METHOD'] == 'POST') {
-                    $result = $this->defaultHandle($request, $context);
+                    echo $this->defaultHandle($request, $context);
                 }
             }
             else {
-                $result = $this->doFunctionList($context);
+                echo $this->doFunctionList($context);
             }
-            ob_clean();
-            ob_end_flush();
-            echo $result;
         }
     }
 

@@ -12,6 +12,12 @@ try {
 catch (Exception $e) {
     var_dump($e->getMessage());
 }
+try {
+    $test->ee();
+}
+catch (Exception $e) {
+    var_dump($e->getMessage());
+}
 
 $test->hello('async world', function($result, $args, $error) {
     echo "result: ";
@@ -62,4 +68,11 @@ $test->e(function($result, $args, $error) {
     var_dump($error->getMessage());
 });
 var_dump($test->hello("world"));
-//$line = trim(fgets(STDIN));
+$test->ee(function($result, $args, $error) {
+    echo "result: ";
+    var_dump($result);
+    echo "args: ";
+    var_dump($args);
+    echo "error: ";
+    var_dump($error->getMessage());
+});

@@ -22,43 +22,23 @@
 namespace Hprose\Swoole\WebSocket {
     class Service extends \Hprose\Swoole\Http\Service {
         private function ws_handle($server, $fd, $data) {
-            $context = new \stdClass();
-            $context->server = $server;
-            $context->fd = $fd;
-            $context->userdata = new \stdClass();
-            $self = $this;
             $id = substr($data, 0, 4);
             $data = substr($data, 4);
 
-            set_error_handler(function ($errno, $errstr, $errfile, $errline) use ($self, $context, $id) {
-                if ($self->isDebugEnabled()) {
-                    $errstr .= " in $errfile on line $errline";
-                }
-                $error = $self->getErrorTypeString($errno) . ": " . $errstr;
-                $data = $self->sendError($error, $context);
-                $context->server->push($context->fd, $id . $data, true);
-            }, $this->error_types);
+            $context = new \stdClass();
+            $context->server = $server;
+            $context->fd = $fd;
+            $context->id = $id;
+            $context->userdata = new \stdClass();
+            $self = $this;
 
-            ob_start(function ($data) use ($self, $context, $id) {
-                $match = array();
-                if (preg_match('/<b>.*? error<\/b>:(.*?)<br/', $data, $match)) {
-                    if ($self->isDebugEnabled()) {
-                        $error = preg_replace('/<.*?>/', '', $match[1]);
-                    }
-                    else {
-                        $error = preg_replace('/ in <b>.*<\/b>$/', '', $match[1]);
-                    }
-                    $data = $self->sendError(trim($error), $context);
-                    $context->server->push($context->fd, $id . $data, true);
-                }
-            });
-            ob_implicit_flush(0);
+            $this->user_fatal_error_handler = function($error) use ($self, $context) {
+                @ob_end_clean();
+                $context->server->push($context->fd, $context->id . $self->sendError($error, $context), true);
+            };
 
             $result = $this->defaultHandle($data, $context);
 
-            ob_clean();
-            ob_end_flush();
-            restore_error_handler();
             $server->push($fd, $id . $result, true);
         }
         public function set_ws_handle($server) {
@@ -100,6 +80,7 @@ namespace Hprose\Swoole\WebSocket {
     class Server extends Service {
         private $ws;
         public function __construct($host, $port) {
+            parent::__construct();
             $this->ws = new \swoole_websocket_server($host, $port);
         }
         public function set($setting) {

@@ -20,7 +20,7 @@
 \**********************************************************/
 
 namespace Hprose\Swoole\Socket {
-    class Service extends \Hprose\Service {
+    class Service extends \Hprose\Base\Service {
         const MAX_PACK_LEN = 0x200000;
         static private $default_setting = array(
             'open_length_check' => true,
@@ -79,36 +79,12 @@ namespace Hprose\Swoole\Socket {
                 $context->from_id = $from_id;
                 $context->userdata = new \stdClass();
 
-                set_error_handler(function ($errno, $errstr, $errfile, $errline) use ($self, $context) {
-                    if ($self->isDebugEnabled()) {
-                        $errstr .= " in $errfile on line $errline";
-                    }
-                    $error = $self->getErrorTypeString($errno) . ": " . $errstr;
+                $this->user_fatal_error_handler = function($error) use ($self, $context) {
+                    @ob_end_clean();
                     $self->send($context->server, $context->fd, $self->sendError($error, $context));
-                }, $self->error_types);
+                };
 
-                ob_start(function ($data) use ($self, $context) {
-                    $match = array();
-                    if (preg_match('/<b>.*? error<\/b>:(.*?)<br/', $data, $match)) {
-                        if ($self->isDebugEnabled()) {
-                            $error = preg_replace('/<.*?>/', '', $match[1]);
-                        }
-                        else {
-                            $error = preg_replace('/ in <b>.*<\/b>$/', '', $match[1]);
-                        }
-                        $data = $self->sendError(trim($error), $context);
-                        $self->send($context->server, $context->fd, $data);
-                    }
-                });
-                ob_implicit_flush(0);
-
-                $data = $self->defaultHandle(substr($data, 4), $context);
-
-                ob_clean();
-                ob_end_flush();
-                restore_error_handler();
-
-                $self->send($server, $fd, $data);
+                $self->send($server, $fd, $self->defaultHandle(substr($data, 4), $context));
             });
         }
     }
@@ -145,6 +121,7 @@ namespace Hprose\Swoole\Socket {
             return $result;
         }
         public function __construct($url, $mode = SWOOLE_PROCESS) {
+            parent::__construct();
             $url = $this->parseUrl($url);
             $this->server = new \swoole_server($url->host, $url->port, $mode, $url->type);
         }

@@ -21,7 +21,7 @@
 
 namespace Hprose\Symfony {
 
-    class Service extends \Hprose\Service {
+    class Service extends \Hprose\Base\Service {
         private $crossDomain = false;
         private $P3P = false;
         private $get = true;
@@ -96,29 +96,12 @@ namespace Hprose\Symfony {
             $context->response = $response;
             $context->session = $session;
             $context->userdata = new \stdClass();
+
             $self = $this;
-
-            set_error_handler(function($errno, $errstr, $errfile, $errline) use ($self, $context) {
-                if ($self->isDebugEnabled()) {
-                    $errstr .= " in $errfile on line $errline";
-                }
-                $error = $self->getErrorTypeString($errno) . ": " . $errstr;
+            $this->user_fatal_error_handler = function($error) use ($self, $context) {
+                @ob_end_clean();
                 $context->response->setContent($self->sendError($error, $context));
-            }, $this->error_types);
-
-            ob_start(function($data) use ($self, $context) {
-                $match = array();
-                if (preg_match('/<b>.*? error<\/b>:(.*?)<br/', $data, $match)) {
-                    if ($self->isDebugEnabled()) {
-                        $error = preg_replace('/<.*?>/', '', $match[1]);
-                    }
-                    else {
-                        $error = preg_replace('/ in <b>.*<\/b>$/', '', $match[1]);
-                    }
-                    $context->response->setContent($self->sendError(trim($error), $context));
-                }
-            });
-            ob_implicit_flush(0);
+            };
 
             $this->sendHeader($context);
             $result = '';
@@ -134,8 +117,6 @@ namespace Hprose\Symfony {
             else {
                 $result = $this->doFunctionList($context);
             }
-            ob_clean();
-            ob_end_flush();
             $response->setContent($result);
             return $response;
         }

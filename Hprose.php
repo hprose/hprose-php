@@ -14,7 +14,7 @@
  *                                                        *
  * hprose for php 5.3+                                    *
  *                                                        *
- * LastModified: Apr 19, 2015                             *
+ * LastModified: Apr 20, 2015                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -54,6 +54,7 @@ namespace {
         }
     }
 
+    require('Hprose/Base/Service.php');
     require('Hprose/Http/Client.php');
     require('Hprose/Http/Service.php');
     require('Hprose/Swoole/Http/Service.php');
@@ -68,6 +69,7 @@ namespace {
     require('Hprose/Filter/XMLRPC/ClientFilter.php');
     require('Hprose/Filter/XMLRPC/ServiceFilter.php');
 
+    class_alias('Hprose\\Base\\Service', 'HproseBaseService');
     class_alias('Hprose\\Http\\Client', 'HproseHttpClient');
     class_alias('Hprose\\Http\\Service', 'HproseHttpService');
     class_alias('Hprose\\Http\\Server', 'HproseHttpServer');
