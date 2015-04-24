@@ -30,7 +30,7 @@ namespace Hprose\Swoole\Socket {
             'open_eof_check' => false,
         );
         public $setting = array();
-        private function send($server, $fd, $data) {
+        public function send($server, $fd, $data) {
             $len = strlen($data);
             if ($len < self::MAX_PACK_LEN - 4) {
                 return $server->send($fd, pack("N", $len) . $data);
