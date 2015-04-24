@@ -14,7 +14,7 @@
  *                                                        *
  * hprose swoole socket service library for php 5.3+      *
  *                                                        *
- * LastModified: Apr 20, 2015                             *
+ * LastModified: Apr 24, 2015                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -79,7 +79,7 @@ namespace Hprose\Swoole\Socket {
                 $context->from_id = $from_id;
                 $context->userdata = new \stdClass();
 
-                $this->user_fatal_error_handler = function($error) use ($self, $context) {
+                $self->user_fatal_error_handler = function($error) use ($self, $context) {
                     @ob_end_clean();
                     $self->send($context->server, $context->fd, $self->sendError($error, $context));
                 };
