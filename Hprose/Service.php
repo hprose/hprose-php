@@ -29,10 +29,12 @@ namespace Hprose {
         public $simple;
         public $params;
         public $byref;
-        public function __construct($func, $mode, $simple) {
+        public $async;
+        public function __construct($func, $mode, $simple, $async) {
             $this->func = $func;
             $this->mode = $mode;
             $this->simple = $simple;
+            $this->async = $async;
             if (is_array($func)) {
                 $tmp = new \ReflectionMethod($func[0], $func[1]);
             }
@@ -49,6 +51,11 @@ namespace Hprose {
             }
         }
     }
+
+    class AsyncCallback {
+
+    }
+
     abstract class Service {
         private static $magic_methods = array(
             "__construct",
@@ -233,13 +240,20 @@ namespace Hprose {
         }
         public function addMissingFunction($func,
                                            $mode = ResultMode::Normal,
-                                           $simple = null) {
-            $this->addFunction($func, '*', $mode, $simple);
+                                           $simple = null,
+                                           $async = false) {
+            $this->addFunction($func, '*', $mode, $simple, $async);
+        }
+        public function addAsyncMissingFunction($func,
+                                                $mode = ResultMode::Normal,
+                                                $simple = null) {
+            $this->addMissingFunction($func, $mode, $simple, true);
         }
         public function addFunction($func,
                                     $alias = '',
                                     $mode = ResultMode::Normal,
-                                    $simple = null) {
+                                    $simple = null,
+                                    $async = false) {
             if (!is_callable($func)) {
                 throw new \Exception('Argument func is not callable.');
             }
@@ -258,40 +272,62 @@ namespace Hprose {
             if (!array_key_exists($name, $this->calls)) {
                 $this->names[] = $alias;
             }
-            $this->calls[$name] = new RemoteCall($func, $mode, $simple);
+            $this->calls[$name] = new RemoteCall($func, $mode, $simple, $async);
+        }
+        public function addAsyncFunction($func,
+                                         $alias = '',
+                                         $mode = ResultMode::Normal,
+                                         $simple = null) {
+            $this->addFunction($func, $alias, $mode, $simple, true);
         }
         public function addFunctions($funcs,
                                      $aliases = array(),
                                      $mode = ResultMode::Normal,
-                                     $simple = null) {
+                                     $simple = null,
+                                     $async = false) {
             $count = count($aliases);
             if ($count == 0) {
                 foreach ($funcs as $func) {
-                    $this->addFunction($func, '', $mode, $simple);
+                    $this->addFunction($func, '', $mode, $simple, $async);
                 }
             }
             elseif ($count == count($funcs)) {
                 foreach ($funcs as $i => $func) {
-                    $this->addFunction($func, $aliases[$i], $mode, $simple);
+                    $this->addFunction($func, $aliases[$i], $mode, $simple, $async);
                 }
             }
             else {
                 throw new \Exception('The count of functions is not matched with aliases');
             }
         }
+        public function addAsyncFunctions($funcs,
+                                          $aliases = array(),
+                                          $mode = ResultMode::Normal,
+                                          $simple = null) {
+            $this->addFunctions($funcs, $aliases, $mode, $simple, true);
+        }
         public function addMethod($methodname,
                                   $belongto,
                                   $alias = '',
                                   $mode = ResultMode::Normal,
-                                  $simple = null) {
+                                  $simple = null,
+                                  $async = false) {
             $func = array($belongto, $methodname);
-            $this->addFunction($func, $alias, $mode, $simple);
+            $this->addFunction($func, $alias, $mode, $simple, $async);
+        }
+        public function addAsyncMethod($methodname,
+                                       $belongto,
+                                       $alias = '',
+                                       $mode = ResultMode::Normal,
+                                       $simple = null) {
+            $this->addMethod($methodname, $belongto, $alias, $mode, $simple, true);
         }
         public function addMethods($methods,
                                    $belongto,
                                    $aliases = '',
                                    $mode = ResultMode::Normal,
-                                   $simple = null) {
+                                   $simple = null,
+                                   $async = false) {
             if ($aliases === null || count($aliases) == 0) {
                 $aliases = '';
             }
@@ -313,30 +349,53 @@ namespace Hprose {
             }
             foreach($methods as $k => $method) {
                 $func = array($belongto, $method);
-                $this->addFunction($func, $_aliases[$k], $mode, $simple);
+                $this->addFunction($func, $_aliases[$k], $mode, $simple, $async);
             }
+        }
+        public function addAsyncMethods($methods,
+                                        $belongto,
+                                        $aliases = '',
+                                        $mode = ResultMode::Normal,
+                                        $simple = null) {
+            $this->addMethods($methods, $belongto, $aliases, $mode, $simple, true);
         }
         public function addInstanceMethods($object,
                                            $class = '',
                                            $aliasPrefix = '',
                                            $mode = ResultMode::Normal,
-                                           $simple = null) {
+                                           $simple = null,
+                                           $async = false) {
             if ($class == '') {
                 $class = get_class($object);
             }
             $this->addMethods(self::getDeclaredOnlyMethods($class),
-                              $object, $aliasPrefix, $mode, $simple);
+                              $object, $aliasPrefix, $mode, $simple, $async);
+        }
+        public function addAsyncInstanceMethods($object,
+                                                $class = '',
+                                                $aliasPrefix = '',
+                                                $mode = ResultMode::Normal,
+                                                $simple = null) {
+            $this->addInstanceMethods($object, $class, $aliasPrefix, $mode, $simple, true);
         }
         public function addClassMethods($class,
                                         $execclass = '',
                                         $aliasPrefix = '',
                                         $mode = ResultMode::Normal,
-                                        $simple = null) {
+                                        $simple = null,
+                                        $async = false) {
             if ($execclass == '') {
                 $execclass = $class;
             }
             $this->addMethods(self::getDeclaredOnlyMethods($class),
-                              $execclass, $aliasPrefix, $mode, $simple);
+                              $execclass, $aliasPrefix, $mode, $simple, $async);
+        }
+        public function addAsyncClassMethods($class,
+                                             $execclass = '',
+                                             $aliasPrefix = '',
+                                             $mode = ResultMode::Normal,
+                                             $simple = null) {
+            $this->addClassMethods($class, $execclass, $aliasPrefix, $mode, $simple, true);
         }
         public function add() {
             $args_num = func_num_args();
@@ -420,6 +479,95 @@ namespace Hprose {
                     }
                     elseif (is_object($args[0])) {
                         $this->addInstanceMethods($args[0], $args[1], $args[2]);
+                        return;
+                    }
+                    break;
+                }
+                throw new \Exception('Wrong arguments');
+            }
+        }
+        public function addAsync() {
+            $args_num = func_num_args();
+            $args = func_get_args();
+            switch ($args_num) {
+                case 1: {
+                    if (is_callable($args[0])) {
+                        $this->addAsyncFunction($args[0]);
+                        return;
+                    }
+                    elseif (is_array($args[0])) {
+                        $this->addAsyncFunctions($args[0]);
+                        return;
+                    }
+                    elseif (is_object($args[0])) {
+                        $this->addAsyncInstanceMethods($args[0]);
+                        return;
+                    }
+                    elseif (is_string($args[0])) {
+                        $this->addAsyncClassMethods($args[0]);
+                        return;
+                    }
+                    break;
+                }
+                case 2: {
+                    if (is_callable($args[0]) && is_string($args[1])) {
+                        $this->addAsyncFunction($args[0], $args[1]);
+                        return;
+                    }
+                    elseif (is_string($args[0])) {
+                        if (is_string($args[1]) && !is_callable(array($args[1], $args[0]))) {
+                            if (class_exists($args[1])) {
+                                $this->addAsyncClassMethods($args[0], $args[1]);
+                            }
+                            else {
+                                $this->addAsyncClassMethods($args[0], '', $args[1]);
+                            }
+                        }
+                        else {
+                            $this->addAsyncMethod($args[0], $args[1]);
+                        }
+                        return;
+                    }
+                    elseif (is_array($args[0])) {
+                        if (is_array($args[1])) {
+                            $this->addAsyncFunctions($args[0], $args[1]);
+                        }
+                        else {
+                            $this->addAsyncMethods($args[0], $args[1]);
+                        }
+                        return;
+                    }
+                    elseif (is_object($args[0])) {
+                        $this->addAsyncInstanceMethods($args[0], $args[1]);
+                        return;
+                    }
+                    break;
+                }
+                case 3: {
+                    if (is_callable($args[0]) && $args[1] == '' && is_string($args[2])) {
+                        $this->addAsyncFunction($args[0], $args[2]);
+                        return;
+                    }
+                    elseif (is_string($args[0]) && is_string($args[2])) {
+                        if (is_string($args[1]) && !is_callable(array($args[1], $args[0]))) {
+                            $this->addAsyncClassMethods($args[0], $args[1], $args[2]);
+                        }
+                        else {
+                            $this->addAsyncMethod($args[0], $args[1], $args[2]);
+                        }
+                        return;
+                    }
+                    elseif (is_array($args[0])) {
+                        if ($args[1] == '' && is_array($args[2])) {
+                            $this->addAsyncFunctions($args[0], $args[2]);
+                        }
+                        else {
+                            $this->addAsyncMethods($args[0], $args[1], $args[2]);
+                        }
+                        return;
+                    }
+                    elseif (is_object($args[0])) {
+                        $this->addAsyncInstanceMethods($args[0], $args[1], $args[2]);
                         return;
                     }
                     break;
