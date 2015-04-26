@@ -88,8 +88,8 @@ namespace Hprose\Yii {
             unset($this->origins[strtolower($origin)]);
         }
         public function handle($app) {
-        	$request = $app->request;
-        	$response = $app->response;
+            $request = $app->request;
+            $response = $app->response;
             $context = new \stdClass();
             $context->server = $this;
             $context->app = $app;
@@ -98,7 +98,7 @@ namespace Hprose\Yii {
             $context->session = $app->session;
             $context->userdata = new \stdClass();
 
-			$response->format = self::FORMAT_RAW;
+            $response->format = self::FORMAT_RAW;
 
             $self = $this;
             $this->user_fatal_error_handler = function($error) use ($self, $context) {
