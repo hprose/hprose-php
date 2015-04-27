@@ -452,6 +452,9 @@ namespace Hprose {
                         $property->setAccessible(true);
                         $property->setValue($object, $value);
                     }
+                    else {
+                        $object->$prop = $value;
+                    }
                 }
             }
             $this->stream->skip(1);
