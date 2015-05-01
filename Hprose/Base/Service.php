@@ -58,7 +58,7 @@ namespace Hprose\Base {
                                 }
                                 $log .= "{$t['function']}()\n";
                             }
-                            $user_fatal_error_handler = $self->user_fatal_error_handler;            $error = error_get_last();
+                            $user_fatal_error_handler = $self->user_fatal_error_handler;
                             $user_fatal_error_handler($log);
                         }
                     }
