@@ -14,7 +14,7 @@
  *                                                        *
  * hprose swoole http service library for php 5.3+        *
  *                                                        *
- * LastModified: Apr 20, 2015                             *
+ * LastModified: May 1, 2015                              *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -113,8 +113,12 @@ namespace Hprose\Swoole\Http {
             elseif ($request->server['request_method'] == 'POST') {
                 $result = $this->defaultHandle($data, $context);
             }
-
-            $response->end($result);
+            if ($result instanceof \Hprose\Future) {
+                $result->then(function($result) use ($response) { $response->end($result); });
+            }
+            else {
+                $response->end($result);
+            }
         }
     }
 }

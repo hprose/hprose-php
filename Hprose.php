@@ -14,7 +14,7 @@
  *                                                        *
  * hprose for php 5.3+                                    *
  *                                                        *
- * LastModified: Apr 20, 2015                             *
+ * LastModified: May 1, 2015                              *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -29,6 +29,8 @@ namespace {
         require('Hprose/RawReader.php');
         require('Hprose/Reader.php');
         require('Hprose/Formatter.php');
+        require('Hprose/Future.php');
+        require('Hprose/Completer.php');
         require('Hprose/Filter.php');
         require('Hprose/Client.php');
         require('Hprose/Service.php');
@@ -41,6 +43,8 @@ namespace {
         class_alias('Hprose\\RawReader', 'HproseRawReader');
         class_alias('Hprose\\Reader', 'HproseReader');
         class_alias('Hprose\\Formatter', 'HproseFormatter');
+        class_alias('Hprose\\Future', 'HproseFuture');
+        class_alias('Hprose\\Completer', 'HproseCompleter');
         class_alias('Hprose\\Filter', 'HproseFilter');
         class_alias('Hprose\\Client', 'HproseClient');
         class_alias('Hprose\\Service', 'HproseService');

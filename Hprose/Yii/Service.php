@@ -14,7 +14,7 @@
  *                                                        *
  * hprose yii http service class for php 5.3+             *
  *                                                        *
- * LastModified: Apr 25, 2015                             *
+ * LastModified: May 1, 2015                              *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -116,7 +116,12 @@ namespace Hprose\Yii {
                 $data = $request->rawBody;
                 $result = $this->defaultHandle($data, $context);
             }
-            $response->data = $result;
+            if ($result instanceof \Hprose\Future) {
+                $result->then(function($result) use ($response) { $response->data = $result; });
+            }
+            else {
+                $response->data = $result;
+            }
             return $response;
         }
     }

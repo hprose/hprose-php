@@ -64,24 +64,28 @@ namespace Hprose {
                 $f = new \ReflectionFunction($callback);
             }
             $n = $f->getNumberOfParameters();
-            if ($n === 3) {
-                if ($error === null) {
-                    try {
-                        $result = $this->doInput($response, $args, $mode, $context);
-                    }
-                    catch (\Exception $e) {
-                        $error = $e;
-                    }
+            if ($error === null) {
+                try {
+                    $result = $this->doInput($response, $args, $mode, $context);
                 }
-                call_user_func($callback, $result, $args, $error);
+                catch (\Exception $e) {
+                    $error = $e;
+                }
             }
-            else {
-                if ($error !== null) throw $error;
-                $result = $this->doInput($response, $args, $mode, $context);
+            if ($error === null) {
                 switch($n) {
                     case 0: call_user_func($callback); break;
                     case 1: call_user_func($callback, $result); break;
                     case 2: call_user_func($callback, $result, $args); break;
+                    case 3: call_user_func($callback, $result, $args, $error); break;
+                }
+            }
+            else {
+                switch($n) {
+                    case 0: call_user_func($callback); break;
+                    case 1: call_user_func($callback, $error); break;
+                    case 2: call_user_func($callback, $error, $args); break;
+                    case 3: call_user_func($callback, $result, $args, $error); break;
                 }
             }
         }

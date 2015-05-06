@@ -14,7 +14,7 @@
  *                                                        *
  * hprose service class for php 5.3+                      *
  *                                                        *
- * LastModified: Apr 20, 2015                             *
+ * LastModified: May 3, 2015                              *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -53,7 +53,74 @@ namespace Hprose {
     }
 
     class AsyncCallback {
+        private $completer;
+        public function __construct($completer) {
+            $this->completer = $completer;
+        }
+        public function handler($result) {
+            if ($result instanceof \Exception) {
+                $this->completer->completeError($result);
+            }
+            else {
+                $this->completer->complete($result);
+            }
+        }
+    }
 
+    class AfterInvokeCallback {
+        private $service;
+        private $completer;
+        private $name;
+        private $args;
+        private $byref;
+        private $mode;
+        private $simple;
+        private $context;
+        public function __construct($service, $completer, $name, $args, $byref, $mode, $simple, $context) {
+            $this->service = $service;
+            $this->completer = $completer;
+            $this->name = $name;
+            $this->args = $args;
+            $this->byref = $byref;
+            $this->mode = $mode;
+            $this->simple = $simple;
+            $this->context = $context;
+        }
+        public function handler($result) {
+            if ($result instanceof \Exception) {
+                $this->errorHandler($result);
+            }
+            else {
+                try {
+                    $result = $this->service->afterInvoke(
+                        $this->name,
+                        $this->args,
+                        $this->byref,
+                        $this->mode,
+                        $this->simple,
+                        $this->context,
+                        $result,
+                        new BytesIO(),
+                        true);
+                    $this->completer->complete($result);
+                }
+                catch (\Exception $e) {
+                    $this->errorHandler($e);
+                }
+            }
+        }
+        public function errorHandler($e) {
+            $error = $e->getMessage();
+            if ($this->service->isDebugEnabled()) {
+                $error .= "\nfile: " . $e->getFile() .
+                          "\nline: " . $e->getLine() .
+                          "\ntrace: " . $e->getTraceAsString();
+            }
+            $this->completer->complete(
+                $this->service->sendError(
+                    $error,
+                    $this->context));
+        }
     }
 
     abstract class Service {
@@ -131,6 +198,40 @@ namespace Hprose {
             $stream->close();
             return $this->outputFilter($data, $context);
         }
+        // this method is public only for async callback
+        public function afterInvoke($name, $args, $byref, $mode, $simple, $context, $result, $output, $async) {
+            if ($this->onAfterInvoke !== null) {
+                $afterInvoke = $this->onAfterInvoke;
+                $afterInvoke($name, $args, $byref, $result, $context);
+            }
+            if ($mode == ResultMode::RawWithEndTag) {
+                return $this->outputFilter($result, $context);
+            }
+            elseif ($mode == ResultMode::Raw) {
+                $output->write($result);
+            }
+            else {
+                $writer = new Writer($output, $simple);
+                $output->write(Tags::TagResult);
+                if ($mode == ResultMode::Serialized) {
+                    $output->write($result);
+                }
+                else {
+                    $writer->reset();
+                    $writer->serialize($result);
+                }
+                if ($byref) {
+                    $output->write(Tags::TagArgument);
+                    $writer->reset();
+                    $writer->writeArray($args);
+                }
+            }
+            if ($async) {
+                $output->write(Tags::TagEnd);
+                return $this->outputFilter($output->toString(), $context);
+            }
+            return null;
+        }
         protected function doInvoke($input, $context) {
             $output = new BytesIO();
             $reader = new Reader($input);
@@ -154,6 +255,7 @@ namespace Hprose {
                 }
                 $args = array();
                 $byref = false;
+                $async = $call->async;
                 $tag = $input->getc();
                 if ($tag == Tags::TagList) {
                     $reader->reset();
@@ -188,33 +290,23 @@ namespace Hprose {
                     $call === $this->calls['*']) {
                     $args = array($name, $args);
                 }
-                $result = call_user_func_array($call->func, $args);
-                if ($this->onAfterInvoke !== null) {
-                    $afterInvoke = $this->onAfterInvoke;
-                    $afterInvoke($name, $args, $byref, $result, $context);
-                }
-                if ($mode == ResultMode::RawWithEndTag) {
-                    return $this->outputFilter($result, $context);
-                }
-                elseif ($mode == ResultMode::Raw) {
-                    $output->write($result);
+                if ($async) {
+                    $completer = new Completer();
+                    $args[] = array(new AsyncCallback($completer), "handler");
+                    call_user_func_array($call->func, $args);
+                    $result = $completer->future();
                 }
                 else {
-                    $writer = new Writer($output, $simple);
-                    $output->write(Tags::TagResult);
-                    if ($mode == ResultMode::Serialized) {
-                        $output->write($result);
-                    }
-                    else {
-                        $writer->reset();
-                        $writer->serialize($result);
-                    }
-                    if ($byref) {
-                        $output->write(Tags::TagArgument);
-                        $writer->reset();
-                        $writer->writeArray($args);
-                    }
+                    $result = call_user_func_array($call->func, $args);
                 }
+                if ($result != null && $result instanceof Future) {
+                    $completer = new Completer();
+                    $callback = new AfterInvokeCallback($this, $completer, $name, $args, $byref, $mode, $simple, $context);
+                    $result->then(array($callback, "handler"))->catchError(array($callback, "errorHandler"));
+                    return $completer->future();
+                }
+                $result = $this->afterInvoke($name, $args, $byref, $mode, $simple, $context, $result, $output, false);
+                if ($result != null) return $result;
             } while ($tag == Tags::TagCall);
             $output->write(Tags::TagEnd);
             return $this->outputFilter($output->toString(), $context);

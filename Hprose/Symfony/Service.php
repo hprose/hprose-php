@@ -14,7 +14,7 @@
  *                                                        *
  * hprose symfony http service class for php 5.3+         *
  *                                                        *
- * LastModified: Apr 20, 2015                             *
+ * LastModified: May 1, 2015                              *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -116,7 +116,12 @@ namespace Hprose\Symfony {
             else {
                 $result = $this->doFunctionList($context);
             }
-            $response->setContent($result);
+            if ($result instanceof \Hprose\Future) {
+                $result->then(function($result) use ($response) { $response->setContent($result); });
+            }
+            else {
+                $response->setContent($result);
+            }
             return $response;
         }
     }

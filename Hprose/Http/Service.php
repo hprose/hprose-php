@@ -14,7 +14,7 @@
  *                                                        *
  * hprose http service class for php 5.3+                 *
  *                                                        *
- * LastModified: Apr 20, 2015                             *
+ * LastModified: May 1, 2015                              *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -105,16 +105,23 @@ namespace Hprose\Http {
 
             $this->sendHeader($context);
 
+            $result = '';
             if (isset($_SERVER['REQUEST_METHOD'])) {
                 if (($_SERVER['REQUEST_METHOD'] == 'GET') && $this->get) {
-                    echo $this->doFunctionList($context);
+                    $result = $this->doFunctionList($context);
                 }
                 elseif ($_SERVER['REQUEST_METHOD'] == 'POST') {
-                    echo $this->defaultHandle($request, $context);
+                    $result = $this->defaultHandle($request, $context);
                 }
             }
             else {
-                echo $this->doFunctionList($context);
+                $result = $this->doFunctionList($context);
+            }
+            if ($result instanceof \Hprose\Future) {
+                $result->then(function($result) { echo $result; });
+            }
+            else {
+                echo $result;
             }
         }
     }

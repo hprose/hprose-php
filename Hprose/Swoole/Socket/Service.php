@@ -14,7 +14,7 @@
  *                                                        *
  * hprose swoole socket service library for php 5.3+      *
  *                                                        *
- * LastModified: Apr 24, 2015                             *
+ * LastModified: May 1, 2015                              *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -84,7 +84,13 @@ namespace Hprose\Swoole\Socket {
                     $self->send($context->server, $context->fd, $self->sendError($error, $context));
                 };
 
-                $self->send($server, $fd, $self->defaultHandle(substr($data, 4), $context));
+                $result = $self->defaultHandle(substr($data, 4), $context);
+                if ($result instanceof \Hprose\Future) {
+                    $result->then(function($result) use ($self, $server, $fd) { $self->send($server, $fd, $result); });
+                }
+                else {
+                    $self->send($server, $fd, $result);
+                }
             });
         }
     }
