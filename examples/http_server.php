@@ -14,7 +14,7 @@
         sleep(3);
         $callback("Hello async $name!");
     }
-    $server = new HproseSwooleServer("tcp://0.0.0.0:1504");
+    $server = new HproseHttpServer();
     $server->setErrorTypes(E_ALL);
     $server->setDebugEnabled();
     $server->addFunction('hello');
