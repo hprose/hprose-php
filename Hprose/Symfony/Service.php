@@ -14,7 +14,7 @@
  *                                                        *
  * hprose symfony http service class for php 5.3+         *
  *                                                        *
- * LastModified: May 1, 2015                              *
+ * LastModified: May 8, 2015                              *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -98,7 +98,6 @@ namespace Hprose\Symfony {
 
             $self = $this;
             $this->user_fatal_error_handler = function($error) use ($self, $context) {
-                @ob_end_clean();
                 $context->response->setContent($self->sendError($error, $context));
             };
 
