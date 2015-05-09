@@ -23,10 +23,12 @@ spl_autoload_register(function($className) {
     spl_autoload(str_replace("\\", "/", $className));
 });
 
-if (!extension_loaded('hprose')) {
+if (!function_exists('hprose_serialize')) {
     function hprose_serialize($var, $simple = false) {
         return \Hprose\Formatter::serialize($var, $simple);
     }
+}
+if (!function_exists('hprose_unserialize')) {
     function hprose_unserialize($data, $simple = false) {
         return \Hprose\Formatter::unserialize($data, $simple);
     }
