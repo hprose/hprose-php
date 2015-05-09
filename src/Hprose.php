@@ -14,7 +14,7 @@
  *                                                        *
  * hprose for php 5.3+                                    *
  *                                                        *
- * LastModified: May 1, 2015                              *
+ * LastModified: May 9, 2015                              *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -50,11 +50,11 @@ namespace {
         class_alias('Hprose\\Service', 'HproseService');
 
         function hprose_serialize($var, $simple = false) {
-            return HproseFormatter::serialize($var, $simple);
+            return \Hprose\Formatter::serialize($var, $simple);
         }
 
         function hprose_unserialize($data, $simple = false) {
-            return HproseFormatter::unserialize($data, $simple);
+            return \Hprose\Formatter::unserialize($data, $simple);
         }
     }
 
@@ -73,6 +73,8 @@ namespace {
     require('Hprose/Swoole/Server.php');
     require('Hprose/Symfony/Service.php');
     require('Hprose/Symfony/Server.php');
+    require('Hprose/Yii/Service.php');
+    require('Hprose/Yii/Server.php');
     require('Hprose/Filter/JSONRPC/ClientFilter.php');
     require('Hprose/Filter/JSONRPC/ServiceFilter.php');
     require('Hprose/Filter/XMLRPC/ClientFilter.php');
@@ -93,6 +95,8 @@ namespace {
     class_alias('Hprose\\Swoole\\WebSocket\\Server', 'HproseSwooleWebSocketServer');
     class_alias('Hprose\\Symfony\\Service', 'HproseSymfonyService');
     class_alias('Hprose\\Symfony\\Server', 'HproseSymfonyServer');
+    class_alias('Hprose\\Yii\\Service', 'HproseYiiService');
+    class_alias('Hprose\\Yii\\Server', 'HproseYiiServer');
     class_alias('Hprose\\Filter\\JSONRPC\\ClientFilter', 'HproseJSONRPCClientFilter');
     class_alias('Hprose\\Filter\\JSONRPC\\ServiceFilter', 'HproseJSONRPCServiceFilter');
     class_alias('Hprose\\Filter\\XMLRPC\\ClientFilter', 'HproseXMLRPCClientFilter');

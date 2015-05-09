@@ -1,5 +1,5 @@
 <?php
-    require_once('../Hprose.php');
+    require_once('../src/Hprose.php');
     function hello($name) {
         echo "Hello $name!";
         return "Hello $name!";

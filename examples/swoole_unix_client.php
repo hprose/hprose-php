@@ -1,5 +1,5 @@
 <?php
-require_once('../Hprose.php');
+require_once('../src/Hprose.php');
 
 $test = new HproseSwooleClient("unix:/tmp/my.sock");
 $args = array("world");

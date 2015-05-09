@@ -17,11 +17,8 @@
         "php": ">=5.3.0"
     },
     "autoload": {
-        "files": [
-            "Hprose.php"
-        ],
-        "psr-4": {
-            "Hprose\\": "Hprose/"
-        }
+        "classmap": ["src/"],
+        "psr-4": {"Hprose\\": "src/Hprose/"},
+        "files": ["src/autoload.php"]
     }
 }
