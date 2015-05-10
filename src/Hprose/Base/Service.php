@@ -10,7 +10,7 @@
 
 /**********************************************************\
  *                                                        *
- * Hprose/BaseService.php                                 *
+ * Hprose/Base/Service.php                                *
  *                                                        *
  * hprose base service class for php 5.3+                 *
  *                                                        *
