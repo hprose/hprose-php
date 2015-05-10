@@ -85,3 +85,15 @@ $test->ee(function($result, $args, $error) {
     echo "error: ";
     var_dump($error->getMessage());
 });
+$test->dnslookup("www.baidu.com", function($result, $args) {
+    echo "result: ";
+    var_dump($result);
+    echo "args: ";
+    var_dump($args);
+});
+$test->dnslookup("www.hprose.com", function($result, $args) {
+    echo "result: ";
+    var_dump($result);
+    echo "args: ";
+    var_dump($args);
+});
