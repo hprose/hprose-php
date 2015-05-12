@@ -10,9 +10,11 @@
     function ee() {
         require("andot");
     }
+    // swoole 1.7.16+
     function asyncHello($name, $callback) {
-        sleep(3);
-        $callback("Hello async $name!");
+        swoole_timer_after(3000, function() use ($name, $callback) {
+            $callback("Hello async $name!");
+        });
     }
     function dnslookup($domain_name, $callback) {
         swoole_async_dns_lookup($domain_name, function($host, $ip) use ($callback) {
@@ -25,5 +27,6 @@
     $server->addFunction('hello');
     $server->addFunctions(array('e', 'ee'));
     $server->addAsyncFunctions(array('asyncHello', 'dnslookup'));
+    $server->setFilter(new HproseJSONRPCServiceFilter());
     $server->start();
 ?>

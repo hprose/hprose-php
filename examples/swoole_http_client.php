@@ -18,16 +18,6 @@ try {
 catch (Exception $e) {
     var_dump($e->getMessage());
 }
-echo $test->asyncHello("WORLD");
-
-$test->asyncHello("WORLD", function($result) {
-    echo "result: ";
-    var_dump($result);
-});
-$test->asyncHello("WORLD2", function($result) {
-    echo "result: ";
-    var_dump($result);
-});
 $test->hello('async world', function($result, $args, $error) {
     echo "result: ";
     var_dump($result);
@@ -96,4 +86,13 @@ $test->dnslookup("www.hprose.com", function($result, $args) {
     var_dump($result);
     echo "args: ";
     var_dump($args);
+});
+echo $test->asyncHello("WORLD");
+$test->asyncHello("WORLD", function($result) {
+    echo "result: ";
+    var_dump($result);
+});
+$test->asyncHello("WORLD2", function($result) {
+    echo "result: ";
+    var_dump($result);
 });
