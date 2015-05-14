@@ -14,7 +14,7 @@
  *                                                        *
  * hprose http service class for php 5.3+                 *
  *                                                        *
- * LastModified: May 8, 2015                              *
+ * LastModified: May 14, 2015                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -87,12 +87,7 @@ namespace Hprose\Http {
             unset($this->origins[strtolower($origin)]);
         }
         public function handle() {
-            if (isset($HTTP_RAW_POST_DATA)) {
-                $request = $HTTP_RAW_POST_DATA;
-            }
-            else {
-                $request = file_get_contents("php://input");
-            }
+            $request = file_get_contents("php://input");
             $context = new \stdClass();
             $context->server = $this;
             $context->userdata = new \stdClass();
