@@ -20,7 +20,9 @@
 \**********************************************************/
 
 spl_autoload_register(function($className) {
-    include(str_replace("\\", "/", $className) . ".php");
+    if (!class_exists($className)) {
+        include(str_replace("\\", "/", $className) . ".php");
+    }
 });
 
 if (!function_exists('hprose_serialize')) {
