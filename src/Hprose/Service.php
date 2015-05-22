@@ -709,8 +709,8 @@ namespace Hprose {
             $this->error_types = $error_types;
         }
         public function defaultHandle($request, $context) {
-            $input = new BytesIO($this->inputFilter($request, $context));
             try {
+                $input = new BytesIO($this->inputFilter($request, $context));
                 switch ($input->getc()) {
                     case Tags::TagCall:
                         return $this->doInvoke($input, $context);
