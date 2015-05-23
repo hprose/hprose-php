@@ -14,7 +14,7 @@
  *                                                        *
  * hprose http client class for php 5.3+                  *
  *                                                        *
- * LastModified: Apr 10, 2015                             *
+ * LastModified: May 23, 2015                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -30,6 +30,7 @@ namespace Hprose\Http {
         private $keepAlive = true;
         private $keepAliveTimeout = 300;
         private $header;
+        private $options;
         private $curl;
         private $multicurl;
         private $curl_version_lt_720;
@@ -121,6 +122,10 @@ namespace Hprose\Http {
             parent::__construct($url);
             $this->initUrl($url);
             $this->header = array('Content-type' => 'application/hprose');
+            $this->options = array(
+                CURLOPT_SSL_VERIFYPEER => false,
+                CURLOPT_IPRESOLVE => CURL_IPRESOLVE_V4
+            );
             $this->curl = curl_init();
             $this->multicurl = curl_multi_init();
             $curl_version = curl_version();
@@ -142,9 +147,7 @@ namespace Hprose\Http {
         private function initCurl($curl, $request) {
             curl_setopt($curl, CURLOPT_URL, $this->url);
             curl_setopt($curl, CURLOPT_HEADER, true);
-            curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, false);
             curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
-            curl_setopt($curl, CURLOPT_IPRESOLVE, CURL_IPRESOLVE_V4);
             if (!ini_get('safe_mode')) {
                 curl_setopt($curl, CURLOPT_FOLLOWLOCATION, true);
             }
@@ -171,6 +174,9 @@ namespace Hprose\Http {
             }
             else {
                 curl_setopt($curl, CURLOPT_TIMEOUT, $this->timeout / 1000);
+            }
+            foreach ($this->options as $name => $value) {
+                curl_setopt($curl, $name, $value);
             }
         }
         private function getContents($data) {
@@ -284,6 +290,12 @@ namespace Hprose\Http {
                     unset($this->header[$name]);
                 }
             }
+        }
+        public function setOption($name, $value) {
+            $this->options[$name] = $value;
+        }
+        public function removeOption($name) {
+            unset($this->options[$name]);
         }
         public function setProxy($proxy = '') {
             $this->proxy = $proxy;
