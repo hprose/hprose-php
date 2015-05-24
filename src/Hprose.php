@@ -14,13 +14,17 @@
  *                                                        *
  * hprose for php 5.3+                                    *
  *                                                        *
- * LastModified: May 9, 2015                              *
+ * LastModified: May 24, 2015                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
 
 spl_autoload_register(function($className) {
-    include(str_replace("\\", "/", $className) . ".php");
+    if (substr($className, 0, 6) === "Hprose") {
+        include str_replace("\\", "/", $className) . ".php";
+        return true;
+    }
+    return false;
 });
 
 if (!function_exists('hprose_serialize')) {
