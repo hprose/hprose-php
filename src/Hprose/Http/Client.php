@@ -14,7 +14,7 @@
  *                                                        *
  * hprose http client class for php 5.3+                  *
  *                                                        *
- * LastModified: May 23, 2015                             *
+ * LastModified: May 26, 2015                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -179,9 +179,9 @@ namespace Hprose\Http {
                 curl_setopt($curl, $name, $value);
             }
         }
-        private function getContents($data) {
+        private function getContents($response) {
             do {
-                list($response_headers, $response) = explode("\r\n\r\n", $data, 2);
+                list($response_headers, $response) = explode("\r\n\r\n", $response, 2);
                 $http_response_header = explode("\r\n", $response_headers);
                 $http_response_firstline = array_shift($http_response_header);
                 $matches = array();
