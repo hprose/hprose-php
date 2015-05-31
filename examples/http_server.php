@@ -20,5 +20,5 @@
     $server->addFunction('hello');
     $server->addFunctions(array('e', 'ee'));
     $server->addAsyncFunction('asyncHello');
+    $server->addFilter(new HproseJSONRPCServiceFilter());
     $server->start();
-?>
