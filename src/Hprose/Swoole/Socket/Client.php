@@ -22,6 +22,19 @@
 namespace Hprose\Swoole\Socket {
     class Client extends \Hprose\Client {
         const MAX_PACK_LEN = 0x200000;
+        static private $default_setting = array(
+            'open_length_check' => true,
+            'package_length_type' => 'N',
+            'package_length_offset' => 0,
+            'package_body_offset' => 4,
+            'open_eof_check' => false,
+        );
+        public $setting = array();
+        private $conn_stats = array();
+        private $type = SWOOLE_TCP;
+        private $host = "";
+        private $port = 0;
+        private $timeout = 30000;
         private function send($client, $data) {
             $len = strlen($data);
             if ($len < self::MAX_PACK_LEN - 4) {
@@ -39,17 +52,13 @@ namespace Hprose\Swoole\Socket {
             return true;
         }
         private function recv($client) {
-            $len = $client->recv(4, 1);
-            if ($len === "") {
-                throw new \Exception("connection closed");
-            }
-            if ($len === false) {
+            $data = $client->recv();
+            if ($data === false) {
                 throw new \Exception(socket_strerror($client->errCode));
             }
-            $len = unpack("N", $len);
-            return $client->recv($len[1], 1);
+            return substr($data, 4);
         }
-        function return_bytes($val) {
+        private function return_bytes($val) {
             $val = trim($val);
             $last = strtolower($val{strlen($val)-1});
             switch($last) {
@@ -62,11 +71,6 @@ namespace Hprose\Swoole\Socket {
             }
             return $val;
         }
-        private $conn_stats = array();
-        private $type = SWOOLE_TCP;
-        private $host = "";
-        private $port = 0;
-        private $timeout = 30000;
         private function initUrl($url) {
             if ($url) {
                 $p = parse_url($url);
@@ -105,8 +109,19 @@ namespace Hprose\Swoole\Socket {
             $this->initUrl($url);
             return parent::useService($url, $namespace);
         }
+        public function set($setting) {
+            $this->setting = array_replace($this->setting, $setting);
+        }
         protected function sendAndReceive($request) {
             $client = new \swoole_client($this->type | SWOOLE_KEEP);
+            $setting = array_replace($this->setting, self::$default_setting);
+            if (!isset($setting['package_max_length'])) {
+                $setting['package_max_length'] = $this->return_bytes(ini_get('memory_limit'));
+            }
+            if ($setting['package_max_length'] < 0) {
+                $setting['package_max_length'] = 0x7fffffff;
+            }
+            $client->set($setting);
             if (!$client->connect($this->host, $this->port, $this->timeout / 1000)) {
                 throw new \Exception("connect failed");
             }
@@ -128,8 +143,14 @@ namespace Hprose\Swoole\Socket {
         protected function asyncSendAndReceive($request, $use) {
             $self = $this;
             $client = new \swoole_client($this->type, SWOOLE_SOCK_ASYNC);
-            $buffer = "";
-            $len = "";
+            $setting = array_replace($this->setting, self::$default_setting);
+            if (!isset($setting['package_max_length'])) {
+                $setting['package_max_length'] = $this->return_bytes(ini_get('memory_limit'));
+            }
+            if ($setting['package_max_length'] < 0) {
+                $setting['package_max_length'] = 0x7fffffff;
+            }
+            $client->set($setting);
             $client->on("connect", function($cli) use ($self, $request, $use) {
                 if (!$self->send($cli, $request)) {
                     $self->sendAndReceiveCallback('', new \Exception(socket_strerror($cli->errCode)), $use);
@@ -138,55 +159,14 @@ namespace Hprose\Swoole\Socket {
             $client->on("error", function($cli) use ($self, $use) {
                 $self->sendAndReceiveCallback('', new \Exception(socket_strerror($cli->errCode)), $use);
             });
-            $client->on("receive", function($cli, $data) use ($self, &$buffer, &$len, $use) {
-                do {
-                    if (count($buffer) == 0 || is_string($len)) {
-                        $left = 4 - strlen($len);
-                        if (strlen($data) < $left) {
-                            $len .= $data;
-                            return;
-                        }
-                        $len .= substr($data, 0, $left);
-                        $len = unpack("N", $len);
-                        $len = $len[1];
-                        $n = strlen($data) - $left;
-                    }
-                    else {
-                        $left = 0;
-                        $n = strlen($data);
-                    }
-                    if ($n == 0) {
-                        $buffer = "";
-                        return;
-                    }
-                    if ($len == $n) {
-                        $response = $buffer . substr($data, $left);
-                        $buffer = "";
-                        $len = "";
-                        try {
-                            $self->sendAndReceiveCallback($response, null, $use);
-                        }
-                        catch(\Exception $e) {
-                        }
-                        swoole_timer_clear($cli->timer);
-                        $cli->close();
-                        return;
-                    }
-                    if ($len > $n) {
-                        $buffer .= substr($data, $left);
-                        $len -= $n;
-                        return;
-                    }
-                    $response = $buffer . substr($data, $left, $len);
-                    $buffer = "";
-                    $data = substr($data, $left + $len);
-                    $len = "";
-                    try {
-                        $self->sendAndReceiveCallback($response, null, $use);
-                    }
-                    catch(\Exception $e) {
-                    }
-                } while(true);
+            $client->on("receive", function($cli, $data) use ($self, $use) {
+                swoole_timer_clear($cli->timer);
+                try {
+                    $self->sendAndReceiveCallback(substr($data, 4), null, $use);
+                }
+                catch(\Exception $e) {
+                }
+                $cli->close();
             });
             $client->on("close", function($cli) {});
             $client->connect($this->host, $this->port);
