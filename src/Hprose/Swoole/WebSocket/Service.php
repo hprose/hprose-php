@@ -14,7 +14,7 @@
  *                                                        *
  * hprose swoole websocket service library for php 5.3+   *
  *                                                        *
- * LastModified: May 8, 2015                              *
+ * LastModified: Jun 6, 2015                              *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -39,7 +39,9 @@ namespace Hprose\Swoole\WebSocket {
             $result = $this->defaultHandle($data, $context);
 
             if ($result instanceof \Hprose\Future) {
-                $result->then(function($result) use ($server, $id) { $server->push($fd, $id . $result, true); });
+                $result->then(function($result) use ($server, $fd, $id) {
+                    $server->push($fd, $id . $result, true);
+                });
             }
             else {
                 $server->push($fd, $id . $result, true);
