@@ -14,7 +14,7 @@
  *                                                        *
  * hprose swoole socket server library for php 5.3+       *
  *                                                        *
- * LastModified: Apr 20, 2015                             *
+ * LastModified: Jun 7, 2015                              *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -41,7 +41,7 @@ namespace Hprose\Swoole\Socket {
                     case 'unix':
                         $result->type = SWOOLE_UNIX_STREAM;
                         $result->host = $p['path'];
-                        $result->port = 0;
+                        $result->port = 1;
                         break;
                     default:
                         throw new \Exception("Only support tcp, tcp4, tcp6 or unix scheme");
