@@ -14,7 +14,7 @@
  *                                                        *
  * hprose swoole server library for php 5.3+              *
  *                                                        *
- * LastModified: Apr 19, 2015                             *
+ * LastModified: Jun 6, 2015                              *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -40,7 +40,7 @@ namespace Hprose\Swoole {
                             }
                         }
                         else {
-                            $this->real_server = new \Hprose\Swoole\WebSocket\Server($p['host'], $p['port']);
+                            $this->real_server = new \Hprose\Swoole\WebSocket\Server($p['host'], $p['port'], $this->mode);
                             $this->type = strtolower($p['scheme']);
                         }
                         break;
@@ -55,7 +55,7 @@ namespace Hprose\Swoole {
                             }
                         }
                         else {
-                            $this->real_server = new \Hprose\Swoole\Http\Server($p['host'], $p['port']);
+                            $this->real_server = new \Hprose\Swoole\Http\Server($p['host'], $p['port'], $this->mode);
                             $this->type = strtolower($p['scheme']);
                         }
                         break;

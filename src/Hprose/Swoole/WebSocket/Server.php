@@ -14,7 +14,7 @@
  *                                                        *
  * hprose swoole websocket server library for php 5.3+    *
  *                                                        *
- * LastModified: Apr 20, 2015                             *
+ * LastModified: Jun 6, 2015                              *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -22,9 +22,9 @@
 namespace Hprose\Swoole\WebSocket {
     class Server extends Service {
         private $ws;
-        public function __construct($host, $port) {
+        public function __construct($host, $port, $mode = SWOOLE_PROCESS) {
             parent::__construct();
-            $this->ws = new \swoole_websocket_server($host, $port);
+            $this->ws = new \swoole_websocket_server($host, $port, $mode);
         }
         public function set($setting) {
             $this->ws->set($setting);
