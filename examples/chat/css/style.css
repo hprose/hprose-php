@@ -1,0 +1,84 @@
+body
+{
+    background:#FCFCFC;
+}
+.say-btn
+{
+    text-align:right;
+    margin-top:12px;
+}
+
+#dialog
+{
+    min-height:600px;
+    background:#EEEEEE;
+}
+
+.textarea
+{
+    height:6em;
+    width:100%;
+}
+
+.words
+{
+    margin:8px;
+}
+
+
+.triangle-isosceles {
+    position:relative;
+    padding:10px;
+    margin:10px 0 15px;
+    color:#000;
+    background:#D3FF93; /* default background for browsers without gradient support */
+    background:-webkit-gradient(linear, 0 0, 0 100%, from(#EFFFD7), to(#D3FF93));
+    background:-moz-linear-gradient(#EFFFD7, #D3FF93);
+    background:-o-linear-gradient(#EFFFD7, #D3FF93);
+    background:linear-gradient(#EFFFD7, #D3FF93);
+    -webkit-border-radius:10px;
+    -moz-border-radius:10px;
+    border-radius:10px;
+    -moz-box-shadow:1px 1px 2px hsla(0, 0%, 0%, 0.3);
+    -webkit-box-shadow:1px 1px 2px hsla(0, 0%, 0%, 0.3);
+     box-shadow:1px 1px 2px hsla(0, 0%, 0%, 0.3);
+}
+
+    .triangle-isosceles:hover{
+        top:-2px;
+        left:-2px;
+        -moz-box-shadow:3px 3px 2px hsla(0, 0%, 0%, 0.3);
+        -webkit-box-shadow:3px 3px 2px hsla(0, 0%, 0%, 0.3);
+        box-shadow:3px 3px 2x hsla(0, 0%, 0%, 0.3);
+    }
+
+.triangle-isosceles.top {
+    background:-webkit-gradient(linear, 0 0, 0 100%, from(#D3FF93), to(#EFFFD7));
+    background:-moz-linear-gradient(#D3FF93, #EFFFD7);
+    background:-o-linear-gradient(#D3FF93, #EFFFD7);
+    background:linear-gradient(#D3FF93, #EFFFD7);
+}
+
+.triangle-isosceles:after {
+    content:"";
+    position:absolute;
+    bottom:-9px;
+    left:15px;
+    border-width:9px 21px 0;
+    border-style:solid;
+    border-color:#D3FF93 transparent;
+    display:block;
+    width:0;
+}
+.triangle-isosceles.top:after {
+    top:-9px;
+    left:15px;
+    bottom:auto;
+    border-width:0 9px 9px;
+    border-color:#D3FF93 transparent;
+}
+
+.thumbnail
+{
+    border:1px solid #CCCCCC;
+}
