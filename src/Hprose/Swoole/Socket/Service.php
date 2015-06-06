@@ -38,11 +38,10 @@ namespace Hprose\Swoole\Socket {
             if (!$server->send($fd, pack("N", $len))) {
                 return false;
             }
-            for ($i = 0; $i < $len; ++$i) {
+            for ($i = 0; $i < $len; $i += self::MAX_PACK_LEN) {
                 if (!$server->send($fd, substr($data, $i, min($len - $i, self::MAX_PACK_LEN)))) {
                     return false;
                 }
-                $i += self::MAX_PACK_LEN;
             }
             return true;
         }

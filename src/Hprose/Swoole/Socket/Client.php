@@ -43,11 +43,10 @@ namespace Hprose\Swoole\Socket {
             if (!$client->send(pack("N", $len))) {
                 return false;
             }
-            for ($i = 0; $i < $len; ++$i) {
+            for ($i = 0; $i < $len; $i += self::MAX_PACK_LEN) {
                 if (!$client->send(substr($data, $i, min($len - $i, self::MAX_PACK_LEN)))) {
                     return false;
                 }
-                $i += self::MAX_PACK_LEN;
             }
             return true;
         }
@@ -137,7 +136,6 @@ namespace Hprose\Swoole\Socket {
             else {
                 throw new \Exception(socket_strerror($client->errCode));
             }
-            $client->close();
             return $response;
         }
         protected function asyncSendAndReceive($request, $use) {
@@ -161,12 +159,12 @@ namespace Hprose\Swoole\Socket {
             });
             $client->on("receive", function($cli, $data) use ($self, $use) {
                 swoole_timer_clear($cli->timer);
+                $cli->close();
                 try {
                     $self->sendAndReceiveCallback(substr($data, 4), null, $use);
                 }
                 catch(\Exception $e) {
                 }
-                $cli->close();
             });
             $client->on("close", function($cli) {});
             $client->connect($this->host, $this->port);
