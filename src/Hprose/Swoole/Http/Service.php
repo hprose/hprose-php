@@ -14,7 +14,7 @@
  *                                                        *
  * hprose swoole http service library for php 5.3+        *
  *                                                        *
- * LastModified: May 8, 2015                              *
+ * LastModified: Jun 15, 2015                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -60,7 +60,8 @@ namespace Hprose\Swoole\Http {
             }
         }
         private function send($data, $response) {
-            if ($data <= self::MAX_PACK_LEN) {
+            $len = strlen($data);
+            if ($len <= self::MAX_PACK_LEN) {
                 $response->end($data);
             }
             else {
