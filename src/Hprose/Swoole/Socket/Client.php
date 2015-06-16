@@ -31,6 +31,7 @@ namespace Hprose\Swoole\Socket {
         );
         public $setting = array();
         private $conn_stats = array();
+        private $sync_client;
         private $type = SWOOLE_TCP;
         private $host = "";
         private $port = 0;
@@ -94,6 +95,7 @@ namespace Hprose\Swoole\Socket {
                         default:
                             throw new \Exception("Only support tcp, tcp4, tcp6 or unix scheme");
                     }
+                    $this->sync_client = new \swoole_client($this->type | SWOOLE_KEEP);
                 }
                 else {
                     throw new \Exception("Can't parse this url: " . $url);
@@ -112,17 +114,19 @@ namespace Hprose\Swoole\Socket {
             $this->setting = array_replace($this->setting, $setting);
         }
         protected function sendAndReceive($request) {
-            $client = new \swoole_client($this->type | SWOOLE_KEEP);
-            $setting = array_replace($this->setting, self::$default_setting);
-            if (!isset($setting['package_max_length'])) {
-                $setting['package_max_length'] = $this->return_bytes(ini_get('memory_limit'));
-            }
-            if ($setting['package_max_length'] < 0) {
-                $setting['package_max_length'] = 0x7fffffff;
-            }
-            $client->set($setting);
-            if (!$client->connect($this->host, $this->port, $this->timeout / 1000)) {
-                throw new \Exception("connect failed");
+            $client = $this->sync_client;
+            if ($client->sock == 0 || !$client->isConnected()) {
+                $setting = array_replace($this->setting, self::$default_setting);
+                if (!isset($setting['package_max_length'])) {
+                    $setting['package_max_length'] = $this->return_bytes(ini_get('memory_limit'));
+                }
+                if ($setting['package_max_length'] < 0) {
+                    $setting['package_max_length'] = 0x7fffffff;
+                }
+                $client->set($setting);
+                if (!$client->connect($this->host, $this->port, $this->timeout / 1000)) {
+                    throw new \Exception("connect failed");
+                }
             }
             if ($this->send($client, $request)) {
                 $response = $this->recv($client);
@@ -159,12 +163,12 @@ namespace Hprose\Swoole\Socket {
             });
             $client->on("receive", function($cli, $data) use ($self, $use) {
                 swoole_timer_clear($cli->timer);
-                $cli->close();
                 try {
                     $self->sendAndReceiveCallback(substr($data, 4), null, $use);
                 }
                 catch(\Exception $e) {
                 }
+                swoole_timer_after(0, function () use ($cli) { $cli->close(); });
             });
             $client->on("close", function($cli) {});
             $client->connect($this->host, $this->port);
