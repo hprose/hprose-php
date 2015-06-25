@@ -14,47 +14,63 @@
  *                                                        *
  * hprose future class for php 5.3+                       *
  *                                                        *
- * LastModified: May 4, 2015                              *
+ * LastModified: Jun 25, 2015                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
 
 namespace Hprose {
+
     class Future {
-        private $completer;
+
+        const PENDING = 0;
+        const FULFILLED = 1;
+        const REJECTED = 2;
+
+        public $status = Future::PENDING;
+        public $result;
+        public $error;
+        public $callbacks = array();
+
         // This __construct only public for Completer.
-        public function __construct($completer) {
-            $this->completer = $completer;
-        }
-        public function then($callback) {
-            if (count($this->completer->results) > 0) {
-                try {
-                    if ($this->completer->results[0] instanceof Future) {
-                        $this->completer->results[0] = $this->completer->results[0]->then($callback);
-                    }
-                    else {
-                        $this->completer->results[0] = $callback($this->completer->results[0]);
-                    }
-                }
-                catch (Exception $e) {
-                    $this->completer->completeError($e);
-                }
+        public function __construct() {}
+
+        public static function create($callback, $x = null) {
+            $completer = new Completer();
+            try {
+                $completer->complete($callback($x));
             }
-            else {
-                $this->completer->callbacks[] = $callback;
+            catch(\Exception $e) {
+                $completer->completeError($e);
+            }
+            return $completer->future();
+        }
+
+        public function then($onComplete, $onError = null) {
+            if (!is_callable($onComplete)) $onComplete = null;
+            if (!is_callable($onError)) $onError = null;
+            if (($onComplete !== null) || ($onError !== null)) {
+                if (($onComplete !== null) && ($this->status === Future::FULFILLED)) {
+                    $x = $this->result;
+                    if ($x instanceof Future) {
+                        if ($x === $this) {
+                            throw new \Exception('Self resolution');
+                        }
+                        return $x->then($onComplete, $onError);
+                    }
+                    return Future::create($onComplete, $x);
+                }
+                if (($onError !== null) && ($this->status === Future::REJECTED)) {
+                    return Future::create($onError, $this->error);
+                }
+                $this->callbacks[] = array($onComplete, $onError);
             }
             return $this;
         }
-        public function catchError($onerror) {
-            $this->completer->onerror = $onerror;
-            $errors = $this->completer->errors;
-            if (count($errors) > 0) {
-                $this->completer->errors = array();
-                foreach ($errors as $error) {
-                    $onerror($error);
-                }
-            }
-            return $this;
+
+        public function catchError($onError) {
+            return $this->then(null, $onError);
         }
+
     }
 }
