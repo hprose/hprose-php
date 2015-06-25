@@ -1,5 +1,10 @@
 # Hprose for PHP
 
+[![Join the chat at https://gitter.im/hprose/hprose-php](https://img.shields.io/badge/GITTER-join%20chat-green.svg)](https://gitter.im/hprose/hprose-php?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+[![Packagist](https://img.shields.io/packagist/v/hprose/hprose.svg)](https://packagist.org/packages/hprose/hprose)
+[![Packagist Download](https://img.shields.io/packagist/dm/hprose/hprose.svg)](https://packagist.org/packages/hprose/hprose)
+[![License](https://img.shields.io/packagist/l/hprose/hprose.svg)](https://packagist.org/packages/hprose/hprose)
+
 >---
 - **[简介](#简介)**
 - **[使用](#使用)**
