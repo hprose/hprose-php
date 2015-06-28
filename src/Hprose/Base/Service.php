@@ -14,7 +14,7 @@
  *                                                        *
  * hprose base service class for php 5.3+                 *
  *                                                        *
- * LastModified: May 8, 2015                              *
+ * LastModified: Jun 28, 2015                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -60,7 +60,7 @@ namespace Hprose\Base {
                             }
                             @ob_end_clean();
                             $user_fatal_error_handler = $self->user_fatal_error_handler;
-                            $user_fatal_error_handler($log);
+                            call_user_func($user_fatal_error_handler, $log);
                         }
                     }
                 }

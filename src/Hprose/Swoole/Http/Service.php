@@ -14,7 +14,7 @@
  *                                                        *
  * hprose swoole http service library for php 5.3+        *
  *                                                        *
- * LastModified: Jun 15, 2015                             *
+ * LastModified: Jun 28, 2015                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -31,7 +31,7 @@ namespace Hprose\Swoole\Http {
         private function sendHeader($context) {
             if ($this->onSendHeader !== null) {
                 $sendHeader = $this->onSendHeader;
-                $sendHeader($context);
+                call_user_func($sendHeader, $context);
             }
             $request = $context->request;
             $response = $context->response;

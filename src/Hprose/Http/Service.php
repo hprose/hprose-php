@@ -14,7 +14,7 @@
  *                                                        *
  * hprose http service class for php 5.3+                 *
  *                                                        *
- * LastModified: May 14, 2015                             *
+ * LastModified: Jun 28, 2015                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -30,7 +30,7 @@ namespace Hprose\Http {
         private function sendHeader($context) {
             if ($this->onSendHeader !== null) {
                 $sendHeader = $this->onSendHeader;
-                $sendHeader($context);
+                call_user_func($sendHeader, $context);
             }
             header("Content-Type: text/plain");
             if ($this->P3P) {

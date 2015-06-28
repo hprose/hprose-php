@@ -14,7 +14,7 @@
  *                                                        *
  * hprose future class for php 5.3+                       *
  *                                                        *
- * LastModified: Jun 25, 2015                             *
+ * LastModified: Jun 28, 2015                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -38,7 +38,7 @@ namespace Hprose {
         public static function create($callback, $x = null) {
             $completer = new Completer();
             try {
-                $completer->complete($callback($x));
+                $completer->complete(call_user_func($callback, $x));
             }
             catch(\Exception $e) {
                 $completer->completeError($e);

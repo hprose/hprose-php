@@ -14,7 +14,7 @@
  *                                                        *
  * hprose symfony http service class for php 5.3+         *
  *                                                        *
- * LastModified: May 8, 2015                              *
+ * LastModified: Jun 28, 2015                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -30,7 +30,7 @@ namespace Hprose\Symfony {
         private function sendHeader($context) {
             if ($this->onSendHeader !== null) {
                 $sendHeader = $this->onSendHeader;
-                $sendHeader($context);
+                call_user_func($sendHeader, $context);
             }
             $context->response->headers->set('Content-Type', 'text/plain');
             if ($this->P3P) {

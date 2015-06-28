@@ -14,7 +14,7 @@
  *                                                        *
  * hprose service class for php 5.3+                      *
  *                                                        *
- * LastModified: May 3, 2015                              *
+ * LastModified: Jun 28, 2015                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -187,7 +187,7 @@ namespace Hprose {
         public function sendError($error, $context) {
             if ($this->onSendError !== null) {
                 $sendError = $this->onSendError;
-                $sendError($error, $context);
+                call_user_func_array($sendError, array(&$error, $context));
             }
             $stream = new BytesIO();
             $writer = new Writer($stream, true);
@@ -202,7 +202,7 @@ namespace Hprose {
         public function afterInvoke($name, $args, $byref, $mode, $simple, $context, $result, $output, $async) {
             if ($this->onAfterInvoke !== null) {
                 $afterInvoke = $this->onAfterInvoke;
-                $afterInvoke($name, $args, $byref, $result, $context);
+                call_user_func_array($afterInvoke, array($name, &$args, $byref, &$result, $context));
             }
             if ($mode == ResultMode::RawWithEndTag) {
                 return $this->outputFilter($result, $context);
@@ -284,7 +284,7 @@ namespace Hprose {
                 }
                 if ($this->onBeforeInvoke !== null) {
                     $beforeInvoke = $this->onBeforeInvoke;
-                    $beforeInvoke($name, $args, $byref, $context);
+                    call_user_func_array($beforeInvoke, array($name, &$args, $byref, $context));
                 }
                 if (array_key_exists('*', $this->calls) &&
                     $call === $this->calls['*']) {
