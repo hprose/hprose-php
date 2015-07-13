@@ -33,8 +33,16 @@
             }
             return name;
         }
-        var client = hprose.Client.create('ws://127.0.0.1:8080/', ['getAllUsers', 'getUpdateUsers', 'getMessage', 'sendMessage', 'broadcast']);
+        var client = hprose.Client.create('ws://127.0.0.1:8080/', ['getAllUsers', 'sendMessage', 'broadcast']);
         var me = inputName();
+
+        client.addRemoteEvent('message', me, function(message) {
+            if (message !== null) {
+                message = message.replace(/\n/g, '\n<br />');
+                var dialog = document.getElementById('dialog');
+                dialog.innerHTML = dialog.innerHTML + '<div class="speech_item"><p class="triangle-isosceles top">' + message + '</p></div>';
+            }
+        });
 
         function updateUserList(users) {
             var userlist = document.getElementById('userlist');
@@ -47,23 +55,9 @@
                 }
             }
             userlist.innerHTML = options;
-            client.getUpdateUsers(me, updateUserList, function() {
-                client.getUpdateUsers(me, updateUserList);
-            });
         }
 
-        function getMessage(message) {
-            if (message !== null) {
-                message = message.replace(/\n/g, '\n<br />');
-                var dialog = document.getElementById('dialog');
-                dialog.innerHTML = dialog.innerHTML + '<div class="speech_item"><p class="triangle-isosceles top">' + message + '</p></div>';
-            }
-            client.getMessage(me, getMessage, function() {
-                client.getMessage(me, getMessage);
-            });
-        }
-
-        getMessage(null);
+        client.addRemoteEvent('updateUsers', me, updateUserList);
 
         client.getAllUsers(updateUserList);
 

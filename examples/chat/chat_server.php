@@ -57,7 +57,7 @@ class Chat {
             $this->broadcast($who, $who . " is online.");
         }
         if ($this->timer == null) {
-            $this->timer = swoole_timer_add(1000, function() {
+            $this->timer = swoole_timer_tick(1000, function() {
                 $users = $this->getAllUsers();
                 foreach ($users as $user) {
                     if (!isset($this->getMessage[$user]) &&
@@ -95,7 +95,7 @@ class Chat {
         return array_keys($this->gens);
     }
 
-    public function getUpdateUsers($who) {
+    public function updateUsers($who) {
         $this->online($who);
         $getUpdateUsers = new StdClass();
         $getUpdateUsers->completer = new HproseCompleter();
@@ -110,7 +110,7 @@ class Chat {
         return $getUpdateUsers->completer->future();
     }
 
-    public function getMessage($who) {
+    public function message($who) {
         $this->online($who);
         if (isset($this->messages[$who])) {
             $message = $this->messages[$who];
