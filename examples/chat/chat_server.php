@@ -98,16 +98,16 @@ class Chat {
     public function getUpdateUsers($who) {
         $this->online($who);
         $getUpdateUsers = new StdClass();
-        $completer = new HproseCompleter();
-        $getUpdateUsers->completer = $completer;
-        $getUpdateUsers->timer = swoole_timer_after(29000, function() use ($who, $completer) {
+        $getUpdateUsers->completer = new HproseCompleter();
+        $getUpdateUsers->timer = swoole_timer_after(30000, function() use ($who) {
             if (isset($this->getUpdateUsers[$who])) {
+                $getUpdateUsers = $this->getUpdateUsers[$who];
                 unset($this->getUpdateUsers[$who]);
-                $completer->complete($this->getAllUsers());
+                $getUpdateUsers->completer->complete($this->getAllUsers());
             }
         });
         $this->getUpdateUsers[$who] = $getUpdateUsers;
-        return $completer->future();
+        return $getUpdateUsers->completer->future();
     }
 
     public function getMessage($who) {
@@ -118,16 +118,16 @@ class Chat {
             return $message;
         }
         $getMessage = new StdClass();
-        $completer = new HproseCompleter();
-        $getMessage->completer = $completer;
-        $getMessage->timer = swoole_timer_after(30000, function() use ($who, $completer) {
+        $getMessage->completer = new HproseCompleter();
+        $getMessage->timer = swoole_timer_after(30000, function() use ($who) {
             if (isset($this->getMessage[$who])) {
+                $getMessage = $this->getMessage[$who];
                 unset($this->getMessage[$who]);
-                $completer->complete(null);
+                $getMessage->completer->complete(null);
             }
         });
         $this->getMessage[$who] = $getMessage;
-        return $completer->future();
+        return $getMessage->completer->future();
     }
 
     public function sendMessage($from, $to, $message) {
