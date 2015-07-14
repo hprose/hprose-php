@@ -36,7 +36,7 @@
         var client = hprose.Client.create('ws://127.0.0.1:8080/', ['getAllUsers', 'sendMessage', 'broadcast']);
         var me = inputName();
 
-        client.addRemoteEvent('message', me, function(message) {
+        client.remoteOn('message', me, function(message) {
             message = message.replace(/\n/g, '\n<br />');
             var dialog = document.getElementById('dialog');
             dialog.innerHTML = dialog.innerHTML + '<div class="speech_item"><p class="triangle-isosceles top">' + message + '</p></div>';
@@ -55,7 +55,7 @@
             userlist.innerHTML = options;
         }
 
-        client.addRemoteEvent('updateUsers', me, updateUserList);
+        client.remoteOn('updateUsers', me, updateUserList);
 
         client.getAllUsers(updateUserList);
 
