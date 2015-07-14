@@ -37,11 +37,9 @@
         var me = inputName();
 
         client.addRemoteEvent('message', me, function(message) {
-            if (message !== null) {
-                message = message.replace(/\n/g, '\n<br />');
-                var dialog = document.getElementById('dialog');
-                dialog.innerHTML = dialog.innerHTML + '<div class="speech_item"><p class="triangle-isosceles top">' + message + '</p></div>';
-            }
+            message = message.replace(/\n/g, '\n<br />');
+            var dialog = document.getElementById('dialog');
+            dialog.innerHTML = dialog.innerHTML + '<div class="speech_item"><p class="triangle-isosceles top">' + message + '</p></div>';
         });
 
         function updateUserList(users) {
