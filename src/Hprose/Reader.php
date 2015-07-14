@@ -14,7 +14,7 @@
  *                                                        *
  * hprose reader class for php 5.3+                       *
  *                                                        *
- * LastModified: Mar 27, 2015                             *
+ * LastModified: Jul 14, 2015                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -299,10 +299,10 @@ namespace Hprose {
                 }
             }
             if ($tag == Tags::TagUTC) {
-                $time = date_create_from_format('Hisu', $hms.$u, timezone_open('UTC'));
+                $time = date_create_from_format('!Hisu', $hms.$u, timezone_open('UTC'));
             }
             else {
-                $time = date_create_from_format('Hisu', $hms.$u);
+                $time = date_create_from_format('!Hisu', $hms.$u);
             }
             $this->refer->set($time);
             return $time;
