@@ -14,7 +14,7 @@
  *                                                        *
  * hprose swoole socket service library for php 5.3+      *
  *                                                        *
- * LastModified: May 8, 2015                              *
+ * LastModified: Jul 15, 2015                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -68,7 +68,7 @@ namespace Hprose\Swoole\Socket {
                 $setting['package_max_length'] = $this->return_bytes(ini_get('memory_limit'));
             }
             if ($setting['package_max_length'] < 0) {
-                $setting['package_max_length'] = 0x7fffffff;
+                $setting['package_max_length'] = MAX_PACK_LEN * 4;
             }
             $server->set($setting);
             $server->on("receive", function ($server, $fd, $from_id, $data) use($self) {

@@ -123,7 +123,7 @@ namespace Hprose\Swoole\Socket {
                     $setting['package_max_length'] = $this->return_bytes(ini_get('memory_limit'));
                 }
                 if ($setting['package_max_length'] < 0) {
-                    $setting['package_max_length'] = 0x7fffffff;
+                    $setting['package_max_length'] = MAX_PACK_LEN * 4;
                 }
                 $client->set($setting);
                 if (!$client->connect($this->host, $this->port, $this->timeout / 1000)) {
