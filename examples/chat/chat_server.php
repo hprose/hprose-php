@@ -57,7 +57,7 @@ class Chat {
             $this->broadcast($who, $who . " is online.");
         }
         if ($this->timer == null) {
-            $this->timer = swoole_timer_tick(1000, function() {
+            $this->timer = swoole_timer_tick(3000, function() {
                 $users = $this->getAllUsers();
                 foreach ($users as $user) {
                     if (!isset($this->getMessage[$user]) &&

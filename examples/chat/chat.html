@@ -36,13 +36,13 @@
         var client = hprose.Client.create('ws://127.0.0.1:8080/', ['getAllUsers', 'sendMessage', 'broadcast']);
         var me = inputName();
 
-        client.remoteOn('message', me, function(message) {
+        client.subscribe('message', me, function(message) {
             message = message.replace(/\n/g, '\n<br />');
             var dialog = document.getElementById('dialog');
             dialog.innerHTML = dialog.innerHTML + '<div class="speech_item"><p class="triangle-isosceles top">' + message + '</p></div>';
         });
 
-        function updateUserList(users) {
+        var updateUserList = function(users) {
             var userlist = document.getElementById('userlist');
             var to = userlist.options[userlist.selectedIndex].value;
             var i;
@@ -53,9 +53,9 @@
                 }
             }
             userlist.innerHTML = options;
-        }
+        };
 
-        client.remoteOn('updateUsers', me, updateUserList);
+        client.subscribe('updateUsers', me, updateUserList);
 
         client.getAllUsers(updateUserList);
 
