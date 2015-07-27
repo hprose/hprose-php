@@ -58,23 +58,26 @@ class Chat {
         }
         if ($this->timer == null) {
             $this->timer = swoole_timer_tick(3000, function() {
-                $users = $this->getAllUsers();
-                foreach ($users as $user) {
-                    if (!isset($this->getMessage[$user]) &&
-                        !isset($this->getUpdateUsers[$user])) {
-                        if (!isset($this->maybeOffline[$user])) {
-                            $this->maybeOffline[$user] = true;
+                try {
+                    $users = $this->getAllUsers();
+                    foreach ($users as $user) {
+                        if (!isset($this->getMessage[$user]) &&
+                            !isset($this->getUpdateUsers[$user])) {
+                            if (!isset($this->maybeOffline[$user])) {
+                                $this->maybeOffline[$user] = true;
+                            }
+                            else {
+                                $this->offline($user);
+                            }
                         }
                         else {
-                            $this->offline($user);
-                        }
-                    }
-                    else {
-                        if (isset($this->maybeOffline[$user])) {
-                            unset($this->maybeOffline[$user]);
+                            if (isset($this->maybeOffline[$user])) {
+                                unset($this->maybeOffline[$user]);
+                            }
                         }
                     }
                 }
+                catch (\Exception $e) {}
             });
         }
     }
@@ -100,11 +103,14 @@ class Chat {
         $getUpdateUsers = new StdClass();
         $getUpdateUsers->completer = new HproseCompleter();
         $getUpdateUsers->timer = swoole_timer_after(30000, function() use ($who) {
-            if (isset($this->getUpdateUsers[$who])) {
-                $getUpdateUsers = $this->getUpdateUsers[$who];
-                unset($this->getUpdateUsers[$who]);
-                $getUpdateUsers->completer->complete($this->getAllUsers());
+            try {
+                if (isset($this->getUpdateUsers[$who])) {
+                    $getUpdateUsers = $this->getUpdateUsers[$who];
+                    unset($this->getUpdateUsers[$who]);
+                    $getUpdateUsers->completer->complete($this->getAllUsers());
+                }
             }
+            catch (\Exception $e) {}
         });
         $this->getUpdateUsers[$who] = $getUpdateUsers;
         return $getUpdateUsers->completer->future();
@@ -120,11 +126,14 @@ class Chat {
         $getMessage = new StdClass();
         $getMessage->completer = new HproseCompleter();
         $getMessage->timer = swoole_timer_after(30000, function() use ($who) {
-            if (isset($this->getMessage[$who])) {
-                $getMessage = $this->getMessage[$who];
-                unset($this->getMessage[$who]);
-                $getMessage->completer->complete(null);
+            try {
+                if (isset($this->getMessage[$who])) {
+                    $getMessage = $this->getMessage[$who];
+                    unset($this->getMessage[$who]);
+                    $getMessage->completer->complete(null);
+                }
             }
+            catch (\Exception $e) {}
         });
         $this->getMessage[$who] = $getMessage;
         return $getMessage->completer->future();
