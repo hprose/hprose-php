@@ -22,7 +22,7 @@
 namespace Hprose\Yii {
     class Server extends Service {
         public function start() {
-            return $this->handle($Yii::app);
+            return $this->handle(\Yii::$app);
         }
     }
 }

@@ -98,7 +98,7 @@ namespace Hprose\Yii {
             $context->session = $app->session;
             $context->userdata = new \stdClass();
 
-            $response->format = self::FORMAT_RAW;
+            $response->format = \yii\web\Response::FORMAT_RAW;
 
             $self = $this;
             $this->user_fatal_error_handler = function($error) use ($self, $context) {
