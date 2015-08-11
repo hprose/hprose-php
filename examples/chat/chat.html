@@ -34,6 +34,8 @@
             return name;
         }
         var client = hprose.Client.create('ws://127.0.0.1:8080/', ['getAllUsers', 'sendMessage', 'broadcast']);
+        client.sendMessage.oneway = true;
+        client.broadcast.oneway = true;
         var me = inputName();
 
         client.subscribe('message', me, function(message) {
