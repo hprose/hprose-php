@@ -97,7 +97,7 @@ Hprose for PHP 使用起来很简单，你可以像这样来创建一个 Hprose 
 
 `php server.php`
 
-要使用 `HproseSwooleServer`, 你首先需要安装 [swoole](http://www.swoole.com/)。[swoole](https://github.com/swoole/swoole-src) 被支持的最低版本为 1.7.15.
+要使用 `HproseSwooleServer`, 你首先需要安装 [swoole](http://www.swoole.com/)。[swoole](https://github.com/swoole/swoole-src) 被支持的最低版本为 1.7.16.
 
 `HproseSwooleServer` 不仅仅支持 http 服务器，还支持 tcp, unix 和 websocket 服务器。使用方法仅仅是创建时的 url 不同。例如：
 
