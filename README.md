@@ -98,7 +98,7 @@ then use command line to start it:
 
 `php server.php`
 
-To use `HproseSwooleServer`, you need install [swoole](http://www.swoole.com/) first. The minimum version of [swoole](https://github.com/swoole/swoole-src) been supported is 1.7.15.
+To use `HproseSwooleServer`, you need install [swoole](http://www.swoole.com/) first. The minimum version of [swoole](https://github.com/swoole/swoole-src) been supported is 1.7.16.
 
 `HproseSwooleServer` not only support creating http server，but also support create tcp, unix and websocket server. For examples:
 
