@@ -56,7 +56,7 @@ namespace Hprose\Swoole {
             }
             return null;
         }
-        public function invoke($name, &$args = array(), $byref = false, $mode = ResultMode::Normal, $simple = null, $callback = null) {
+        public function invoke($name, &$args = array(), $byref = false, $mode = \Hprose\ResultMode::Normal, $simple = null, $callback = null) {
             if ($this->real_client) {
                 return $this->real_client->invoke($name, $args, $byref, $mode, $simple, $callback);
             }
