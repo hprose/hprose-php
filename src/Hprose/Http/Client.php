@@ -251,7 +251,7 @@ namespace Hprose\Http {
                                 $response = $this->getContents($data);
                                 $error = null;
                             }
-                            catch (Exception $e) {
+                            catch (\Exception $e) {
                                 $response = "";
                                 $error = $e;
                             }
