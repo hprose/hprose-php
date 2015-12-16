@@ -664,8 +664,8 @@ namespace Hprose {
                     }
                     break;
                 }
-                throw new \Exception('Wrong arguments');
             }
+            throw new \Exception('Wrong arguments');
         }
         public function isDebugEnabled() {
             return $this->debug;
