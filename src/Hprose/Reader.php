@@ -29,7 +29,7 @@ namespace Hprose {
     class FakeReaderRefer implements ReaderRefer {
         public function set($val) {}
         public function read($index) {
-            throw new Exception("Unexpected serialize tag '" .
+            throw new \Exception("Unexpected serialize tag '" .
                                        Tags::TagRef .
                                        "' in stream");
         }
