@@ -575,8 +575,8 @@ namespace Hprose {
                     }
                     break;
                 }
-                throw new \Exception('Wrong arguments');
             }
+            throw new \Exception('Wrong arguments');
         }
         public function addAsync() {
             $args_num = func_num_args();
