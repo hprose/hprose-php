@@ -14,7 +14,7 @@
  *                                                        *
  * hprose writer class for php 5.3+                       *
  *                                                        *
- * LastModified: Apr 6, 2015                              *
+ * LastModified: Jan 5, 2016                              *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -377,7 +377,12 @@ namespace Hprose {
             $this->stream->write(Tags::TagOpenbrace);
             foreach ($props as $prop) {
                 $prop->setAccessible(true);
-                $this->writeString($prop->getName());
+                $name = $prop->getName();
+                $fl = ord($name[0]);
+                if ($fl >= ord('A') && $fl <= ord('Z')) {
+                    $name = strtolower($fl) . substr($name, 1);
+                }
+                $this->writeString($name);
             }
             $this->stream->write(Tags::TagClosebrace);
             $index = count($this->propsref);

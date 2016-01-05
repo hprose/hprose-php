@@ -14,7 +14,7 @@
  *                                                        *
  * hprose reader class for php 5.3+                       *
  *                                                        *
- * LastModified: Jul 14, 2015                             *
+ * LastModified: Jan 5, 2016                              *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -453,7 +453,15 @@ namespace Hprose {
                         $property->setValue($object, $value);
                     }
                     else {
-                        $object->$prop = $value;
+                        $p = strtoupper($prop[0]) . substr($prop, 1);
+                        if ($reflector->hasProperty($p)) {
+                            $property = $reflector->getProperty($p);
+                            $property->setAccessible(true);
+                            $property->setValue($object, $value);
+                        }
+                        else {
+                            $object->$prop = $value;
+                        }
                     }
                 }
             }
