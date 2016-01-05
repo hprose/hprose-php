@@ -380,7 +380,7 @@ namespace Hprose {
                 $name = $prop->getName();
                 $fl = ord($name[0]);
                 if ($fl >= ord('A') && $fl <= ord('Z')) {
-                    $name = strtolower($fl) . substr($name, 1);
+                    $name = strtolower($name[0]) . substr($name, 1);
                 }
                 $this->writeString($name);
             }
