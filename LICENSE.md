@@ -1,6 +1,6 @@
 The MIT License (MIT)
 
-Copyright (c) 2008-2015 http://hprose.com
+Copyright (c) 2008-2016 http://hprose.com
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of
 this software and associated documentation files (the "Software"), to deal in
