@@ -1,6 +1,7 @@
 # Hprose for PHP
 
 [![Join the chat at https://gitter.im/hprose/hprose-php](https://img.shields.io/badge/GITTER-join%20chat-green.svg)](https://gitter.im/hprose/hprose-php?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+![Supported PHP versions: 5.3 .. 7.0](https://img.shields.io/badge/php-5.3~7.0-blue.svg)
 [![Packagist](https://img.shields.io/packagist/v/hprose/hprose.svg)](https://packagist.org/packages/hprose/hprose)
 [![Packagist Download](https://img.shields.io/packagist/dm/hprose/hprose.svg)](https://packagist.org/packages/hprose/hprose)
 [![License](https://img.shields.io/packagist/l/hprose/hprose.svg)](https://packagist.org/packages/hprose/hprose)
