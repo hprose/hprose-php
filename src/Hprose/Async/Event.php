@@ -10,38 +10,39 @@
 
 /**********************************************************\
  *                                                        *
- * Hprose/Completer.php                                   *
+ * Hprose/Async/Event.php                                 *
  *                                                        *
- * hprose Completer class for php 5.3+                    *
+ * asynchronous functions base on event for php 5.3+      *
  *                                                        *
- * LastModified: Jun 25, 2015                             *
+ * LastModified: Mar 13, 2015                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
 
-namespace Hprose {
-    class Completer {
-        private $future;
+namespace Hprose\Async;
 
-        public function __construct() {
-            $this->future = new Future();
-        }
+require_once("Base.php");
 
-        public function future() {
-            return $this->future;
-        }
-
-        public function complete($result) {
-            $this->future->resolve($result);
-        }
-
-        public function completeError($error) {
-            $this->future->reject($error);
-        }
-
-        public function isCompleted() {
-            return $this->future->state !== Future::PENDING;
-        }
-
+class Event extends Base {
+    private $eventbase;
+    public function __construct() {
+        $this->eventbase = new \EventBase();
+    }
+    protected function setEvent($func, $delay, $loop, $args) {
+        $e = \Event::timer($this->eventbase, function() use($func, $delay, $loop, $args, &$e) {
+            $e->delTimer();
+            if ($loop) {
+                $e->addTimer($delay);
+            }
+            call_user_func_array($func, $args);
+        });
+        $e->addTimer($delay);
+        return $e;
+    }
+    protected function clearEvent($timer) {
+        $timer->free();
+    }
+    function loop() {
+        $this->eventbase->loop();
     }
 }

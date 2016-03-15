@@ -14,10 +14,14 @@
  *                                                        *
  * hprose for php 5.3+                                    *
  *                                                        *
- * LastModified: Jun 10, 2015                             *
+ * LastModified: Mar 15, 2016                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
+
+if (!function_exists('Hprose\trycatch')) {
+    require 'Hprose/functions.php';
+}
 
 spl_autoload_register(function($className) {
     if (strtolower(substr($className, 0, 6)) === "hprose") {
@@ -26,6 +30,9 @@ spl_autoload_register(function($className) {
         }
         else {
             switch (strtolower($className)) {
+                case 'hproseasync':
+                    class_alias('Hprose\\Async', 'HproseAsync');
+                    break;
                 case 'hprosecompleter':
                     class_alias('Hprose\\Completer', 'HproseCompleter');
                     break;

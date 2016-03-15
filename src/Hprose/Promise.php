@@ -10,38 +10,19 @@
 
 /**********************************************************\
  *                                                        *
- * Hprose/Completer.php                                   *
+ * Hprose/Promise.php                                     *
  *                                                        *
- * hprose Completer class for php 5.3+                    *
+ * Promise for php 5.3+                                   *
  *                                                        *
- * LastModified: Jun 25, 2015                             *
+ * LastModified: Mar 14, 2015                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
 
 namespace Hprose {
-    class Completer {
-        private $future;
-
-        public function __construct() {
-            $this->future = new Future();
+    class Promise extends Future {
+        public function __construct($executor) {
+            call_user_func($executor, array($this, "resolve"), array($this, "reject"));
         }
-
-        public function future() {
-            return $this->future;
-        }
-
-        public function complete($result) {
-            $this->future->resolve($result);
-        }
-
-        public function completeError($error) {
-            $this->future->reject($error);
-        }
-
-        public function isCompleted() {
-            return $this->future->state !== Future::PENDING;
-        }
-
     }
 }

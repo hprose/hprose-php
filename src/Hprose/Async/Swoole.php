@@ -10,38 +10,39 @@
 
 /**********************************************************\
  *                                                        *
- * Hprose/Completer.php                                   *
+ * Hprose/Async/Swoole.php                                *
  *                                                        *
- * hprose Completer class for php 5.3+                    *
+ * asynchronous functions base on swoole for php 5.3+     *
  *                                                        *
- * LastModified: Jun 25, 2015                             *
+ * LastModified: Mar 13, 2015                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
 
-namespace Hprose {
-    class Completer {
-        private $future;
+namespace Hprose\Async;
 
-        public function __construct() {
-            $this->future = new Future();
-        }
+require_once("Base.php");
 
-        public function future() {
-            return $this->future;
-        }
-
-        public function complete($result) {
-            $this->future->resolve($result);
-        }
-
-        public function completeError($error) {
-            $this->future->reject($error);
-        }
-
-        public function isCompleted() {
-            return $this->future->state !== Future::PENDING;
-        }
-
+class Swoole extends Base {
+    const MILLISECONDS_PER_SECOND = 1000;
+    public function __construct() {
     }
+    protected function setEvent($func, $delay, $loop, $args) {
+        $delay = $delay * self::MILLISECONDS_PER_SECOND;
+        if ($loop) {
+            $timer = swoole_timer_tick($delay, function() use($func, $args) {
+                call_user_func_array($func, $args);
+            });
+        }
+        else {
+            $timer = swoole_timer_after($delay, function() use($func, $args) {
+                call_user_func_array($func, $args);
+            });
+        }
+        return $timer;
+    }
+    protected function clearEvent($timer) {
+        swoole_timer_clear($timer);
+    }
+    function loop() {}
 }
