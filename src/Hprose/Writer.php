@@ -14,7 +14,7 @@
  *                                                        *
  * hprose writer class for php 5.3+                       *
  *                                                        *
- * LastModified: Jan 5, 2016                              *
+ * LastModified: Mar 17, 2016                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -81,7 +81,7 @@ namespace Hprose {
                            new RealWriterRefer();
         }
         private static function is_utf8($s) {
-            return iconv('UTF-8', 'UTF-8//IGNORE', $s) === $s;
+            return mb_detect_encoding($s, 'UTF-8', true) !== false;
         }
         private static function ustrlen($s) {
             return strlen(iconv('UTF-8', 'UTF-16LE', $s)) >> 1;
