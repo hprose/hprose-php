@@ -34,7 +34,7 @@ namespace Hprose {
         public $state = Future::PENDING;
         public $value;
         public $reason;
-        private $subscribers = [];
+        private $subscribers = array();
 
         public function __construct($computation = NULL) {
             if (is_callable($computation)) {

@@ -28,9 +28,7 @@ class Base {
     protected function clearEvent($timer) {
         throw new \Exception("You need to install event or libevent extension.");
     }
-    function loop() {
-        throw new \Exception("You need to install event or libevent extension.");
-    }
+    function loop() {}
     function setInterval($func, $delay) {
         return $this->setEvent($func, $delay, true, array_slice(func_get_args(), 2));
     }
