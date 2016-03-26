@@ -9,6 +9,6 @@ php:
   - nightly
 before_script:
   - composer install
-  - pecl install event --with-event-core --with-event-extra --enable-event-debug
+  - pecl install -f event
   - cd tests
 script: phpunit -v
