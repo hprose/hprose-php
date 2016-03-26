@@ -14,7 +14,7 @@
  *                                                        *
  * some helper functions for php 5.3+                     *
  *                                                        *
- * LastModified: Mar 15, 2016                             *
+ * LastModified: Mar 26, 2016                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -145,7 +145,7 @@ namespace Hprose\Future {
         return $array->then(
             function($array) {
                 $n = count($array);
-                $result = [];
+                $result = array();
                 if ($n === 0) {
                     return value($result);
                 }
@@ -191,11 +191,11 @@ namespace Hprose\Future {
         return $array->then(
             function($array) {
                 $n = count($array);
-                $result = [];
+                $result = array();
                 if ($n === 0) {
                     throw new RangeException('any(): $array must not be empty');
                 }
-                $reasons = [];
+                $reasons = array();
                 $future = new Future();
                 $onfulfilled = array($future, "resolve");
                 $onrejected = function($index) use ($future, &$reasons, &$n) {
@@ -220,7 +220,7 @@ namespace Hprose\Future {
         return $array->then(
             function($array) {
                 $n = count($array);
-                $result = [];
+                $result = array();
                 if ($n === 0) {
                     return value($result);
                 }
