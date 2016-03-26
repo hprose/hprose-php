@@ -1,15 +1,26 @@
 <?php
 class PromiseTest extends PHPUnit_Framework_TestCase {
+/*
+    public function testDelayed() {
+    $self = $this;
+        $promise = \Hprose\Future\delayed(0.3, function() {
+            return "promise from Future.delayed";
+        });
+        $promise->then(function($result) use ($self) {
+            $self->assertEquals($result, "promise from Future.delayed");
+        });
+    }
+*/
     public function testValue() {
-        $promise = \Hprose\Future\value("hello");
         $self = $this;
+        $promise = \Hprose\Future\value("hello");
         $promise->then(function($result) use ($self) {
             $self->assertEquals($result, "hello");
         });
     }
     public function testError() {
-        $promise = \Hprose\Future\error(new Exception("test"));
         $self = $this;
+        $promise = \Hprose\Future\error(new Exception("test"));
         $promise->then(NULL, function($reason) use ($self) {
             $self->assertEquals($reason->getMessage(), "test");
         });
@@ -18,16 +29,16 @@ class PromiseTest extends PHPUnit_Framework_TestCase {
         });
     }
     public function testDeferredResolve() {
-        $deferred = \Hprose\deferred();
         $self = $this;
+        $deferred = \Hprose\deferred();
         $deferred->promise->then(function($result) use ($self) {
             $self->assertEquals($result, "hello");
         });
         $deferred->resolve("hello");
     }
     public function testDeferredReject() {
-        $deferred = \Hprose\deferred();
         $self = $this;
+        $deferred = \Hprose\deferred();
         $deferred->promise->catchError(function($reason) use ($self) {
             $self->assertEquals($reason->getMessage(), "test");
         });
@@ -41,14 +52,98 @@ class PromiseTest extends PHPUnit_Framework_TestCase {
         $this->assertEquals(\Hprose\Future\isFuture(\Hprose\Future\error(new Exception("test"))), true);
         $this->assertEquals(\Hprose\Future\isFuture(0), false);
     }
-/*
-    public function testDelayed() {
-        $promise = \Hprose\Future\delayed(0.3, function() {
-            return "promise from Future.delayed";
-        });
+    public function testSync() {
         $self = $this;
+        $promise = \Hprose\Future\sync(function() {
+            return "hello";
+        });
         $promise->then(function($result) use ($self) {
-            $self->assertEquals($result, "promise from Future.delayed");
+            $self->assertEquals($result, "hello");
+        });
+    }
+    public function testPromise() {
+        $self = $this;
+        $promise = \Hprose\Future\promise(function($resolve, $reject) {
+            $resolve(100);
+        });
+        $promise->then(function($result) use ($self) {
+            $self->assertEquals($result, 100);
+        });
+        $promise = \Hprose\Future\promise(function($resolve, $reject) {
+            $reject(new Exception("test"));
+        });
+        $promise->catchError(function($reason) use ($self) {
+            $self->assertEquals($reason->getMessage(), "test");
+        });
+    }
+    public function testToFuture() {
+        $self = $this;
+        $promise = \Hprose\Future\value(100);
+        $this->assertEquals($promise, \Hprose\Future\toFuture($promise));
+        \Hprose\Future\toFuture(100)->then(function($result) use ($self) {
+            $self->assertEquals($result, 100);
+        });
+    }
+    public function testAll() {
+        $self = $this;
+        $p1 = \Hprose\Future\value(100);
+        $p2 = \Hprose\Future\value(200);
+        $p3 = \Hprose\Future\value(300);
+        $all = \Hprose\Future\all(array($p1, $p2, $p3));
+        $all->then(function($result) use ($self) {
+            $self->assertEquals($result, array(100, 200, 300));
+        });
+    }
+    public function testJoin() {
+        $self = $this;
+        $p1 = \Hprose\Future\value(100);
+        $p2 = \Hprose\Future\value(200);
+        $p3 = \Hprose\Future\value(300);
+        $all = \Hprose\Future\join($p1, $p2, $p3);
+        $all->then(function($result) use ($self) {
+            $self->assertEquals($result, array(100, 200, 300));
+        });
+    }
+/*
+    public function testRace() {
+        $self = $this;
+        $p1 = \Hprose\Future\delayed(0.3, 100);
+        $p2 = \Hprose\Future\delayed(0.2, 200);
+        $p3 = \Hprose\Future\delayed(0.1, 300);
+        $p = \Hprose\Future\race(array($p1, $p2, $p3));
+        $p->then(function($result) use ($self) {
+            $self->assertEquals($result, 300);
+        });
+        $p4 = \Hprose\Future\error(new Exception('test'));
+        $p = \Hprose\Future\race(array($p4));
+        $p->catchError(function($reason) use ($self) {
+            $self->assertEquals($reason->getMessage(), 'test');
+        });
+    }
+    public function testAny() {
+        $self = $this;
+        $p1 = \Hprose\Future\delayed(0.3, 100);
+        $p2 = \Hprose\Future\delayed(0.2, 200);
+        $p3 = \Hprose\Future\delayed(0.1, 300);
+        $p = \Hprose\Future\any(array($p1, $p2, $p3));
+        $p->then(function($result) use ($self) {
+            $self->assertEquals($result, 300);
+        });
+        $p = \Hprose\Future\any(array());
+        $p->catchError(function($reason) use ($self) {
+            $self->assertEquals($reason->getMessage(), 'any(): $array must not be empty');
+        });
+        $p4 = \Hprose\Future\error(new Exception('test'));
+        $p = \Hprose\Future\any(array($p1, $p2, $p3, $p4));
+        $p->then(function($result) use ($self) {
+            $self->assertEquals($result, 300);
+        });
+        $p = \Hprose\Future\any(array($p4));
+        $p->then(function($result) use ($self) {
+            var_dump($result);
+            $self->assertEquals($result, 300);
+        })->catchError(function($reasons) use ($self) {
+            $self->assertEquals($reasons[0]->getMessage(), 'test');
         });
     }
 */

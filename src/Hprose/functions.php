@@ -127,8 +127,8 @@ namespace Hprose\Future {
             function($value) use ($future) {
                 $future->resolve($value);
             },
-            function($reject) use ($future) {
-                $future->reject($reject);
+            function($reason) use ($future) {
+                $future->reject($reason);
             }
         );
         return $future;
@@ -170,8 +170,7 @@ namespace Hprose\Future {
     }
 
     function race($array) {
-        $array = toFuture($array);
-        return $array->then(
+        return toFuture($array)->then(
             function($array) {
                 $future = new \Hprose\Future();
                 $onfulfilled = array($future, "resolve");
@@ -185,13 +184,12 @@ namespace Hprose\Future {
     }
 
     function any($array) {
-        $array = toFuture($array);
-        return $array->then(
+        return toFuture($array)->then(
             function($array) {
                 $n = count($array);
                 $result = array();
                 if ($n === 0) {
-                    throw new RangeException('any(): $array must not be empty');
+                    throw new \RangeException('any(): $array must not be empty');
                 }
                 $reasons = array();
                 $future = new \Hprose\Future();

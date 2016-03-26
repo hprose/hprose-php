@@ -168,12 +168,7 @@ namespace Hprose {
             if (($onfulfill !== NULL) or ($onreject !== NULL)) {
                 $next = new Future();
                 if ($this->state === self::FULFILLED) {
-                    if ($onfulfill !== NULL) {
-                        $this->_resolve($onfulfill, $onreject, $next, $this->value);
-                    }
-                    else {
-                        $next->resolve($this->value);
-                    }
+                    $this->_resolve($onfulfill, $onreject, $next, $this->value);
                 }
                 elseif ($this->state === self::REJECTED) {
                     if ($onreject !== NULL) {
