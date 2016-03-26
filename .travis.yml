@@ -9,5 +9,8 @@ php:
   - nightly
 before_script:
   - composer install
+  - pecl install event
+  - pecl install libevent
+  - pecl install hprose
   - cd tests
 script: phpunit -v
