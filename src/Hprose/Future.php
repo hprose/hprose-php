@@ -14,7 +14,7 @@
  *                                                        *
  * hprose future class for php 5.3+                       *
  *                                                        *
- * LastModified: Mar 15, 2015                             *
+ * LastModified: Mar 26, 2016                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -308,7 +308,7 @@ namespace Hprose {
         }
 
         public function apply($method, $args = NULL) {
-            $args = $args || [];
+            $args = $args || array();
             return $this->then(
                 function($result) use ($method, $args) {
                     return Future\all($args)->then(
