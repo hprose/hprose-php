@@ -50,7 +50,12 @@ namespace Hprose {
             }
         }
 
-        private function _call($callback, $next, $x) {
+        /*
+            This method is a private method.
+            But PHP 5.3 can't call private method in closure,
+            so we comment the private keyword.
+        */
+        /*private*/ function _call($callback, $next, $x) {
             nextTick(
                 function() use ($callback, $next, $x) {
                     trycatch(
@@ -66,7 +71,12 @@ namespace Hprose {
             );
         }
 
-        private function _reject($onreject, $next, $e) {
+        /*
+            This method is a private method.
+            But PHP 5.3 can't call private method in closure,
+            so we comment the private keyword.
+        */
+        /*private*/ function _reject($onreject, $next, $e) {
             if (is_callable($onreject)) {
                 $this->_call($onreject, $next, $e);
             }
@@ -75,7 +85,12 @@ namespace Hprose {
             }
         }
 
-        private function _resolve($onfulfill, $onreject, $next, $x) {
+        /*
+            This method is a private method.
+            But PHP 5.3 can't call private method in closure,
+            so we comment the private keyword.
+        */
+        /*private*/ function _resolve($onfulfill, $onreject, $next, $x) {
             $self = $this;
             $resolvePromise = function($y) use ($onfulfill, $onreject, $self, $next) {
                 $self->_resolve($onfulfill, $onreject, $next, $y);
