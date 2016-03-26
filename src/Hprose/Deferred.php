@@ -10,9 +10,9 @@
 
 /**********************************************************\
  *                                                        *
- * Hprose/Completer.php                                   *
+ * Hprose/Deferred.php                                    *
  *                                                        *
- * hprose Completer class for php 5.3+                    *
+ * hprose Deferred class for php 5.3+                     *
  *                                                        *
  * LastModified: Mar 26, 2016                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
@@ -20,28 +20,16 @@
 \**********************************************************/
 
 namespace Hprose {
-    class Completer {
-        private $future;
-
+    class Deferred {
+        public $promise;
         public function __construct() {
-            $this->future = new Future();
+            $this->promise = new Future();
         }
-
-        public function future() {
-            return $this->future;
+        public function resolve($value) {
+            $this->promise->resolve($value);
         }
-
-        public function complete($result) {
-            $this->future->resolve($result);
+        public function reject($reason) {
+            $this->promise->reject($reason);
         }
-
-        public function completeError($error) {
-            $this->future->reject($error);
-        }
-
-        public function isCompleted() {
-            return $this->future->state !== Future::PENDING;
-        }
-
     }
 }

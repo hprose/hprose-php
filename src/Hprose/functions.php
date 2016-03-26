@@ -25,6 +25,9 @@ namespace Hprose {
             try {
                 return call_user_func($try);
             }
+            catch(\PHPUnit_Framework_ExpectationFailedException $e) {
+                throw $e;
+            }
             catch(\Exception $e) {
                 return call_user_func($catch, $e);
             }
@@ -34,6 +37,9 @@ namespace Hprose {
         function trycatch($try, $catch) {
             try {
                 return call_user_func($try);
+            }
+            catch(\PHPUnit_Framework_ExpectationFailedException $e) {
+                throw $e;
             }
             catch(\Throwable $e) {
                 return call_user_func($catch, $e);
@@ -59,27 +65,19 @@ namespace Hprose {
         Async::loop();
     }
     function deferred() {
-        $deferred = new stdClass();
-        $deferred->promise = new Future();
-        $deferred->resolve = function($value) use ($deferred) {
-            $deferred->promise->resolve($value);
-        };
-        $deferred->reject = function($reason) use ($deferred) {
-            $deferred->promise->reject($reason);
-        };
-        return $deferred;
+        return new Deferred();
     }
 }
 
 namespace Hprose\Future {
     function isFuture($obj) {
-        return $obj instanceof Future;
+        return $obj instanceof \Hprose\Future;
     }
 
     function delayed($duration, $value) {
-        $future = new Future();
-        setTimeout(function() use ($future, $value) {
-            trycatch(
+        $future = new \Hprose\Future();
+        \Hprose\setTimeout(function() use ($future, $value) {
+            \Hprose\trycatch(
                 function() use ($future, $value) {
                     if (is_callable($value)) {
                         $value = call_user_func($value);
@@ -93,13 +91,13 @@ namespace Hprose\Future {
     }
 
     function error($e) {
-        $future = new Future();
+        $future = new \Hprose\Future();
         $future->reject($e);
         return $future;
     }
 
     function value($v) {
-        $future = new Future();
+        $future = new \Hprose\Future();
         $future->resolve($v);
         return $future;
     }
@@ -112,7 +110,7 @@ namespace Hprose\Future {
     }
 
     function sync($computation) {
-        return trycatch(
+        return \Hprose\trycatch(
             function() use ($computation) {
                 $result = call_user_func($computation);
                 return value($result);
@@ -124,7 +122,7 @@ namespace Hprose\Future {
     }
 
     function promise($executor) {
-        $future = new Future();
+        $future = new \Hprose\Future();
         call_user_func($executor,
             function($value) use ($future) {
                 $future->resolve($value);
@@ -149,7 +147,7 @@ namespace Hprose\Future {
                 if ($n === 0) {
                     return value($result);
                 }
-                $future = new Future();
+                $future = new \Hprose\Future();
                 $onfulfilled = function($index) use ($future, &$result, &$n) {
                     return function($value) use ($index, $future, &$result, &$n) {
                         $result[$index] = $value;
@@ -175,7 +173,7 @@ namespace Hprose\Future {
         $array = toFuture($array);
         return $array->then(
             function($array) {
-                $future = new Future();
+                $future = new \Hprose\Future();
                 $onfulfilled = array($future, "resolve");
                 $onrejected = array($future, "reject");
                 foreach ($array as $element) {
@@ -196,7 +194,7 @@ namespace Hprose\Future {
                     throw new RangeException('any(): $array must not be empty');
                 }
                 $reasons = array();
-                $future = new Future();
+                $future = new \Hprose\Future();
                 $onfulfilled = array($future, "resolve");
                 $onrejected = function($index) use ($future, &$reasons, &$n) {
                     return function($reason) use ($index, $future, &$reasons, &$n) {
@@ -224,7 +222,7 @@ namespace Hprose\Future {
                 if ($n === 0) {
                     return value($result);
                 }
-                $future = new Future();
+                $future = new \Hprose\Future();
                 $oncomplete = function($index, $f) use ($future, &$result, &$n) {
                     return function() use ($index, $f, $future, &$result, &$n) {
                         $result[$index] = $f->inspect();
