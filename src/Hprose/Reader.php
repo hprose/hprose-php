@@ -14,7 +14,7 @@
  *                                                        *
  * hprose reader class for php 5.3+                       *
  *                                                        *
- * LastModified: Jan 5, 2016                              *
+ * LastModified: Mar 26, 2016                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -439,7 +439,12 @@ namespace Hprose {
             else {
                 $reflector = new \ReflectionClass($classname);
                 if ($reflector->getConstructor() === null) {
-                    $object = $reflector->newInstanceWithoutConstructor();
+                    if (version_compare(PHP_VERSION, '5.4.0', '>=')) {
+                        $object = $reflector->newInstanceWithoutConstructor();
+                    }
+                    else {
+                        $object = new $classname();
+                    }
                 }
                 else {
                     $object = $reflector->newInstance();
