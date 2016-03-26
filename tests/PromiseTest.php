@@ -41,6 +41,7 @@ class PromiseTest extends PHPUnit_Framework_TestCase {
         $this->assertEquals(\Hprose\Future\isFuture(\Hprose\Future\error(new Exception("test"))), true);
         $this->assertEquals(\Hprose\Future\isFuture(0), false);
     }
+/*
     public function testDelayed() {
         $promise = \Hprose\Future\delayed(0.3, function() {
             return "promise from Future.delayed";
@@ -50,4 +51,5 @@ class PromiseTest extends PHPUnit_Framework_TestCase {
             $self->assertEquals($result, "promise from Future.delayed");
         });
     }
+*/
 }

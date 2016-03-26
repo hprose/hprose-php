@@ -8,6 +8,7 @@ php:
   - hhvm
   - nightly
 before_script:
+  - composer self-update
   - composer install
   - cd tests
 script: phpunit -v
