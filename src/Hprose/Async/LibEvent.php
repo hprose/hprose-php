@@ -14,7 +14,7 @@
  *                                                        *
  * asynchronous functions base on libevent for php 5.3+   *
  *                                                        *
- * LastModified: Mar 13, 2015                             *
+ * LastModified: Mar 26, 2016                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/

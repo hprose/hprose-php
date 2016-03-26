@@ -14,7 +14,7 @@
  *                                                        *
  * some asynchronous functions for php 5.3+               *
  *                                                        *
- * LastModified: Mar 13, 2015                             *
+ * LastModified: Mar 26, 2016                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -22,13 +22,13 @@
 namespace Hprose {
     class Async {
         static $async;
-        private static $queue = [];
+        private static $queue = array();
 
         private static function drain() {
             for ($i = 0; isset(self::$queue[$i]); $i++) {
                 call_user_func(self::$queue[$i]);
             }
-            self::$queue = [];
+            self::$queue = array();
         }
 
         static function nextTick($func) {
