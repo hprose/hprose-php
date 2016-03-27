@@ -147,4 +147,42 @@ class PromiseTest extends PHPUnit_Framework_TestCase {
         });
     }
 */
+    public function testSettle() {
+        $self = $this;
+        $p1 = \Hprose\Future\value(100);
+        $p2 = \Hprose\Future\error(new Exception('test'));
+        $p = \Hprose\Future\settle(array($p1, $p2));
+        $p->then(function($result) use ($self) {
+            $self->assertEquals($result, array(
+                array(
+                    "state" => "fulfilled",
+                    "value" => 100
+                ),
+                array(
+                    "state" => "rejected",
+                    "reason" => new Exception('test')
+                )
+            ));
+        });
+    }
+    public function testRun() {
+        $self = $this;
+        $sum = function($a, $b) {
+            return $a + $b;
+        };
+        $p = \Hprose\Future\run($sum, \Hprose\Future\value(100), \Hprose\Future\value(200));
+        $p->then(function($result) use ($self) {
+            $self->assertEquals($result, 300);
+        });
+    }
+    public function testWarp() {
+        $self = $this;
+        $sum = \Hprose\Future\wrap(function($a, $b) {
+            return $a + $b;
+        });
+        $p = $sum(\Hprose\Future\value(100), \Hprose\Future\value(200));
+        $p->then(function($result) use ($self) {
+            $self->assertEquals($result, 300);
+        });
+    }
 }
