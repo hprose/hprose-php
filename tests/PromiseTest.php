@@ -136,10 +136,7 @@ class PromiseTest extends PHPUnit_Framework_TestCase {
             $self->assertEquals($result, 300);
         });
         $p = \Hprose\Future\any(array($p4));
-        $p->then(function($result) use ($self) {
-            var_dump($result);
-            $self->assertEquals($result, 300);
-        })->catchError(function($reasons) use ($self) {
+        $p->catchError(function($reasons) use ($self) {
             $self->assertEquals($reasons[0]->getMessage(), 'test');
         });
     }
@@ -192,6 +189,10 @@ class PromiseTest extends PHPUnit_Framework_TestCase {
         })->then(function() use ($self, $sum, $n) {
             $self->assertEquals($sum, $n);
         });
+        $a2 = \Hprose\Future\value($array);
+        $a2->each(function($value, $index) use ($self) {
+            $self->assertEquals($value, $index);
+        });
     }
     public function testEvery() {
         $isBigEnough = function($element, $index, $array) {
@@ -202,5 +203,35 @@ class PromiseTest extends PHPUnit_Framework_TestCase {
         $a2 = array(12, \Hprose\Future\value(54), 18, \Hprose\Future\value(130), 44);
         $assertEquals(\Hprose\Future\every($a1, $isBigEnough), false);
         $assertEquals(\Hprose\Future\every($a2, $isBigEnough), true);
+        $a3 = \Hprose\Future\value($a1);
+        $a4 = \Hprose\Future\value($a2);
+        $assertEquals($a3->every($isBigEnough), false);
+        $assertEquals($a4->every($isBigEnough), true);
+    }
+    public function testSome() {
+        $isBiggerThan10 = function($element, $index, $array) {
+            return $element >= 10;
+        };
+        $assertEquals = \Hprose\Future\wrap(array($this, "assertEquals"));
+        $a1 = array(2, \Hprose\Future\value(5), 8, \Hprose\Future\value(1), 4);
+        $a2 = array(12, \Hprose\Future\value(5), 8, \Hprose\Future\value(1), 4);
+        $assertEquals(\Hprose\Future\some($a1, $isBiggerThan10), false);
+        $assertEquals(\Hprose\Future\some($a2, $isBiggerThan10), true);
+        $a3 = \Hprose\Future\value($a1);
+        $a4 = \Hprose\Future\value($a2);
+        $assertEquals($a3->some($isBiggerThan10), false);
+        $assertEquals($a4->some($isBiggerThan10), true);
+    }
+    public function testFilter() {
+        $isBigEnough = function($element, $index, $array) {
+            return $element >= 10;
+        };
+        $assertEquals = \Hprose\Future\wrap(array($this, "assertEquals"));
+        $a1 = array(12, \Hprose\Future\value(5), 8, \Hprose\Future\value(130), 44);
+        $a2 = \Hprose\Future\value($a1);
+        $assertEquals(\Hprose\Future\filter($a1, $isBigEnough), array(12, 130, 44));
+        $assertEquals(\Hprose\Future\filter($a1, $isBigEnough, true), array(0=>12, 3=>130, 4=>44));
+        $assertEquals($a2->filter($isBigEnough), array(12, 130, 44));
+        $assertEquals($a2->filter($isBigEnough, true), array(0=>12, 3=>130, 4=>44));
     }
 }

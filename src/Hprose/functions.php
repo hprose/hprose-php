@@ -289,10 +289,21 @@ namespace Hprose\Future {
         );
     }
 
-    function filter($array, $callback, $flag = 0) {
+    function filter($array, $callback, $preserveKeys = false) {
         return all($array)->then(
-            function($array) use ($callback, $flag) {
-                return array_filter($array, $callback, $flag);
+            function($array) use ($callback, $preserveKeys) {
+                $result = array();
+                foreach ($array as $key => $value) {
+                    if (call_user_func($callback, $value, $key, $array)) {
+                        if ($preserveKeys) {
+                            $result[$key] = $value;
+                        }
+                        else {
+                            $result[] = $value;
+                        }
+                    }
+                }
+                return $result;
             }
         );
     }

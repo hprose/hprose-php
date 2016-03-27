@@ -350,8 +350,8 @@ namespace Hprose {
             return Future\some($this, $callback);
         }
 
-        public function filter($callback, $flag = 0) {
-            return Future\filter($this, $callback, $flag);
+        public function filter($callback, $preserveKeys = false) {
+            return Future\filter($this, $callback, $preserveKeys);
         }
 
         public function map($callback) {
