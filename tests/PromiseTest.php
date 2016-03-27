@@ -176,13 +176,35 @@ class PromiseTest extends PHPUnit_Framework_TestCase {
         });
     }
     public function testWarp() {
-        $self = $this;
         $sum = \Hprose\Future\wrap(function($a, $b) {
             return $a + $b;
         });
-        $p = $sum(\Hprose\Future\value(100), \Hprose\Future\value(200));
-        $p->then(function($result) use ($self) {
-            $self->assertEquals($result, 300);
+        $assertEquals = \Hprose\Future\wrap(array($this, "assertEquals"));
+        $assertEquals($sum(\Hprose\Future\value(100), \Hprose\Future\value(200)), 300);
+    }
+    public function testEach() {
+        $self = $this;
+        $array = array();
+        $n = 0;
+        for ($i = 0; $i < 100; $i++) {
+            $array[$i] = \Hprose\Future\value($i);
+            $n += $i;
+        }
+        $sum = 0;
+        \Hprose\Future\each($array, function($value) use (&$sum) {
+            $sum += $value;
+        })->then(function() use ($self, $sum, $n) {
+            $self->assertEquals($sum, $n);
         });
+    }
+    public function testEvery() {
+        $isBigEnough = function($element, $index, $array) {
+            return $element >= 10;
+        };
+        $assertEquals = \Hprose\Future\wrap(array($this, "assertEquals"));
+        $a1 = array(12, \Hprose\Future\value(5), 8, \Hprose\Future\value(130), 44);
+        $a2 = array(12, \Hprose\Future\value(54), 18, \Hprose\Future\value(130), 44);
+        $assertEquals(\Hprose\Future\every($a1, $isBigEnough), false);
+        $assertEquals(\Hprose\Future\every($a2, $isBigEnough), true);
     }
 }
