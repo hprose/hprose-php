@@ -7,7 +7,13 @@ php:
   - 7.0
 
 before_script:
-  - if [[ $TRAVIS_PHP_VERSION = '5.3' ]]; then pecl install channel://pecl.php.net/libevent-0.1.0; fi
+  - if [[ $TRAVIS_PHP_VERSION = '5.3' ]]; then wget https://pecl.php.net/get/libevent-0.1.0.tgz; fi
+  - if [[ $TRAVIS_PHP_VERSION = '5.3' ]]; then tar zxvfp libevent-0.1.0.tgz; fi
+  - if [[ $TRAVIS_PHP_VERSION = '5.3' ]]; then cd libevent-0.1.0; fi
+  - if [[ $TRAVIS_PHP_VERSION = '5.3' ]]; then phpize; fi
+  - if [[ $TRAVIS_PHP_VERSION = '5.3' ]]; then ./configure; fi
+  - if [[ $TRAVIS_PHP_VERSION = '5.3' ]]; then make; fi
+  - if [[ $TRAVIS_PHP_VERSION = '5.3' ]]; then make install; fi
   - if [[ $TRAVIS_PHP_VERSION = '5.3' ]]; then echo "extension = libevent.so" >> ~/.phpenv/versions/$(phpenv version-name)/etc/php.ini; fi
   - if [[ $TRAVIS_PHP_VERSION != '5.3' ]]; then git clone https://bitbucket.org/osmanov/pecl-event.git; fi
   - if [[ $TRAVIS_PHP_VERSION != '5.3' ]]; then cd pecl-event; fi
