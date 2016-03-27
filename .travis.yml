@@ -22,7 +22,7 @@ before_script:
   - if [[ $TRAVIS_PHP_VERSION != '5.3' ]]; then make; fi
   - if [[ $TRAVIS_PHP_VERSION != '5.3' ]]; then make install; fi
   - if [[ $TRAVIS_PHP_VERSION != '5.3' ]]; then echo "extension = event.so" >> ~/.phpenv/versions/$(phpenv version-name)/etc/php.ini; fi
-  - if [[ $TRAVIS_PHP_VERSION != '5.3' ]]; then cd ..; fi
+  - cd ..
   - composer install
   - cd tests
 
