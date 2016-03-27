@@ -1,12 +1,25 @@
 language: php
 php:
-  - '5.3'
-  - '5.4'
-  - '5.5'
-  - '5.6'
-  - '7.0'
-  - nightly
+  - 5.3
+  - 5.4
+  - 5.5
+  - 5.6
+  - 7.0
+
+ matrix:
+  include:
+    - php: 5.3
+      env: HPROSE_EVENT_EXT=libevent
+    - php: 5.4
+      env: HPROSE_EVENT_EXT=event
+    - php: 5.5
+      env: HPROSE_EVENT_EXT=event
+    - php: 5.6
+      env: HPROSE_EVENT_EXT=event
+    - php: 7.0
+      env: HPROSE_EVENT_EXT=event
 before_script:
+  - if [ "$HPROSE_EVENT_EXT" != "libevent" ]; then
   - git clone https://bitbucket.org/osmanov/pecl-event.git
   - cd pecl-event
   - phpize
@@ -15,7 +28,10 @@ before_script:
   - make install
   - echo "extension = event.so" >> ~/.phpenv/versions/$(phpenv version-name)/etc/php.ini
   - cd ..
-  - composer self-update
+  - else
+  - pecl install libevent
+  - echo "extension = libevent.so" >> ~/.phpenv/versions/$(phpenv version-name)/etc/php.ini
+  - fi
   - composer install
   - cd tests
 script: phpunit -v
