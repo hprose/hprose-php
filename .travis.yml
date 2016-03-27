@@ -18,6 +18,7 @@ php:
       env: HPROSE_EVENT_EXT=event
     - php: 7.0
       env: HPROSE_EVENT_EXT=event
+
 before_script:
   - if [ "$HPROSE_EVENT_EXT" != "libevent" ]; then
   - git clone https://bitbucket.org/osmanov/pecl-event.git
@@ -34,4 +35,5 @@ before_script:
   - fi
   - composer install
   - cd tests
+
 script: phpunit -v
