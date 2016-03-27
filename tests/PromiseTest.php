@@ -1,6 +1,5 @@
 <?php
 class PromiseTest extends PHPUnit_Framework_TestCase {
-/*
     public function testDelayed() {
     $self = $this;
         $promise = \Hprose\Future\delayed(0.3, function() {
@@ -10,7 +9,6 @@ class PromiseTest extends PHPUnit_Framework_TestCase {
             $self->assertEquals($result, "promise from Future.delayed");
         });
     }
-*/
     public function testValue() {
         $self = $this;
         $promise = \Hprose\Future\value("hello");
@@ -104,7 +102,6 @@ class PromiseTest extends PHPUnit_Framework_TestCase {
             $self->assertEquals($result, array(100, 200, 300));
         });
     }
-/*
     public function testRace() {
         $self = $this;
         $p1 = \Hprose\Future\delayed(0.3, 100);
@@ -146,7 +143,6 @@ class PromiseTest extends PHPUnit_Framework_TestCase {
             $self->assertEquals($reasons[0]->getMessage(), 'test');
         });
     }
-*/
     public function testSettle() {
         $self = $this;
         $p1 = \Hprose\Future\value(100);
