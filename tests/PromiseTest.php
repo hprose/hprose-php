@@ -234,4 +234,26 @@ class PromiseTest extends PHPUnit_Framework_TestCase {
         $assertEquals($a2->filter($isBigEnough), array(12, 130, 44));
         $assertEquals($a2->filter($isBigEnough, true), array(0=>12, 3=>130, 4=>44));
     }
+    public function testMap() {
+        $double = function($n) {
+            return $n * 2;
+        };
+        $assertEquals = \Hprose\Future\wrap(array($this, "assertEquals"));
+        $a1 = array(1, \Hprose\Future\value(4), \Hprose\Future\value(9));
+        $a2 = \Hprose\Future\value($a1);
+        $assertEquals(\Hprose\Future\map($a1, "sqrt"), array(1, 2, 3));
+        $assertEquals(\Hprose\Future\map($a1, $double), array(2, 8, 18));
+        $assertEquals($a2->map("sqrt"), array(1, 2, 3));
+        $assertEquals($a2->map($double), array(2, 8, 18));
+    }
+    public function testReduce() {
+        $sum = function($a, $b) {
+            return $a + $b;
+        };
+        $assertEquals = \Hprose\Future\wrap(array($this, "assertEquals"));
+        $a1 = array(\Hprose\Future\value(0), 1, \Hprose\Future\value(2), 3, \Hprose\Future\value(4));
+        $a2 = \Hprose\Future\value($a1);
+        $assertEquals(\Hprose\Future\reduce($a1, $sum), 10);
+        $assertEquals($a2->reduce($sum), 10);
+    }
 }
