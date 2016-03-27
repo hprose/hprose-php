@@ -276,4 +276,65 @@ class PromiseTest extends PHPUnit_Framework_TestCase {
         $assertEquals($a2->includes(24), true);
         $assertEquals($a2->includes(\Hprose\Future\value(35)), false);
     }
+    public function testDiff() {
+        $assertEquals = \Hprose\Future\wrap(array($this, "assertEquals"));
+        $a1 = array(\Hprose\Future\value(0), 12, \Hprose\Future\value(24), 36, \Hprose\Future\value(48));
+        $a2 = array(\Hprose\Future\value(12), 2, \Hprose\Future\value(36), 48, \Hprose\Future\value(50));
+        $assertEquals(\Hprose\Future\diff($a1, $a2), array(0=>0, 2=>24));
+        $assertEquals(\Hprose\Future\run('array_diff', \Hprose\Future\all($a1), \Hprose\Future\all($a2)), array(0=>0, 2=>24));
+    }
+    public function testFutureResolve() {
+        $assertEquals = \Hprose\Future\wrap(array($this, "assertEquals"));
+        $p = new \Hprose\Future();
+        $assertEquals($p, 100);
+        $p->resolve(100);
+    }
+    public function testFutureReject() {
+        $self = $this;
+        $p = new \Hprose\Future();
+        $p->catchError(function($reason) use ($self) {
+            $self->assertEquals($reason->getMessage(), "test");
+        });
+        $p->reject(new Exception("test"));
+    }
+    public function testFutureInspect() {
+        $self = $this;
+        $p1 = \Hprose\Future\value(100);
+        $p2 = \Hprose\Future\reject(new Exception("test"));
+        $p3 = new \Hprose\Future();
+        $this->assertEquals($p1->inspect(), array('state' => 'fulfilled', 'value' => 100));
+        $this->assertEquals($p2->inspect(), array('state' => 'rejected', 'reason' => new Exception("test")));
+        $this->assertEquals($p3->inspect(), array('state' => 'pending'));
+    }
+    public function testFutureWhenComplete() {
+        $self = $this;
+        $p1 = \Hprose\Future\value(100);
+        $p2 = \Hprose\Future\reject(new Exception("test"));
+        $p1->whenComplete(function() use ($self, $p1) {
+            $self->assertEquals($p1->value, 100);
+        });
+        $p2->whenComplete(function() use ($self, $p2) {
+            $self->assertEquals($p2->reason, new Exception("test"));
+        });
+    }
+    public function testFutureTimeout() {
+        $self = $this;
+        $p = \Hprose\Future\delayed(0.3, 100);
+        $p->timeout(0.1)->catchError(function($reason) use ($self) {
+            $self->assertEquals($reason, new \Hprose\TimeoutException("timeout"));
+        });
+        $p->timeout(0.1, new Exception("timeout"))->catchError(function($reason) use ($self) {
+            $self->assertEquals($reason, new Exception("timeout"));
+        });
+    }
+    public function testFutureDelay() {
+        $self = $this;
+        $p = \Hprose\Future\value(100)->delay(0.3);
+        $p->timeout(0.1)->catchError(function($reason) use ($self) {
+            $self->assertEquals($reason, new \Hprose\TimeoutException("timeout"));
+        });
+        $p->timeout(0.1, new Exception("timeout"))->catchError(function($reason) use ($self) {
+            $self->assertEquals($reason, new Exception("timeout"));
+        });
+    }
 }

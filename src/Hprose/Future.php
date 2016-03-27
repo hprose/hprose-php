@@ -250,12 +250,16 @@ namespace Hprose {
         public function timeout($duration, $reason = NULL) {
             $future = new Future();
             $timeoutId = setTimeout(function() use ($future, $reason) {
-                $future->reject($reason || new TimeoutException('timeout'));
+                if ($reason === NULL) {
+                    $future->reject(new TimeoutException('timeout'));
+                }
+                else {
+                    $future->reject($reason);
+                }
             }, $duration);
             $this->whenComplete(function() use ($timeoutId) {
                 clearTimeout($timeoutId);
-            })
-            .then(array($future, 'resolve'), array($future, 'reject'));
+            })->then(array($future, 'resolve'), array($future, 'reject'));
             return $future;
         }
 
@@ -318,7 +322,9 @@ namespace Hprose {
         }
 
         public function apply($method, $args = NULL) {
-            $args = $args || array();
+            if ($args === NULL) {
+                $args = array();
+            }
             return $this->then(
                 function($result) use ($method, $args) {
                     return Future\all($args)->then(
