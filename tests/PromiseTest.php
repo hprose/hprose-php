@@ -255,5 +255,25 @@ class PromiseTest extends PHPUnit_Framework_TestCase {
         $a2 = \Hprose\Future\value($a1);
         $assertEquals(\Hprose\Future\reduce($a1, $sum), 10);
         $assertEquals($a2->reduce($sum), 10);
+        $assertEquals(\Hprose\Future\reduce($a1, $sum, 10), 20);
+        $assertEquals($a2->reduce($sum, 10), 20);
+    }
+    public function testSearch() {
+        $assertEquals = \Hprose\Future\wrap(array($this, "assertEquals"));
+        $a1 = array(\Hprose\Future\value(0), 12, \Hprose\Future\value(24), 36, \Hprose\Future\value(48));
+        $a2 = \Hprose\Future\value($a1);
+        $assertEquals(\Hprose\Future\search($a1, 24), 2);
+        $assertEquals(\Hprose\Future\search($a1, \Hprose\Future\value(36)), 3);
+        $assertEquals($a2->search(24), 2);
+        $assertEquals($a2->search(\Hprose\Future\value(36)), 3);
+    }
+    public function testIncludes() {
+        $assertEquals = \Hprose\Future\wrap(array($this, "assertEquals"));
+        $a1 = array(\Hprose\Future\value(0), 12, \Hprose\Future\value(24), 36, \Hprose\Future\value(48));
+        $a2 = \Hprose\Future\value($a1);
+        $assertEquals(\Hprose\Future\includes($a1, 21), false);
+        $assertEquals(\Hprose\Future\includes($a1, \Hprose\Future\value(36)), true);
+        $assertEquals($a2->includes(24), true);
+        $assertEquals($a2->includes(\Hprose\Future\value(35)), false);
     }
 }
