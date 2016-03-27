@@ -5,9 +5,16 @@ php:
   - '5.5'
   - '5.6'
   - '7.0'
-  - hhvm
   - nightly
 before_script:
+  - git clone https://bitbucket.org/osmanov/pecl-event.git
+  - cd pecl-event
+  - phpize
+  - ./configure --with-event-core --with-event-extra --enable-event-debug
+  - make
+  - make install
+  - echo "extension = event.so" >> ~/.phpenv/versions/$(phpenv version-name)/etc/php.ini
+  - cd ..
   - composer self-update
   - composer install
   - cd tests
