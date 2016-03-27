@@ -6,33 +6,17 @@ php:
   - 5.6
   - 7.0
 
- matrix:
-  include:
-    - php: 5.3
-      env: HPROSE_EVENT_EXT=libevent
-    - php: 5.4
-      env: HPROSE_EVENT_EXT=event
-    - php: 5.5
-      env: HPROSE_EVENT_EXT=event
-    - php: 5.6
-      env: HPROSE_EVENT_EXT=event
-    - php: 7.0
-      env: HPROSE_EVENT_EXT=event
-
 before_script:
-  - if [ "$HPROSE_EVENT_EXT" != "libevent" ]; then
-  - git clone https://bitbucket.org/osmanov/pecl-event.git
-  - cd pecl-event
-  - phpize
-  - ./configure --with-event-core --with-event-extra --enable-event-debug
-  - make
-  - make install
-  - echo "extension = event.so" >> ~/.phpenv/versions/$(phpenv version-name)/etc/php.ini
-  - cd ..
-  - else
-  - pecl install libevent
-  - echo "extension = libevent.so" >> ~/.phpenv/versions/$(phpenv version-name)/etc/php.ini
-  - fi
+  - if [[ $TRAVIS_PHP_VERSION = '5.3' ]]; then pecl install libevent; fi
+  - if [[ $TRAVIS_PHP_VERSION = '5.3' ]]; echo "extension = libevent.so" >> ~/.phpenv/versions/$(phpenv version-name)/etc/php.ini; fi
+  - if [[ $TRAVIS_PHP_VERSION != '5.3' ]]; then git clone https://bitbucket.org/osmanov/pecl-event.git; fi
+  - if [[ $TRAVIS_PHP_VERSION != '5.3' ]]; then cd pecl-event; fi
+  - if [[ $TRAVIS_PHP_VERSION != '5.3' ]]; then phpize; fi
+  - if [[ $TRAVIS_PHP_VERSION != '5.3' ]]; then ./configure --with-event-core --with-event-extra --enable-event-debug; fi
+  - if [[ $TRAVIS_PHP_VERSION != '5.3' ]]; then make; fi
+  - if [[ $TRAVIS_PHP_VERSION != '5.3' ]]; then make install; fi
+  - if [[ $TRAVIS_PHP_VERSION != '5.3' ]]; then echo "extension = event.so" >> ~/.phpenv/versions/$(phpenv version-name)/etc/php.ini; fi
+  - if [[ $TRAVIS_PHP_VERSION != '5.3' ]]; then cd ..; fi
   - composer install
   - cd tests
 
