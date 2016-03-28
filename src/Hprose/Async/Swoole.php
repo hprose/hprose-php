@@ -14,7 +14,7 @@
  *                                                        *
  * asynchronous functions base on swoole for php 5.3+     *
  *                                                        *
- * LastModified: Mar 26, 2016                             *
+ * LastModified: Mar 28, 2016                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -29,6 +29,7 @@ class Swoole extends Base {
     }
     protected function setEvent($func, $delay, $loop, $args) {
         $delay = $delay * self::MILLISECONDS_PER_SECOND;
+        if ($delay === 0) $delay = 1;
         if ($loop) {
             $timer = swoole_timer_tick($delay, function() use($func, $args) {
                 call_user_func_array($func, $args);

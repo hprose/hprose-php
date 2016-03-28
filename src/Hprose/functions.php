@@ -14,7 +14,7 @@
  *                                                        *
  * some helper functions for php 5.3+                     *
  *                                                        *
- * LastModified: Mar 26, 2016                             *
+ * LastModified: Mar 28, 2016                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -25,9 +25,6 @@ namespace Hprose {
             try {
                 return call_user_func($try);
             }
-            catch(\PHPUnit_Framework_ExpectationFailedException $e) {
-                throw $e;
-            }
             catch(\Exception $e) {
                 return call_user_func($catch, $e);
             }
@@ -37,9 +34,6 @@ namespace Hprose {
         function trycatch($try, $catch) {
             try {
                 return call_user_func($try);
-            }
-            catch(\PHPUnit_Framework_ExpectationFailedException $e) {
-                throw $e;
             }
             catch(\Throwable $e) {
                 return call_user_func($catch, $e);
@@ -142,17 +136,22 @@ namespace Hprose\Future {
         $array = toFuture($array);
         return $array->then(
             function($array) {
+                $keys = array_keys($array);
                 $n = count($array);
                 $result = array();
                 if ($n === 0) {
                     return value($result);
                 }
                 $future = new \Hprose\Future();
-                $onfulfilled = function($index) use ($future, &$result, &$n) {
-                    return function($value) use ($index, $future, &$result, &$n) {
+                $onfulfilled = function($index) use ($future, &$result, &$n, $keys) {
+                    return function($value) use ($index, $future, &$result, &$n, $keys) {
                         $result[$index] = $value;
                         if (--$n === 0) {
-                            $future->resolve($result);
+                            $array = array();
+                            foreach($keys as $key) {
+                                $array[$key] = $result[$key];
+                            }
+                            $future->resolve($array);
                         }
                     };
                 };
@@ -186,6 +185,7 @@ namespace Hprose\Future {
     function any($array) {
         return toFuture($array)->then(
             function($array) {
+                $keys = array_keys($array);
                 $n = count($array);
                 $result = array();
                 if ($n === 0) {
@@ -194,11 +194,15 @@ namespace Hprose\Future {
                 $reasons = array();
                 $future = new \Hprose\Future();
                 $onfulfilled = array($future, "resolve");
-                $onrejected = function($index) use ($future, &$reasons, &$n) {
-                    return function($reason) use ($index, $future, &$reasons, &$n) {
+                $onrejected = function($index) use ($future, &$reasons, &$n, $keys) {
+                    return function($reason) use ($index, $future, &$reasons, &$n, $keys) {
                         $reasons[$index] = $reason;
                         if (--$n === 0) {
-                            $future->reject($reasons);
+                            $array = array();
+                            foreach($keys as $key) {
+                                $array[$key] = $reasons[$key];
+                            }
+                            $future->reject($array);
                         }
                     };
                 };
@@ -215,17 +219,22 @@ namespace Hprose\Future {
         $array = toFuture($array);
         return $array->then(
             function($array) {
+                $keys = array_keys($array);
                 $n = count($array);
                 $result = array();
                 if ($n === 0) {
                     return value($result);
                 }
                 $future = new \Hprose\Future();
-                $oncomplete = function($index, $f) use ($future, &$result, &$n) {
-                    return function() use ($index, $f, $future, &$result, &$n) {
+                $oncomplete = function($index, $f) use ($future, &$result, &$n, $keys) {
+                    return function() use ($index, $f, $future, &$result, &$n, $keys) {
                         $result[$index] = $f->inspect();
                         if (--$n === 0) {
-                            $future->resolve($result);
+                            $array = array();
+                            foreach($keys as $key) {
+                                $array[$key] = $result[$key];
+                            }
+                            $future->resolve($array);
                         }
                     };
                 };

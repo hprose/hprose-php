@@ -47,6 +47,6 @@ class LibEvent extends Base {
         event_free($timer);
     }
     function loop() {
-        event_base_loop($this->eventbase);
+        @event_base_loop($this->eventbase);
     }
 }

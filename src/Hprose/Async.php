@@ -22,27 +22,13 @@
 namespace Hprose {
     class Async {
         static $async;
-        private static $queue = array();
-
-        private static function drain() {
-            for ($i = 0; isset(self::$queue[$i]); $i++) {
-                call_user_func(self::$queue[$i]);
-            }
-            self::$queue = array();
-        }
-
         static function nextTick($func) {
             $args = array_slice(func_get_args(), 1);
             $task = function() use ($func, $args) {
                 call_user_func_array($func, $args);
             };
-            $length = array_push(self::$queue, $task);
-            if (1 !== $length) {
-                return;
-            }
-            self::drain();
+            self::setTimeout($task, 0);
         }
-
         static function setInterval($func, $delay) {
             return call_user_func_array(array(self::$async, "setInterval"), func_get_args());
         }
@@ -62,7 +48,11 @@ namespace Hprose {
 }
 
 namespace {
-    if (class_exists("EventBase") && class_exists("Event")) {
+    if (function_exists("swoole_timer_after") && function_exists("swoole_timer_tick")) {
+        include("Async/Swoole.php");
+        Hprose\Async::$async = new Hprose\Async\Swoole();
+    }
+    elseif (class_exists("EventBase") && class_exists("Event")) {
         require_once("Async/Event.php");
         Hprose\Async::$async = new Hprose\Async\Event();
     }
@@ -70,10 +60,6 @@ namespace {
         require_once("Async/LibEvent.php");
         Hprose\Async::$async = new Hprose\Async\LibEvent();
     }
-    /*elseif (function_exists("swoole_timer_after") && function_exists("swoole_timer_tick")) {
-        include("Async/Swoole.php");
-        Hprose\Async::$async = new Hprose\Async\Swoole();
-    }*/
     else {
         require_once("Async/Base.php");
         Hprose\Async::$async = new Hprose\Async\Base();

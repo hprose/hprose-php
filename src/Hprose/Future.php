@@ -14,7 +14,7 @@
  *                                                        *
  * hprose future class for php 5.3+                       *
  *                                                        *
- * LastModified: Mar 26, 2016                             *
+ * LastModified: Mar 28, 2016                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -205,6 +205,12 @@ namespace Hprose {
             return $this;
         }
 
+        public function done($onfulfill, $onreject = NULL) {
+            $this->then($onfulfill, $onreject)->then(NULL, function($error) {
+                nextTick(function() use ($error) { throw $error; });
+            });
+        }
+
         public function inspect() {
             switch ($this->state) {
                 case self::PENDING: return array('state' => 'pending');
@@ -230,6 +236,10 @@ namespace Hprose {
             return $this->then(NULL, $onreject);
         }
 
+        public function fail($onreject) {
+            $this->done(NULL, $onreject);
+        }
+
         public function whenComplete($action) {
             return $this->then(
                 function($v) use ($action) {
@@ -245,6 +255,14 @@ namespace Hprose {
                     return $f->then(function() use($e) { throw $e; });
                 }
             );
+        }
+
+        public function complete($oncomplete) {
+            return $this->then($oncomplete, $oncomplete);
+        }
+
+        public function always($oncomplete) {
+            $this->done($oncomplete, $oncomplete);
         }
 
         public function timeout($duration, $reason = NULL) {
@@ -266,9 +284,9 @@ namespace Hprose {
         public function delay($duration) {
             $future = new Future();
             $this->then(
-                function($result) {
+                function($result) use ($future, $duration) {
                     setTimeout(
-                        function() use ($result) {
+                        function() use ($future, $result) {
                             $future->resolve($result);
                         },
                         $duration

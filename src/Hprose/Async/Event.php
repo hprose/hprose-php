@@ -43,6 +43,6 @@ class Event extends Base {
         $timer->free();
     }
     function loop() {
-        $this->eventbase->loop();
+        @$this->eventbase->loop();
     }
 }

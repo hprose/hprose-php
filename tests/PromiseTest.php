@@ -1,35 +1,32 @@
 <?php
 class PromiseTest extends PHPUnit_Framework_TestCase {
     public function testDelayed() {
-    $self = $this;
+        $self = $this;
         $promise = \Hprose\Future\delayed(0.3, function() {
             return "promise from Future.delayed";
         });
-        $promise->then(function($result) use ($self) {
+        $promise->done(function($result) use ($self) {
             $self->assertEquals($result, "promise from Future.delayed");
         });
     }
     public function testValue() {
         $self = $this;
         $promise = \Hprose\Future\value("hello");
-        $promise->then(function($result) use ($self) {
+        $promise->done(function($result) use ($self) {
             $self->assertEquals($result, "hello");
         });
     }
     public function testError() {
         $self = $this;
         $promise = \Hprose\Future\error(new Exception("test"));
-        $promise->then(NULL, function($reason) use ($self) {
-            $self->assertEquals($reason->getMessage(), "test");
-        });
-        $promise->catchError(function($reason) use ($self) {
+        $promise->fail(function($reason) use ($self) {
             $self->assertEquals($reason->getMessage(), "test");
         });
     }
     public function testDeferredResolve() {
         $self = $this;
         $deferred = \Hprose\deferred();
-        $deferred->promise->then(function($result) use ($self) {
+        $deferred->promise->done(function($result) use ($self) {
             $self->assertEquals($result, "hello");
         });
         $deferred->resolve("hello");
@@ -37,7 +34,7 @@ class PromiseTest extends PHPUnit_Framework_TestCase {
     public function testDeferredReject() {
         $self = $this;
         $deferred = \Hprose\deferred();
-        $deferred->promise->catchError(function($reason) use ($self) {
+        $deferred->promise->fail(function($reason) use ($self) {
             $self->assertEquals($reason->getMessage(), "test");
         });
         $deferred->reject(new Exception("test"));
@@ -55,7 +52,7 @@ class PromiseTest extends PHPUnit_Framework_TestCase {
         $promise = \Hprose\Future\sync(function() {
             return "hello";
         });
-        $promise->then(function($result) use ($self) {
+        $promise->done(function($result) use ($self) {
             $self->assertEquals($result, "hello");
         });
     }
@@ -64,13 +61,13 @@ class PromiseTest extends PHPUnit_Framework_TestCase {
         $promise = \Hprose\Future\promise(function($resolve, $reject) {
             $resolve(100);
         });
-        $promise->then(function($result) use ($self) {
+        $promise->done(function($result) use ($self) {
             $self->assertEquals($result, 100);
         });
         $promise = \Hprose\Future\promise(function($resolve, $reject) {
             $reject(new Exception("test"));
         });
-        $promise->catchError(function($reason) use ($self) {
+        $promise->fail(function($reason) use ($self) {
             $self->assertEquals($reason->getMessage(), "test");
         });
     }
@@ -78,7 +75,7 @@ class PromiseTest extends PHPUnit_Framework_TestCase {
         $self = $this;
         $promise = \Hprose\Future\value(100);
         $this->assertEquals($promise, \Hprose\Future\toFuture($promise));
-        \Hprose\Future\toFuture(100)->then(function($result) use ($self) {
+        \Hprose\Future\toFuture(100)->done(function($result) use ($self) {
             $self->assertEquals($result, 100);
         });
     }
@@ -88,7 +85,7 @@ class PromiseTest extends PHPUnit_Framework_TestCase {
         $p2 = \Hprose\Future\value(200);
         $p3 = \Hprose\Future\value(300);
         $all = \Hprose\Future\all(array($p1, $p2, $p3));
-        $all->then(function($result) use ($self) {
+        $all->done(function($result) use ($self) {
             $self->assertEquals($result, array(100, 200, 300));
         });
     }
@@ -98,7 +95,7 @@ class PromiseTest extends PHPUnit_Framework_TestCase {
         $p2 = \Hprose\Future\value(200);
         $p3 = \Hprose\Future\value(300);
         $all = \Hprose\Future\join($p1, $p2, $p3);
-        $all->then(function($result) use ($self) {
+        $all->done(function($result) use ($self) {
             $self->assertEquals($result, array(100, 200, 300));
         });
     }
@@ -108,12 +105,12 @@ class PromiseTest extends PHPUnit_Framework_TestCase {
         $p2 = \Hprose\Future\delayed(0.2, 200);
         $p3 = \Hprose\Future\delayed(0.1, 300);
         $p = \Hprose\Future\race(array($p1, $p2, $p3));
-        $p->then(function($result) use ($self) {
+        $p->done(function($result) use ($self) {
             $self->assertEquals($result, 300);
         });
         $p4 = \Hprose\Future\error(new Exception('test'));
         $p = \Hprose\Future\race(array($p4));
-        $p->catchError(function($reason) use ($self) {
+        $p->fail(function($reason) use ($self) {
             $self->assertEquals($reason->getMessage(), 'test');
         });
     }
@@ -123,20 +120,20 @@ class PromiseTest extends PHPUnit_Framework_TestCase {
         $p2 = \Hprose\Future\delayed(0.2, 200);
         $p3 = \Hprose\Future\delayed(0.1, 300);
         $p = \Hprose\Future\any(array($p1, $p2, $p3));
-        $p->then(function($result) use ($self) {
+        $p->done(function($result) use ($self) {
             $self->assertEquals($result, 300);
         });
         $p = \Hprose\Future\any(array());
-        $p->catchError(function($reason) use ($self) {
+        $p->fail(function($reason) use ($self) {
             $self->assertEquals($reason->getMessage(), 'any(): $array must not be empty');
         });
         $p4 = \Hprose\Future\error(new Exception('test'));
         $p = \Hprose\Future\any(array($p1, $p2, $p3, $p4));
-        $p->then(function($result) use ($self) {
+        $p->done(function($result) use ($self) {
             $self->assertEquals($result, 300);
         });
         $p = \Hprose\Future\any(array($p4));
-        $p->catchError(function($reasons) use ($self) {
+        $p->fail(function($reasons) use ($self) {
             $self->assertEquals($reasons[0]->getMessage(), 'test');
         });
     }
@@ -145,7 +142,7 @@ class PromiseTest extends PHPUnit_Framework_TestCase {
         $p1 = \Hprose\Future\value(100);
         $p2 = \Hprose\Future\error(new Exception('test'));
         $p = \Hprose\Future\settle(array($p1, $p2));
-        $p->then(function($result) use ($self) {
+        $p->done(function($result) use ($self) {
             $self->assertEquals($result, array(
                 array(
                     "state" => "fulfilled",
@@ -164,16 +161,19 @@ class PromiseTest extends PHPUnit_Framework_TestCase {
             return $a + $b;
         };
         $p = \Hprose\Future\run($sum, \Hprose\Future\value(100), \Hprose\Future\value(200));
-        $p->then(function($result) use ($self) {
+        $p->done(function($result) use ($self) {
             $self->assertEquals($result, 300);
         });
     }
     public function testWarp() {
+        $self = $this;
         $sum = \Hprose\Future\wrap(function($a, $b) {
             return $a + $b;
         });
-        $assertEquals = \Hprose\Future\wrap(array($this, "assertEquals"));
-        $assertEquals($sum(\Hprose\Future\value(100), \Hprose\Future\value(200)), 300);
+        $p = $sum(\Hprose\Future\value(100), \Hprose\Future\value(200));
+        $p->done(function($result) use ($self) {
+            $self->assertEquals($result, 300);
+        });
     }
     public function testEach() {
         $self = $this;
@@ -186,113 +186,176 @@ class PromiseTest extends PHPUnit_Framework_TestCase {
         $sum = 0;
         \Hprose\Future\each($array, function($value) use (&$sum) {
             $sum += $value;
-        })->then(function() use ($self, $sum, $n) {
+        })->done(function() use ($self, &$sum, $n) {
             $self->assertEquals($sum, $n);
         });
         $a2 = \Hprose\Future\value($array);
         $a2->each(function($value, $index) use ($self) {
             $self->assertEquals($value, $index);
-        });
+        })->fail(function($reason) { throw $reason; });
     }
     public function testEvery() {
+        $self = $this;
         $isBigEnough = function($element, $index, $array) {
             return $element >= 10;
         };
-        $assertEquals = \Hprose\Future\wrap(array($this, "assertEquals"));
         $a1 = array(12, \Hprose\Future\value(5), 8, \Hprose\Future\value(130), 44);
         $a2 = array(12, \Hprose\Future\value(54), 18, \Hprose\Future\value(130), 44);
-        $assertEquals(\Hprose\Future\every($a1, $isBigEnough), false);
-        $assertEquals(\Hprose\Future\every($a2, $isBigEnough), true);
+        \Hprose\Future\every($a1, $isBigEnough)->done(function($result) use ($self) {
+            $self->assertEquals($result, false);
+        });
+        \Hprose\Future\every($a2, $isBigEnough)->done(function($result) use ($self) {
+            $self->assertEquals($result, true);
+        });
         $a3 = \Hprose\Future\value($a1);
         $a4 = \Hprose\Future\value($a2);
-        $assertEquals($a3->every($isBigEnough), false);
-        $assertEquals($a4->every($isBigEnough), true);
+        $a3->every($isBigEnough)->done(function($result) use ($self) {
+            $self->assertEquals($result, false);
+        });
+        $a4->every($isBigEnough)->done(function($result) use ($self) {
+            $self->assertEquals($result, true);
+        });
     }
     public function testSome() {
+        $self = $this;
         $isBiggerThan10 = function($element, $index, $array) {
             return $element >= 10;
         };
-        $assertEquals = \Hprose\Future\wrap(array($this, "assertEquals"));
         $a1 = array(2, \Hprose\Future\value(5), 8, \Hprose\Future\value(1), 4);
         $a2 = array(12, \Hprose\Future\value(5), 8, \Hprose\Future\value(1), 4);
-        $assertEquals(\Hprose\Future\some($a1, $isBiggerThan10), false);
-        $assertEquals(\Hprose\Future\some($a2, $isBiggerThan10), true);
+        \Hprose\Future\some($a1, $isBiggerThan10)->done(function($result) use ($self) {
+            $self->assertEquals($result, false);
+        });
+        \Hprose\Future\some($a2, $isBiggerThan10)->done(function($result) use ($self) {
+            $self->assertEquals($result, true);
+        });
         $a3 = \Hprose\Future\value($a1);
         $a4 = \Hprose\Future\value($a2);
-        $assertEquals($a3->some($isBiggerThan10), false);
-        $assertEquals($a4->some($isBiggerThan10), true);
+        $a3->some($isBiggerThan10)->done(function($result) use ($self) {
+            $self->assertEquals($result, false);
+        });
+        $a4->some($isBiggerThan10)->done(function($result) use ($self) {
+            $self->assertEquals($result, true);
+        });
     }
     public function testFilter() {
+        $self = $this;
         $isBigEnough = function($element, $index, $array) {
             return $element >= 10;
         };
-        $assertEquals = \Hprose\Future\wrap(array($this, "assertEquals"));
         $a1 = array(12, \Hprose\Future\value(5), 8, \Hprose\Future\value(130), 44);
         $a2 = \Hprose\Future\value($a1);
-        $assertEquals(\Hprose\Future\filter($a1, $isBigEnough), array(12, 130, 44));
-        $assertEquals(\Hprose\Future\filter($a1, $isBigEnough, true), array(0=>12, 3=>130, 4=>44));
-        $assertEquals($a2->filter($isBigEnough), array(12, 130, 44));
-        $assertEquals($a2->filter($isBigEnough, true), array(0=>12, 3=>130, 4=>44));
+        \Hprose\Future\filter($a1, $isBigEnough)->done(function($result) use ($self) {
+            $self->assertEquals($result, array(12, 130, 44));
+        });
+        \Hprose\Future\filter($a1, $isBigEnough, true)->done(function($result) use ($self) {
+            $self->assertEquals($result, array(0=>12, 3=>130, 4=>44));
+        });
+        $a2->filter($isBigEnough)->done(function($result) use ($self) {
+            $self->assertEquals($result, array(12, 130, 44));
+        });
+        $a2->filter($isBigEnough, true)->done(function($result) use ($self) {
+            $self->assertEquals($result, array(0=>12, 3=>130, 4=>44));
+        });
     }
     public function testMap() {
+        $self = $this;
         $double = function($n) {
             return $n * 2;
         };
-        $assertEquals = \Hprose\Future\wrap(array($this, "assertEquals"));
-        $a1 = array(1, \Hprose\Future\value(4), \Hprose\Future\value(9));
+        $a1 = array(\Hprose\Future\value(1), 4, \Hprose\Future\value(9));
         $a2 = \Hprose\Future\value($a1);
-        $assertEquals(\Hprose\Future\map($a1, "sqrt"), array(1, 2, 3));
-        $assertEquals(\Hprose\Future\map($a1, $double), array(2, 8, 18));
-        $assertEquals($a2->map("sqrt"), array(1, 2, 3));
-        $assertEquals($a2->map($double), array(2, 8, 18));
+        \Hprose\Future\map($a1, "sqrt")->done(function($result) use ($self) {
+            $self->assertEquals($result, array(1, 2, 3));
+        });
+        \Hprose\Future\map($a1, $double)->done(function($result) use ($self) {
+            $self->assertEquals($result, array(2, 8, 18));
+        });
+        $a2->map("sqrt")->done(function($result) use ($self) {
+            $self->assertEquals($result, array(1, 2, 3));
+        });
+        $a2->map($double)->done(function($result) use ($self) {
+            $self->assertEquals($result, array(2, 8, 18));
+        });
     }
     public function testReduce() {
+        $self = $this;
         $sum = function($a, $b) {
             return $a + $b;
         };
-        $assertEquals = \Hprose\Future\wrap(array($this, "assertEquals"));
         $a1 = array(\Hprose\Future\value(0), 1, \Hprose\Future\value(2), 3, \Hprose\Future\value(4));
         $a2 = \Hprose\Future\value($a1);
-        $assertEquals(\Hprose\Future\reduce($a1, $sum), 10);
-        $assertEquals($a2->reduce($sum), 10);
-        $assertEquals(\Hprose\Future\reduce($a1, $sum, 10), 20);
-        $assertEquals($a2->reduce($sum, 10), 20);
+        \Hprose\Future\reduce($a1, $sum)->done(function($result) use ($self) {
+            $self->assertEquals($result, 10);
+        });
+        \Hprose\Future\reduce($a1, $sum, 10)->done(function($result) use ($self) {
+            $self->assertEquals($result, 20);
+        });
+        $a2->reduce($sum)->done(function($result) use ($self) {
+            $self->assertEquals($result, 10);
+        });
+        $a2->reduce($sum, 10)->done(function($result) use ($self) {
+            $self->assertEquals($result, 20);
+        });
     }
     public function testSearch() {
-        $assertEquals = \Hprose\Future\wrap(array($this, "assertEquals"));
+        $self = $this;
         $a1 = array(\Hprose\Future\value(0), 12, \Hprose\Future\value(24), 36, \Hprose\Future\value(48));
         $a2 = \Hprose\Future\value($a1);
-        $assertEquals(\Hprose\Future\search($a1, 24), 2);
-        $assertEquals(\Hprose\Future\search($a1, \Hprose\Future\value(36)), 3);
-        $assertEquals($a2->search(24), 2);
-        $assertEquals($a2->search(\Hprose\Future\value(36)), 3);
+        \Hprose\Future\search($a1, 24)->done(function($result) use ($self) {
+            $self->assertEquals($result, 2);
+        });
+        \Hprose\Future\search($a1, \Hprose\Future\value(36))->done(function($result) use ($self) {
+            $self->assertEquals($result, 3);
+        });
+        $a2->search(24)->done(function($result) use ($self) {
+            $self->assertEquals($result, 2);
+        });
+        $a2->search(\Hprose\Future\value(36))->done(function($result) use ($self) {
+            $self->assertEquals($result, 3);
+        });
     }
     public function testIncludes() {
-        $assertEquals = \Hprose\Future\wrap(array($this, "assertEquals"));
+        $self = $this;
         $a1 = array(\Hprose\Future\value(0), 12, \Hprose\Future\value(24), 36, \Hprose\Future\value(48));
         $a2 = \Hprose\Future\value($a1);
-        $assertEquals(\Hprose\Future\includes($a1, 21), false);
-        $assertEquals(\Hprose\Future\includes($a1, \Hprose\Future\value(36)), true);
-        $assertEquals($a2->includes(24), true);
-        $assertEquals($a2->includes(\Hprose\Future\value(35)), false);
+        \Hprose\Future\includes($a1, 21)->done(function($result) use ($self) {
+            $self->assertEquals($result, false);
+        });
+        \Hprose\Future\includes($a1, \Hprose\Future\value(36))->done(function($result) use ($self) {
+            $self->assertEquals($result, true);
+        });
+        $a2->includes(24)->done(function($result) use ($self) {
+            $self->assertEquals($result, true);
+        });
+        $a2->includes(\Hprose\Future\value(35))->done(function($result) use ($self) {
+            $self->assertEquals($result, false);
+        });
     }
     public function testDiff() {
+        $self = $this;
         $assertEquals = \Hprose\Future\wrap(array($this, "assertEquals"));
         $a1 = array(\Hprose\Future\value(0), 12, \Hprose\Future\value(24), 36, \Hprose\Future\value(48));
         $a2 = array(\Hprose\Future\value(12), 2, \Hprose\Future\value(36), 48, \Hprose\Future\value(50));
-        $assertEquals(\Hprose\Future\diff($a1, $a2), array(0=>0, 2=>24));
-        $assertEquals(\Hprose\Future\run('array_diff', \Hprose\Future\all($a1), \Hprose\Future\all($a2)), array(0=>0, 2=>24));
+        \Hprose\Future\diff($a1, $a2)->done(function($result) use ($self) {
+            $self->assertEquals($result, array(0=>0, 2=>24));
+        });
+        \Hprose\Future\run('array_diff', \Hprose\Future\all($a1), \Hprose\Future\all($a2))->done(function($result) use ($self) {
+            $self->assertEquals($result, array(0=>0, 2=>24));
+        });
     }
     public function testFutureResolve() {
-        $assertEquals = \Hprose\Future\wrap(array($this, "assertEquals"));
+        $self = $this;
         $p = new \Hprose\Future();
-        $assertEquals($p, 100);
+        $p->done(function($result) use ($self) {
+            $self->assertEquals($result, 100);
+        });
         $p->resolve(100);
     }
     public function testFutureReject() {
         $self = $this;
         $p = new \Hprose\Future();
-        $p->catchError(function($reason) use ($self) {
+        $p->fail(function($reason) use ($self) {
             $self->assertEquals($reason->getMessage(), "test");
         });
         $p->reject(new Exception("test"));
@@ -306,35 +369,50 @@ class PromiseTest extends PHPUnit_Framework_TestCase {
         $this->assertEquals($p2->inspect(), array('state' => 'rejected', 'reason' => new Exception("test")));
         $this->assertEquals($p3->inspect(), array('state' => 'pending'));
     }
-    public function testFutureWhenComplete() {
+    public function testFutureAlways() {
         $self = $this;
         $p1 = \Hprose\Future\value(100);
         $p2 = \Hprose\Future\reject(new Exception("test"));
-        $p1->whenComplete(function() use ($self, $p1) {
-            $self->assertEquals($p1->value, 100);
+        $p1->always(function($result) use ($self) {
+            $self->assertEquals($result, 100);
         });
-        $p2->whenComplete(function() use ($self, $p2) {
-            $self->assertEquals($p2->reason, new Exception("test"));
+        $p2->always(function($result) use ($self) {
+            $self->assertEquals($result, new Exception("test"));
         });
     }
     public function testFutureTimeout() {
         $self = $this;
         $p = \Hprose\Future\delayed(0.3, 100);
-        $p->timeout(0.1)->catchError(function($reason) use ($self) {
+        $p->timeout(0.1)->fail(function($reason) use ($self) {
             $self->assertEquals($reason, new \Hprose\TimeoutException("timeout"));
         });
-        $p->timeout(0.1, new Exception("timeout"))->catchError(function($reason) use ($self) {
+        $p->timeout(0.1, new Exception("timeout"))->fail(function($reason) use ($self) {
             $self->assertEquals($reason, new Exception("timeout"));
         });
     }
     public function testFutureDelay() {
         $self = $this;
         $p = \Hprose\Future\value(100)->delay(0.3);
-        $p->timeout(0.1)->catchError(function($reason) use ($self) {
+        $p->timeout(0.1)->fail(function($reason) use ($self) {
             $self->assertEquals($reason, new \Hprose\TimeoutException("timeout"));
         });
-        $p->timeout(0.1, new Exception("timeout"))->catchError(function($reason) use ($self) {
+        $p->timeout(0.1, new Exception("timeout"))->fail(function($reason) use ($self) {
             $self->assertEquals($reason, new Exception("timeout"));
+        });
+    }
+    /*public function testFutureTap() {
+        $self = $this;
+        $p = \Hprose\Future\value(100);
+        $p->tap('print_r')->done(function($result) use ($self) {
+            $self->assertEquals($result, 100);
+        });
+    }*/
+    public function testFutureSpread() {
+        $self = $this;
+        $sum = function($a, $b) { return $a + $b; };
+        $p = \Hprose\Future\value(array(100, 200));
+        $p->spread($sum)->done(function($result) use ($self) {
+            $self->assertEquals($result, 300);
         });
     }
 }
