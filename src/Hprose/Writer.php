@@ -14,7 +14,7 @@
  *                                                        *
  * hprose writer class for php 5.3+                       *
  *                                                        *
- * LastModified: Mar 17, 2016                             *
+ * LastModified: Mar 28, 2016                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -89,9 +89,8 @@ namespace Hprose {
         private static function is_list(array $a) {
             $count = count($a);
             return ($count === 0) ||
-                   ($count === 1 && (isset($a[0]) || array_key_exists(0, $a))) ||
-                   ((isset($a[$count - 1]) || array_key_exists($count - 1, $a)) &&
-                    (isset($a[0]) || array_key_exists(0, $a)));
+                   ((isset($a[0]) || array_key_exists(0, $a)) && (($count === 1) ||
+                   (isset($a[$count - 1]) || array_key_exists($count - 1, $a))));
         }
         public function serialize($val) {
             if ($val === null) {
@@ -263,8 +262,8 @@ namespace Hprose {
                 $this->stream->write((string)$count);
             }
             $this->stream->write(Tags::TagOpenbrace);
-            foreach ($array as $e) {
-                $this->serialize($e);
+            for ($i = 0; $i < $count; $i++) {
+                $this->serialize($array[$i]);
             }
             $this->stream->write(Tags::TagClosebrace);
         }
