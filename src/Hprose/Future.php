@@ -317,7 +317,7 @@ namespace Hprose {
         public function get($key) {
             return $this->then(
                 function($result) use ($key) {
-                    return $result[$key];
+                    return $result->$key;
                 }
             );
         }
@@ -329,7 +329,7 @@ namespace Hprose {
         public function set($key, $value) {
             return $this->then(
                 function($result) use ($key, $value) {
-                    $result[$key] = $value;
+                    $result->$key = $value;
                     return $result;
                 }
             );
