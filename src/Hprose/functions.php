@@ -14,32 +14,27 @@
  *                                                        *
  * some helper functions for php 5.3+                     *
  *                                                        *
- * LastModified: Mar 28, 2016                             *
+ * LastModified: Mar 30, 2016                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
 
-namespace Hprose {
+namespace {
     if (PHP_MAJOR_VERSION < 7) {
-        function trycatch($try, $catch) {
-            try {
-                return call_user_func($try);
-            }
-            catch(\Exception $e) {
-                return call_user_func($catch, $e);
-            }
+        interface Throwable {
+            public function getMessage();
+            public function getCode();
+            public function getFile();
+            public function getLine();
+            public function getTrace();
+            public function getTraceAsString();
+            public function getPrevious();
+            public function __toString();
         }
     }
-    else {
-        function trycatch($try, $catch) {
-            try {
-                return call_user_func($try);
-            }
-            catch(\Throwable $e) {
-                return call_user_func($catch, $e);
-            }
-        }
-    }
+}
+
+namespace Hprose {
     function nextTick($func) {
         return call_user_func_array(array("\\Hprose\\Async", "nextTick"), func_get_args());
     }
@@ -71,15 +66,18 @@ namespace Hprose\Future {
     function delayed($duration, $value) {
         $future = new \Hprose\Future();
         \Hprose\setTimeout(function() use ($future, $value) {
-            \Hprose\trycatch(
-                function() use ($future, $value) {
-                    if (is_callable($value)) {
-                        $value = call_user_func($value);
-                    }
-                    $future->resolve($value);
-                },
-                array($future, "reject")
-            );
+            try {
+                if (is_callable($value)) {
+                    $value = call_user_func($value);
+                }
+                $future->resolve($value);
+            }
+            catch (\Exception $e) {
+                $future->reject($e);
+            }
+            catch (\Throwable $e) {
+                $future->reject($e);
+            }
         }, $duration);
         return $future;
     }
@@ -104,15 +102,15 @@ namespace Hprose\Future {
     }
 
     function sync($computation) {
-        return \Hprose\trycatch(
-            function() use ($computation) {
-                $result = call_user_func($computation);
-                return value($result);
-            },
-            function($e) {
-                return error($e);
-            }
-        );
+        try {
+            return value(call_user_func($computation));
+        }
+        catch (\Exception $e) {
+            return error($e);
+        }
+        catch (\Throwable $e) {
+            return error($e);
+        }
     }
 
     function promise($executor) {

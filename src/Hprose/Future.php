@@ -14,7 +14,7 @@
  *                                                        *
  * hprose future class for php 5.3+                       *
  *                                                        *
- * LastModified: Mar 28, 2016                             *
+ * LastModified: Mar 30, 2016                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -40,12 +40,15 @@ namespace Hprose {
             if (is_callable($computation)) {
                 $self = $this;
                 nextTick(function() use ($self, $computation) {
-                    trycatch(
-                        function() use ($self, $computation) {
-                            $self->resolve(call_user_func($computation));
-                        },
-                        array($self, "reject")
-                    );
+                    try {
+                        $self->resolve(call_user_func($computation));
+                    }
+                    catch (\Exception $e) {
+                        $self->reject($e);
+                    }
+                    catch (\Throwable $e) {
+                        $self->reject($e);
+                    }
                 });
             }
         }
@@ -58,15 +61,16 @@ namespace Hprose {
         /*private*/ function _call($callback, $next, $x) {
             nextTick(
                 function() use ($callback, $next, $x) {
-                    trycatch(
-                        function() use($callback, $next, $x) {
-                            $r = call_user_func($callback, $x);
-                            $next->resolve($r);
-                        },
-                        function($e) use($next) {
-                            $next->reject($e);
-                        }
-                    );
+                    try {
+                        $r = call_user_func($callback, $x);
+                        $next->resolve($r);
+                    }
+                    catch (\Exception $e) {
+                        $next->reject($e);
+                    }
+                    catch (\Throwable $e) {
+                        $next->reject($e);
+                    }
                 }
             );
         }
@@ -110,30 +114,34 @@ namespace Hprose {
                 $then = array($x, "then");
                 if (is_callable($then)) {
                     $notrun = true;
-                    trycatch(
-                        function() use ($then, &$notrun, $resolvePromise, $rejectPromise) {
-                            call_user_func($then,
-                                function($y) use (&$notrun, $resolvePromise) {
-                                    if ($notrun) {
-                                        $notrun = false;
-                                        $resolvePromise($y);
-                                    }
-                                },
-                                function($r) use (&$notrun, $rejectPromise) {
-                                    if ($notrun) {
-                                        $notrun = false;
-                                        $rejectPromise($r);
-                                    }
+                    try {
+                        call_user_func($then,
+                            function($y) use (&$notrun, $resolvePromise) {
+                                if ($notrun) {
+                                    $notrun = false;
+                                    $resolvePromise($y);
                                 }
-                            );
-                        },
-                        function($e) use (&$notrun, $rejectPromise) {
-                            if ($notrun) {
-                                $notrun = false;
-                                $rejectPromise($e);
+                            },
+                            function($r) use (&$notrun, $rejectPromise) {
+                                if ($notrun) {
+                                    $notrun = false;
+                                    $rejectPromise($r);
+                                }
                             }
+                        );
+                    }
+                    catch (\Exception $e) {
+                        if ($notrun) {
+                            $notrun = false;
+                            $rejectPromise($e);
                         }
-                    );
+                    }
+                    catch (\Throwable $e) {
+                        if ($notrun) {
+                            $notrun = false;
+                            $rejectPromise($e);
+                        }
+                    }
                     return;
                 }
             }

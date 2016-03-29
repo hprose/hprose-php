@@ -46,8 +46,18 @@ class Swoole extends Base {
         else {
             $self = $this;
             $timer = swoole_timer_after($delay, function() use($self, $func, $args) {
+                try {
+                    call_user_func_array($func, $args);
+                }
+                catch (\Exception $e) {
+                    $self->stopEvent();
+                    throw $e;
+                }
+                catch (\Throwable $e) {
+                    $self->stopEvent();
+                    throw $e;
+                }
                 $self->stopEvent();
-                call_user_func_array($func, $args);
             });
         }
         return $timer;
