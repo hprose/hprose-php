@@ -8,21 +8,24 @@ php:
   - hhvm
 
 before_script:
-  - if [[ $TRAVIS_PHP_VERSION = '5.3' ]]; then wget https://pecl.php.net/get/libevent-0.1.0.tgz; fi
-  - if [[ $TRAVIS_PHP_VERSION = '5.3' ]]; then tar zxvfp libevent-0.1.0.tgz; fi
-  - if [[ $TRAVIS_PHP_VERSION = '5.3' ]]; then cd libevent-0.1.0; fi
-  - if [[ $TRAVIS_PHP_VERSION = '5.3' ]]; then phpize; fi
-  - if [[ $TRAVIS_PHP_VERSION = '5.3' ]]; then ./configure; fi
-  - if [[ $TRAVIS_PHP_VERSION = '5.3' ]]; then make; fi
-  - if [[ $TRAVIS_PHP_VERSION = '5.3' ]]; then make install; fi
-  - if [[ $TRAVIS_PHP_VERSION = '5.3' ]]; then echo "extension = libevent.so" >> ~/.phpenv/versions/$(phpenv version-name)/etc/php.ini; fi
-  - if [[ $TRAVIS_PHP_VERSION != '5.3' ]]; then git clone https://bitbucket.org/osmanov/pecl-event.git; fi
-  - if [[ $TRAVIS_PHP_VERSION != '5.3' ]]; then cd pecl-event; fi
-  - if [[ $TRAVIS_PHP_VERSION != '5.3' ]]; then phpize; fi
-  - if [[ $TRAVIS_PHP_VERSION != '5.3' ]]; then ./configure --with-event-core --with-event-extra --enable-event-debug; fi
-  - if [[ $TRAVIS_PHP_VERSION != '5.3' ]]; then make; fi
-  - if [[ $TRAVIS_PHP_VERSION != '5.3' ]]; then make install; fi
-  - if [[ $TRAVIS_PHP_VERSION != '5.3' ]]; then echo "extension = event.so" >> ~/.phpenv/versions/$(phpenv version-name)/etc/php.ini; fi
+  - if [[ $TRAVIS_PHP_VERSION = '5.3' ]]; then
+  -   wget https://pecl.php.net/get/libevent-0.1.0.tgz
+  -   tar zxvfp libevent-0.1.0.tgz
+  -   cd libevent-0.1.0
+  -   phpize
+  -   ./configure
+  -   make
+  -   make install
+  -   echo "extension = libevent.so" >> ~/.phpenv/versions/$(phpenv version-name)/etc/php.ini
+  - elif [[ $TRAVIS_PHP_VERSION != 'hhvm' ]]; then
+  -   git clone https://bitbucket.org/osmanov/pecl-event.git
+  -   cd pecl-event
+  -   phpize
+  -   ./configure --with-event-core --with-event-extra --enable-event-debug
+  -   make
+  -   make install
+  -   echo "extension = event.so" >> ~/.phpenv/versions/$(phpenv version-name)/etc/php.ini
+  - fi
   - cd ..
   - composer install
   - cd tests
