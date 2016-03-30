@@ -60,10 +60,10 @@ namespace {
         require_once("Async/LibEvent.php");
         Hprose\Async::$async = new Hprose\Async\LibEvent();
     }
-    elseif (function_exists("uv_timer_start")) {
+    /*elseif (function_exists("uv_timer_start")) {
         require_once("Async/Libuv.php");
         Hprose\Async::$async = new Hprose\Async\Libuv();
-    }
+    }*/
     else {
         require_once("Async/Base.php");
         Hprose\Async::$async = new Hprose\Async\Base();
