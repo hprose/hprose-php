@@ -8,6 +8,7 @@ if [[ $TRAVIS_PHP_VERSION = '5.3' ]]; then
   make install
   echo "extension = libevent.so" >> ~/.phpenv/versions/$(phpenv version-name)/etc/php.ini
 elif [[ $TRAVIS_PHP_VERSION = 'hhvm' ]]; then
+  echo "not support"
   # sudo apt-get install -y hhvm-dev
   # sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
   # sudo apt-get update
