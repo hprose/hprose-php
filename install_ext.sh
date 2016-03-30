@@ -9,7 +9,7 @@ if [[ $TRAVIS_PHP_VERSION = '5.3' ]]; then
   echo "extension = libevent.so" >> ~/.phpenv/versions/$(phpenv version-name)/etc/php.ini
 elif [[ $TRAVIS_PHP_VERSION = 'hhvm' ]]; then
   git clone https://github.com/chobie/hhvm-uv.git --recursive
-  cd php-uv
+  cd hhvm-uv
   make -C libuv CFLAGS=-fPIC
   hphpize
   cmake -D CMAKE_BUILD_TYPE=Debug . && make
