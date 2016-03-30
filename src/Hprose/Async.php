@@ -14,7 +14,7 @@
  *                                                        *
  * some asynchronous functions for php 5.3+               *
  *                                                        *
- * LastModified: Mar 26, 2016                             *
+ * LastModified: Mar 30, 2016                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -59,6 +59,10 @@ namespace {
     elseif (function_exists("event_add")) {
         require_once("Async/LibEvent.php");
         Hprose\Async::$async = new Hprose\Async\LibEvent();
+    }
+    elseif (function_exists("uv_timer_start")) {
+        require_once("Async/Libuv.php");
+        Hprose\Async::$async = new Hprose\Async\Libuv();
     }
     else {
         require_once("Async/Base.php");

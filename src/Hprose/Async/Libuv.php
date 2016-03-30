@@ -10,9 +10,9 @@
 
 /**********************************************************\
  *                                                        *
- * Hprose/Async/Base.php                                  *
+ * Hprose/Async/Libuv.php                                 *
  *                                                        *
- * base class of asynchronous functions for php 5.3+      *
+ * asynchronous functions base on uv for hhvm             *
  *                                                        *
  * LastModified: Mar 26, 2016                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
@@ -21,24 +21,26 @@
 
 namespace Hprose\Async;
 
-class Base {
+require_once("Base.php");
+
+class Libuv extends Base {
+    private $uvloop;
+    const MILLISECONDS_PER_SECOND = 1000;
+    public function __construct() {
+        $this->uvloop = uv_default_loop();
+    }
     protected function setEvent($func, $delay, $loop, $args) {
-        throw new \Exception("You need to install event, libevent, hhvm-uv or swoole extension.");
+        $delay *= self::MICROSECONDS_PER_SECOND;
+        $timer = uv_timer_init($this->uvloop);
+        uv_timer_start($timer, $delay, $loop ? $delay : 0, function() use($func, $args) {
+            call_user_func_array($func, $args);
+        });
+        return $e;
     }
     protected function clearEvent($timer) {
-        throw new \Exception("You need to install event, libevent, hhvm-uv or swoole extension.");
+        uv_timer_stop($timer);
     }
-    function loop() {}
-    function setInterval($func, $delay) {
-        return $this->setEvent($func, $delay, true, array_slice(func_get_args(), 2));
-    }
-    function setTimeout($func, $delay = 0) {
-        return $this->setEvent($func, $delay, false, array_slice(func_get_args(), 2));
-    }
-    function clearInterval($timer) {
-        $this->clearEvent($timer);
-    }
-    function clearTimeout($timer) {
-        $this->clearEvent($timer);
+    function loop() {
+        uv_run();
     }
 }
