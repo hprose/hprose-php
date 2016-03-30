@@ -8,6 +8,7 @@ if [[ $TRAVIS_PHP_VERSION = '5.3' ]]; then
   make install
   echo "extension = libevent.so" >> ~/.phpenv/versions/$(phpenv version-name)/etc/php.ini
 elif [[ $TRAVIS_PHP_VERSION = 'hhvm' ]]; then
+  sudo apt-get install hhvm-dev
   git clone https://github.com/chobie/hhvm-uv.git --recursive
   cd hhvm-uv
   make -C libuv CFLAGS=-fPIC
