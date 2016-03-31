@@ -354,7 +354,7 @@ namespace Hprose {
             return $this->then(
                 function($result) use ($method, $args) {
                     return Future\all($args)->then(
-                        function($args) use ($method) {
+                        function($args) use ($result, $method) {
                             return call_user_func_array(array($result, $method), $args);
                         }
                     );
