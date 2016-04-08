@@ -14,14 +14,14 @@
  *                                                        *
  * hprose swoole socket server library for php 5.3+       *
  *                                                        *
- * LastModified: Jun 7, 2015                              *
+ * LastModified: Apr 8, 2016                              *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
 
 namespace Hprose\Swoole\Socket {
     class Server extends Service {
-        private $server;
+        public $server;
         private function parseUrl($url) {
             $result = new \stdClass();
             $p = parse_url($url);

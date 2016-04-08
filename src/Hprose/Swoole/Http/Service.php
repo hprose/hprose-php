@@ -14,7 +14,7 @@
  *                                                        *
  * hprose swoole http service library for php 5.3+        *
  *                                                        *
- * LastModified: Jun 28, 2015                             *
+ * LastModified: Apr 8, 2016                              *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -110,7 +110,7 @@ namespace Hprose\Swoole\Http {
             $data = $request->rawContent();
 
             $context = new \stdClass();
-            $context->server = $this;
+            $context->server = $this->server;
             $context->request = $request;
             $context->response = $response;
             $context->userdata = new \stdClass();
