@@ -14,7 +14,7 @@
  *                                                        *
  * some helper functions for php 5.3+                     *
  *                                                        *
- * LastModified: Mar 30, 2016                             *
+ * LastModified: Apr 11, 2016                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -170,10 +170,8 @@ namespace Hprose\Future {
         return toFuture($array)->then(
             function($array) {
                 $future = new \Hprose\Future();
-                $onfulfilled = array($future, "resolve");
-                $onrejected = array($future, "reject");
                 foreach ($array as $element) {
-                    toFuture($element)->then($onfulfilled, $onrejected);
+                    toFuture($element)->fill($future);
                 };
                 return $future;
             }

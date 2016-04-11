@@ -273,6 +273,10 @@ namespace Hprose {
             $this->done($oncomplete, $oncomplete);
         }
 
+        public function fill($future) {
+            $this->then(array($future, 'resolve'), array($future, 'reject'));
+        }
+
         public function timeout($duration, $reason = NULL) {
             $future = new Future();
             $timeoutId = setTimeout(function() use ($future, $reason) {
@@ -285,7 +289,7 @@ namespace Hprose {
             }, $duration);
             $this->whenComplete(function() use ($timeoutId) {
                 clearTimeout($timeoutId);
-            })->then(array($future, 'resolve'), array($future, 'reject'));
+            })->fill($future);
             return $future;
         }
 
