@@ -14,7 +14,7 @@
  *                                                        *
  * hprose future class for php 5.3+                       *
  *                                                        *
- * LastModified: Mar 30, 2016                             *
+ * LastModified: Apr 11, 2016                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -233,7 +233,7 @@ namespace Hprose {
                 return $this->then(NULL,
                     function($e) use ($self, $onreject, $test) {
                         if (call_user_func($test, $e)) {
-                            return $this->then(NULL, $onreject);
+                            return $self->then(NULL, $onreject);
                         }
                         else {
                             throw $e;
