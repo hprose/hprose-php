@@ -14,7 +14,7 @@
  *                                                        *
  * hprose swoole http service library for php 5.3+        *
  *                                                        *
- * LastModified: Apr 8, 2016                              *
+ * LastModified: May 27, 2016                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -44,9 +44,9 @@ namespace Hprose\Swoole\Http {
                        'INT DEM CNT STA POL HEA PRE GOV"');
             }
             if ($this->crossDomain) {
-                if (array_key_exists('http_origin', $request->header) &&
-                    $request->header['http_origin'] != "null") {
-                    $origin = $request->header['http_origin'];
+                if (array_key_exists('origin', $request->header) &&
+                    $request->header['origin'] != "null") {
+                    $origin = $request->header['origin'];
                     if (count($this->origins) === 0 ||
                         array_key_exists(strtolower($origin), $this->origins)) {
                         $response->header('Access-Control-Allow-Origin', $origin);
