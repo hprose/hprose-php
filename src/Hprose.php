@@ -14,13 +14,13 @@
  *                                                        *
  * hprose for php 5.3+                                    *
  *                                                        *
- * LastModified: Mar 15, 2016                             *
+ * LastModified: May 31, 2016                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
 
-if (!function_exists('Hprose\trycatch')) {
-    require 'Hprose/functions.php';
+if (!function_exists('Hprose\nextTick')) {
+    require_once 'Hprose/functions.php';
 }
 
 spl_autoload_register(function($className) {
