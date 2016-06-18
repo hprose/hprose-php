@@ -26,7 +26,7 @@ if (!function_exists('Hprose\nextTick')) {
 spl_autoload_register(function($className) {
     if (strtolower(substr($className, 0, 6)) === "hprose") {
         if ($className{6} === '\\') {
-            include str_replace("\\", "/", $className) . ".php";
+            include __DIR__ . DIRECTORY_SEPARATOR . str_replace("\\", DIRECTORY_SEPARATOR, $className) . ".php";
         }
         else {
             switch (strtolower($className)) {
