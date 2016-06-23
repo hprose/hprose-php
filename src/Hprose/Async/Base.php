@@ -14,7 +14,7 @@
  *                                                        *
  * base class of asynchronous functions for php 5.3+      *
  *                                                        *
- * LastModified: Mar 26, 2016                             *
+ * LastModified: Jun 23, 2016                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -23,10 +23,14 @@ namespace Hprose\Async;
 
 class Base {
     protected function setEvent($func, $delay, $loop, $args) {
-        throw new \Exception("You need to install event, libevent, hhvm-uv or swoole extension.");
+        throw new \Exception( "You need to install " .
+                (php_sapi_name() == "cli" ? "swoole, " : "") .
+                " event or libevent extension.");
     }
     protected function clearEvent($timer) {
-        throw new \Exception("You need to install event, libevent, hhvm-uv or swoole extension.");
+        throw new \Exception( "You need to install " .
+                (php_sapi_name() == "cli" ? "swoole, " : "") .
+                " event or libevent extension.");
     }
     function loop() {}
     function setInterval($func, $delay) {

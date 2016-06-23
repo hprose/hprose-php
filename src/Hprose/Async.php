@@ -48,7 +48,7 @@ namespace Hprose {
 }
 
 namespace {
-    if (function_exists("swoole_timer_after") && function_exists("swoole_timer_tick")) {
+    if (php_sapi_name() == "cli" && function_exists("swoole_timer_after") && function_exists("swoole_timer_tick")) {
         include("Async/Swoole.php");
         Hprose\Async::$async = new Hprose\Async\Swoole();
     }
