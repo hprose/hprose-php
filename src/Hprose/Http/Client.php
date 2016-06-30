@@ -14,7 +14,7 @@
  *                                                        *
  * hprose http client class for php 5.3+                  *
  *                                                        *
- * LastModified: May 26, 2015                             *
+ * LastModified: Jun 30, 2015                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -169,6 +169,7 @@ namespace Hprose\Http {
             if ($this->proxy) {
                 curl_setopt($curl, CURLOPT_PROXY, $this->proxy);
             }
+            curl_setopt($curl, CURLOPT_NOSIGNAL, 1);
             if (defined('CURLOPT_TIMEOUT_MS')) {
                 curl_setopt($curl, CURLOPT_TIMEOUT_MS, $this->timeout);
             }
