@@ -14,13 +14,13 @@
  *                                                        *
  * hprose future class for php 5.3+                       *
  *                                                        *
- * LastModified: Apr 11, 2016                             *
+ * LastModified: Jun 30, 2016                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
 
 namespace {
-    if (PHP_MAJOR_VERSION < 7) {
+    if (!class_exists('TypeError')) {
         class TypeError extends Exception {}
     }
 }
