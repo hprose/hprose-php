@@ -14,13 +14,13 @@
  *                                                        *
  * some helper functions for php 5.3+                     *
  *                                                        *
- * LastModified: Apr 11, 2016                             *
+ * LastModified: Jul 4, 2016                              *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
 
 namespace {
-    if (PHP_MAJOR_VERSION < 7) {
+    if (!interface_exists("Throwable")) {
         interface Throwable {
             public function getMessage();
             public function getCode();
@@ -103,7 +103,7 @@ namespace Hprose\Future {
 
     function sync($computation) {
         try {
-            return value(call_user_func($computation));
+            return toFuture(call_user_func($computation));
         }
         catch (\Exception $e) {
             return error($e);
