@@ -1,0 +1,19 @@
+<!doctype html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>timer</title>
+    <link href="css/bootstrap.min.css" rel="stylesheet" />
+    <link href="css/style.css" rel="stylesheet" />
+    <script type="text/javascript" src="js/hprose-html5.js"></script>
+</head>
+<body>
+    <script type="text/javascript">
+        var client = hprose.Client.create('ws://127.0.0.1:8080/');
+        console.log(client);
+        client.subscribe('timer', 1, function(message) {
+            console.log(message);
+        });
+    </script>
+</body>
+</html>
