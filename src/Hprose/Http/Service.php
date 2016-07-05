@@ -21,9 +21,9 @@
 
 namespace Hprose\Http {
     class Service extends \Hprose\Base\Service {
-        private $crossDomain = false;
-        private $P3P = false;
-        private $get = true;
+        public $crossDomain = false;
+        public $p3p = false;
+        public $get = true;
         private $origins = array();
         public $onSendHeader = null;
 
@@ -33,7 +33,7 @@ namespace Hprose\Http {
                 call_user_func($sendHeader, $context);
             }
             header("Content-Type: text/plain");
-            if ($this->P3P) {
+            if ($this->p3p) {
                 header('P3P: CP="CAO DSP COR CUR ADM DEV TAI PSA PSD ' .
                        'IVAi IVDi CONi TELo OTPi OUR DELi SAMi OTRi ' .
                        'UNRi PUBi IND PHY ONL UNI PUR FIN COM NAV ' .
@@ -61,10 +61,10 @@ namespace Hprose\Http {
             $this->crossDomain = $enable;
         }
         public function isP3PEnabled() {
-            return $this->P3P;
+            return $this->p3p;
         }
         public function setP3PEnabled($enable = true) {
-            $this->P3P = $enable;
+            $this->p3p = $enable;
         }
         public function isGetEnabled() {
             return $this->get;
