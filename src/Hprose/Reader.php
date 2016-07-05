@@ -14,7 +14,7 @@
  *                                                        *
  * hprose reader class for php 5.3+                       *
  *                                                        *
- * LastModified: Mar 26, 2016                             *
+ * LastModified: Jul 5, 2016                              *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -55,7 +55,7 @@ namespace Hprose {
     class Reader extends RawReader {
         private $classref;
         private $refer;
-        public function __construct($stream, $simple = false) {
+        public function __construct(BytesIO $stream, $simple = false) {
             parent::__construct($stream);
             $this->classref = array();
             $this->refer = $simple ? new FakeReaderRefer() : new RealReaderRefer();

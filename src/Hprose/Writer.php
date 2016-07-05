@@ -14,7 +14,7 @@
  *                                                        *
  * hprose writer class for php 5.3+                       *
  *                                                        *
- * LastModified: Mar 28, 2016                             *
+ * LastModified: Jul 5, 2016                              *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -226,7 +226,7 @@ namespace Hprose {
                 $this->writeBytes($bytes);
             }
         }
-        public function writeBytesIO($bytes) {
+        public function writeBytesIO(BytesIO $bytes) {
             $this->refer->set($bytes);
             $len = $bytes->length();
             $this->stream->write(Tags::TagBytes);
@@ -235,7 +235,7 @@ namespace Hprose {
             }
             $this->stream->write(Tags::TagQuote . $bytes->toString() . Tags::TagQuote);
         }
-        public function writeBytesIOWithRef($bytes) {
+        public function writeBytesIOWithRef(BytesIO $bytes) {
             if (!$this->refer->write($this->stream, $bytes)) {
                 $this->writeBytesIO($bytes);
             }
