@@ -14,14 +14,82 @@
  *                                                        *
  * some asynchronous functions for php 5.3+               *
  *                                                        *
- * LastModified: Mar 30, 2016                             *
+ * LastModified: Jul 5, 2016                              *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
 
 namespace Hprose {
     class Async {
-        static $async;
+        private static $async;
+        private static function initSwoole() {
+            include("Async/Swoole.php");
+            self::$async = new Async\Swoole();
+        }
+        private static function initEvent() {
+            require_once("Async/Event.php");
+            self::$async = new Async\Event();
+        }
+        private static function initLibEvent() {
+            require_once("Async/LibEvent.php");
+            self::$async = new Async\LibEvent();
+        }
+        private static function initBase() {
+            require_once("Async/Base.php");
+            self::$async = new Async\Base();
+        }
+        /*
+            $extention can be "swoole", "event" or "libevent"
+        */
+        static function init($extention) {
+            switch ($extention) {
+                case 'swoole':
+                    if (extension_loaded("swoole")) {
+                        if (php_sapi_name() != "cli") {
+                            throw new Exception("swoole extension only can be used in cli.");
+                        }
+                        self::initSwoole();
+                    }
+                    else {
+                        throw new Exception("You need to install swoole extension first.");
+                    }
+                    break;
+                case 'event':
+                    if (extension_loaded("event")) {
+                        self::initEvent();
+                    }
+                    else {
+                        throw new Exception("You need to install event extension first.");
+                    }
+                    break;
+                case 'libevent':
+                    if (extension_loaded("libevent")) {
+                        self::initLibEvent();
+                    }
+                    else {
+                        throw new Exception("You need to install libevent extension first.");
+                    }
+                    break;
+                default:
+                        throw new Exception("You can only specify swoole, event or libevent.");
+                    break;
+            }
+        }
+
+        static function autoInit() {
+            if (php_sapi_name() == "cli" && extension_loaded("swoole")) {
+                self::initSwoole();
+            }
+            elseif (extension_loaded("event")) {
+                self::initEvent();
+            }
+            elseif (extension_loaded("libevent")) {
+                self::initLibEvent();
+            }
+            else {
+                self::initBase();
+            }
+        }
         static function nextTick($func) {
             $args = array_slice(func_get_args(), 1);
             $task = function() use ($func, $args) {
@@ -45,28 +113,6 @@ namespace Hprose {
             self::$async->loop();
         }
     }
-}
-
-namespace {
-    if (php_sapi_name() == "cli" && function_exists("swoole_timer_after") && function_exists("swoole_timer_tick")) {
-        include("Async/Swoole.php");
-        Hprose\Async::$async = new Hprose\Async\Swoole();
-    }
-    elseif (class_exists("EventBase") && class_exists("Event")) {
-        require_once("Async/Event.php");
-        Hprose\Async::$async = new Hprose\Async\Event();
-    }
-    elseif (function_exists("event_add")) {
-        require_once("Async/LibEvent.php");
-        Hprose\Async::$async = new Hprose\Async\LibEvent();
-    }
-    /*elseif (function_exists("uv_timer_start")) {
-        require_once("Async/Libuv.php");
-        Hprose\Async::$async = new Hprose\Async\Libuv();
-    }*/
-    else {
-        require_once("Async/Base.php");
-        Hprose\Async::$async = new Hprose\Async\Base();
-    }
-    register_shutdown_function(array("Hprose\Async", "loop"));
+    Async::autoInit();
+    register_shutdown_function(array("\Hprose\Async", "loop"));
 }
