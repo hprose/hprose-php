@@ -32,24 +32,24 @@ namespace Hprose {
         protected $afterFilterHandler;
         public function __construct() {
             $self = $this;
-            $this->defaultInvokeHandler = function($name, array $args, array $context) use ($self) {
+            $this->defaultInvokeHandler = function($name, array $args, \stdClass $context) use ($self) {
                 $self->invokeHandler($name, $args, $context);
             };
-            $this->defaultBeforeFilterHandler = function($request, array $context) use ($self) {
+            $this->defaultBeforeFilterHandler = function($request, \stdClass $context) use ($self) {
                 $self->beforeFilterHandler($name, $args, $context);
             };
-            $this->defaultAfterFilterHandler = function($request, array $context) use ($self) {
+            $this->defaultAfterFilterHandler = function($request, \stdClass $context) use ($self) {
                 $self->afterFilterHandler($name, $args, $context);
             };
             $this->$invokeHandler = $this->defaultInvokeHandler;
             $this->$beforeFilterHandler = $this->defaultBeforeFilterHandler;
             $this->$afterFilterHandler = $this->defaultAfterFilterHandler;
         }
-        protected abstract function invokeHandler($name, array $args, array $context);
-        protected abstract function beforeFilterHandler($request, array $context);
-        protected abstract function afterFilterHandler($request, array $context);
+        protected abstract function invokeHandler($name, array $args, \stdClass $context);
+        protected abstract function beforeFilterHandler($request, \stdClass $context);
+        protected abstract function afterFilterHandler($request, \stdClass $context);
         private function getNextInvokeHandler($next, $handler) {
-            return function($name, array $args, array $context) use ($next, $handler) {
+            return function($name, array $args, \stdClass $context) use ($next, $handler) {
                     try {
                         return Future::toFuture(call_user_func($handler, $name, $args, $context, $next));
                     }
@@ -62,7 +62,7 @@ namespace Hprose {
             };
         }
         private function getNextFilterHandler($next, $handler) {
-            return function($request, array $context) use ($next, $handler) {
+            return function($request, \stdClass $context) use ($next, $handler) {
                 try {
                     return Future::toFuture(call_user_func($handler, $request, $context, $next));
                 }

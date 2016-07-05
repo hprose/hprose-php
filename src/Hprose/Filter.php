@@ -21,7 +21,7 @@
 
 namespace Hprose {
     interface Filter {
-        public function inputFilter($data, array $context);
-        public function outputFilter($data, array $context);
+        public function inputFilter($data, \stdClass $context);
+        public function outputFilter($data, \stdClass $context);
     }
 }
