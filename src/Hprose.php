@@ -66,6 +66,12 @@ spl_autoload_register(function($className) {
                 case 'hprosefilter':
                     class_alias('Hprose\\Filter', 'HproseFilter');
                     break;
+                case 'hproseinvokesettings':
+                    class_alias('Hprose\\InvokeSettings', 'HproseInvokeSettings');
+                    break;
+                case 'hprosehandlermanager':
+                    class_alias('Hprose\\HandlerManager', 'HproseHandlerManager');
+                    break;
                 case 'hproseclient':
                     class_alias('Hprose\\Client', 'HproseClient');
                     break;
