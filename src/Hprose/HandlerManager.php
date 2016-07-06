@@ -14,7 +14,7 @@
  *                                                        *
  * hprose HandlerManager class for php 5.3+               *
  *                                                        *
- * LastModified: Jul 5, 2015                              *
+ * LastModified: Jul 6, 2015                              *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -32,45 +32,45 @@ namespace Hprose {
         protected $afterFilterHandler;
         public function __construct() {
             $self = $this;
-            $this->defaultInvokeHandler = function($name, array $args, \stdClass $context) use ($self) {
-                $self->invokeHandler($name, $args, $context);
+            $this->defaultInvokeHandler = function($name, array &$args, \stdClass $context) use ($self) {
+                return $self->invokeHandler($name, $args, $context);
             };
             $this->defaultBeforeFilterHandler = function($request, \stdClass $context) use ($self) {
-                $self->beforeFilterHandler($name, $args, $context);
+                return $self->beforeFilterHandler($request, $context);
             };
             $this->defaultAfterFilterHandler = function($request, \stdClass $context) use ($self) {
-                $self->afterFilterHandler($name, $args, $context);
+                return $self->afterFilterHandler($request, $context);
             };
-            $this->$invokeHandler = $this->defaultInvokeHandler;
-            $this->$beforeFilterHandler = $this->defaultBeforeFilterHandler;
-            $this->$afterFilterHandler = $this->defaultAfterFilterHandler;
+            $this->invokeHandler = $this->defaultInvokeHandler;
+            $this->beforeFilterHandler = $this->defaultBeforeFilterHandler;
+            $this->afterFilterHandler = $this->defaultAfterFilterHandler;
         }
-        protected abstract function invokeHandler($name, array $args, \stdClass $context);
+        protected abstract function invokeHandler($name, array &$args, \stdClass $context);
         protected abstract function beforeFilterHandler($request, \stdClass $context);
         protected abstract function afterFilterHandler($request, \stdClass $context);
         private function getNextInvokeHandler($next, $handler) {
             return function($name, array $args, \stdClass $context) use ($next, $handler) {
                     try {
-                        return Future::toFuture(call_user_func($handler, $name, $args, $context, $next));
+                        return Future\toFuture(call_user_func($handler, $name, $args, $context, $next));
                     }
                     catch (\Exception $e) {
-                        return Future::error($e);
+                        return Future\error($e);
                     }
                     catch (\Throwable $e) {
-                        return Future::error($e);
+                        return Future\error($e);
                     }
             };
         }
         private function getNextFilterHandler($next, $handler) {
             return function($request, \stdClass $context) use ($next, $handler) {
                 try {
-                    return Future::toFuture(call_user_func($handler, $request, $context, $next));
+                    return Future\toFuture(call_user_func($handler, $request, $context, $next));
                 }
                 catch (\Exception $e) {
-                    return Future::error($e);
+                    return Future\error($e);
                 }
                 catch (\Throwable $e) {
-                    return Future::error($e);
+                    return Future\error($e);
                 }
             };
         }
