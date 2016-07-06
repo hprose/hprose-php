@@ -46,12 +46,12 @@ namespace Hprose {
                 case 'swoole':
                     if (extension_loaded("swoole")) {
                         if (php_sapi_name() != "cli") {
-                            throw new Exception("swoole extension only can be used in cli.");
+                            throw new \Exception("swoole extension only can be used in cli.");
                         }
                         self::initSwoole();
                     }
                     else {
-                        throw new Exception("You need to install swoole extension first.");
+                        throw new \Exception("You need to install swoole extension first.");
                     }
                     break;
                 case 'event':
@@ -59,7 +59,7 @@ namespace Hprose {
                         self::initEvent();
                     }
                     else {
-                        throw new Exception("You need to install event extension first.");
+                        throw new \Exception("You need to install event extension first.");
                     }
                     break;
                 case 'libevent':
@@ -67,11 +67,11 @@ namespace Hprose {
                         self::initLibEvent();
                     }
                     else {
-                        throw new Exception("You need to install libevent extension first.");
+                        throw new \Exception("You need to install libevent extension first.");
                     }
                     break;
                 default:
-                        throw new Exception("You can only specify swoole, event or libevent.");
+                        throw new \Exception("You can only specify swoole, event or libevent.");
                     break;
             }
         }
