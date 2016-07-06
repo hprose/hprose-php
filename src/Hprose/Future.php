@@ -334,15 +334,6 @@ namespace Hprose {
             );
         }
 
-        public function __set($key, $value) {
-            return $this->then(
-                function($result) use ($key, $value) {
-                    $result->$key = $value;
-                    return $result;
-                }
-            );
-        }
-
         public function __call($method, $args) {
             if ($args === NULL) {
                 $args = array();

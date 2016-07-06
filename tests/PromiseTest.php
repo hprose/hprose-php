@@ -424,13 +424,4 @@ class PromiseTest extends PHPUnit_Framework_TestCase {
             $self->assertEquals($result, "Tom");
         });
     }
-    public function testFutureSet() {
-        $self = $this;
-        $o = new \stdClass();
-        $p = \Hprose\Future\value($o);
-        $p = $p->set('name', "Tom");
-        $p->get('name')->done(function($result) use ($self) {
-            $self->assertEquals($result, "Tom");
-        });
-    }
 }
