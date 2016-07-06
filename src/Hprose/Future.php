@@ -14,7 +14,7 @@
  *                                                        *
  * hprose future class for php 5.3+                       *
  *                                                        *
- * LastModified: Jun 30, 2016                             *
+ * LastModified: Jul 6, 2016                              *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -326,7 +326,7 @@ namespace Hprose {
             );
         }
 
-        public function get($key) {
+        public function __get($key) {
             return $this->then(
                 function($result) use ($key) {
                     return $result->$key;
@@ -334,11 +334,7 @@ namespace Hprose {
             );
         }
 
-        public function __get($key) {
-            return $this->get($key);
-        }
-
-        public function set($key, $value) {
+        public function __set($key, $value) {
             return $this->then(
                 function($result) use ($key, $value) {
                     $result->$key = $value;
@@ -347,11 +343,7 @@ namespace Hprose {
             );
         }
 
-        public function __set($key, $value) {
-            $this->set($key, $value);
-        }
-
-        public function apply($method, $args = NULL) {
+        public function __call($method, $args) {
             if ($args === NULL) {
                 $args = array();
             }
@@ -364,14 +356,6 @@ namespace Hprose {
                     );
                 }
             );
-        }
-
-        public function call($method/*, arg1, arg2, ...argN*/) {
-            return $this->apply($method, array_slice(func_get_args(), 1));
-        }
-
-        public function __call($method, $args) {
-            return $this->apply($method, $args);
         }
 
         public function each($callback) {
