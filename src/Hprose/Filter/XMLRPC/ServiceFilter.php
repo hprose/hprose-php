@@ -14,14 +14,14 @@
  *                                                        *
  * xml-rpc service filter class for php 5.3+              *
  *                                                        *
- * LastModified: Apr 1, 2015                              *
+ * LastModified: Jul 6, 2016                              *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
 
 namespace Hprose\Filter\XMLRPC {
     class ServiceFilter implements \Hprose\Filter {
-        function inputFilter($data, $context) {
+        function inputFilter($data, \stdClass $context) {
             if ($data !== "" && $data{0} === '<') {
                 $context->userdata->format = "xmlrpc";
                 $method = null;
@@ -43,7 +43,7 @@ namespace Hprose\Filter\XMLRPC {
             return $data;
         }
 
-        function outputFilter($data, $context) {
+        function outputFilter($data, \stdClass $context) {
             if (isset($context->userdata->format) && $context->userdata->format === "xmlrpc") {
                 $result = null;
                 if ($data !== "") {

@@ -14,7 +14,7 @@
  *                                                        *
  * json rpc client filter class for php 5.3+              *
  *                                                        *
- * LastModified: Apr 1, 2015                              *
+ * LastModified: Jul 6, 2016                              *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -37,7 +37,7 @@ namespace Hprose\Filter\JSONRPC {
                 throw new \Exception("version must be 1.0, 1.1 or 2.0 in string format.");
             }
         }
-        function inputFilter($data, $context) {
+        function inputFilter($data, \stdClass $context) {
             $response = json_decode($data);
             if (!isset($response->result)) {
                 $response->result = null;
@@ -63,7 +63,7 @@ namespace Hprose\Filter\JSONRPC {
             return $data;
         }
 
-        function outputFilter($data, $context) {
+        function outputFilter($data, \stdClass $context) {
             $request = new \stdClass();
             if ($this->version === "1.1") {
                 $request->version = "1.1";

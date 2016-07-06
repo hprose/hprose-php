@@ -14,14 +14,14 @@
  *                                                        *
  * json rpc service filter class for php 5.3+             *
  *                                                        *
- * LastModified: May 31, 2015                             *
+ * LastModified: Jul 6, 2016                              *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
 
 namespace Hprose\Filter\JSONRPC {
     class ServiceFilter implements \Hprose\Filter {
-        function inputFilter($data, $context) {
+        function inputFilter($data, \stdClass $context) {
             if ($data !== "" && ($data{0} === '[' || $data{0} === '{')) {
                 try {
                     $requests = json_decode($data);
@@ -77,7 +77,7 @@ namespace Hprose\Filter\JSONRPC {
             return $data;
         }
 
-        function outputFilter($data, $context) {
+        function outputFilter($data, \stdClass $context) {
             if (isset($context->userdata->jsonrpc)) {
                 $responses = array();
                 $stream = new \Hprose\BytesIO($data);
