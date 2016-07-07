@@ -14,21 +14,26 @@
  *                                                        *
  * asynchronous functions base on event for php 5.3+      *
  *                                                        *
- * LastModified: Mar 26, 2016                             *
+ * LastModified: Jul 8, 2016                              *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
 
 namespace Hprose\Async;
 
-require_once("Base.php");
-
 class Event extends Base {
     private $eventbase;
     public function __construct() {
         $this->eventbase = new \EventBase();
     }
-    protected function setEvent($func, $delay, $loop, $args) {
+    function nextTick($func) {
+        $args = array_slice(func_get_args(), 1);
+        $task = function() use ($func, $args) {
+            call_user_func_array($func, $args);
+        };
+        $this->setTimeout($task);
+    }
+    protected function setTimer($func, $delay, $loop, $args) {
         $e = \Event::timer($this->eventbase, function() use($func, $delay, $loop, $args, &$e) {
             $e->delTimer();
             if ($loop) {
@@ -39,7 +44,7 @@ class Event extends Base {
         $e->addTimer($delay);
         return $e;
     }
-    protected function clearEvent($timer) {
+    protected function clearTimer($timer) {
         $timer->free();
     }
     function loop() {

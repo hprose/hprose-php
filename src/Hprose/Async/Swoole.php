@@ -14,29 +14,44 @@
  *                                                        *
  * asynchronous functions base on swoole for php 5.3+     *
  *                                                        *
- * LastModified: Mar 28, 2016                             *
+ * LastModified: Jul 8, 2016                              *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
 
 namespace Hprose\Async;
 
-require_once("Base.php");
-
 class Swoole extends Base {
     const MILLISECONDS_PER_SECOND = 1000;
     private $n = 0;
-    private function stopEvent() {
+    private function stopTimer() {
         $this->n--;
         if ($this->n === 0) {
             swoole_event_exit();
         }
     }
-    protected function setEvent($func, $delay, $loop, $args) {
+    function nextTick($func) {
+        $self = $this;
+        $this->n++;
+        $args = array_slice(func_get_args(), 1);
+        $task = function() use ($self, $func, $args) {
+            try {
+                call_user_func_array($func, $args);
+            }
+            catch (\Exception $e) {
+                $self->stopTimer();
+                throw $e;
+            }
+            catch (\Throwable $e) {
+                $self->stopTimer();
+                throw $e;
+            }
+            $self->stopTimer();
+        };
+        return swoole_timer_after(1, $task);
+    }
+    protected function setTimer($func, $delay, $loop, $args) {
         $delay = $delay * self::MILLISECONDS_PER_SECOND;
-        if ($delay === 0) {
-            $delay = 1;
-        }
         $this->n++;
         if ($loop) {
             $timer = swoole_timer_tick($delay, function() use($func, $args) {
@@ -50,21 +65,21 @@ class Swoole extends Base {
                     call_user_func_array($func, $args);
                 }
                 catch (\Exception $e) {
-                    $self->stopEvent();
+                    $self->stopTimer();
                     throw $e;
                 }
                 catch (\Throwable $e) {
-                    $self->stopEvent();
+                    $self->stopTimer();
                     throw $e;
                 }
-                $self->stopEvent();
+                $self->stopTimer();
             });
         }
         return $timer;
     }
-    protected function clearEvent($timer) {
+    protected function clearTimer($timer) {
         if (@swoole_timer_clear($timer)) {
-            $this->stopEvent();
+            $this->stopTimer();
         }
     }
     function loop() {

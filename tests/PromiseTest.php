@@ -1,4 +1,20 @@
 <?php
+
+class Calculator {
+    public function add($a, $b) {
+        return $a + $b;
+    }
+    public function sub($a, $b) {
+        return $a - $b;
+    }
+    public function mul($a, $b) {
+        return $a * $b;
+    }
+    public function div($a, $b) {
+        return $a / $b;
+    }
+}
+
 class PromiseTest extends PHPUnit_Framework_TestCase {
     public function testDelayed() {
         $self = $this;
@@ -173,6 +189,18 @@ class PromiseTest extends PHPUnit_Framework_TestCase {
         $p = $sum(\Hprose\Future\value(100), \Hprose\Future\value(200));
         $p->done(function($result) use ($self) {
             $self->assertEquals($result, 300);
+        });
+    }
+    public function testWarp2() {
+        $self = $this;
+        $calculator = \Hprose\Future\wrap(new Calculator());
+        $p1 = $calculator->add(\Hprose\Future\value(100), \Hprose\Future\value(200));
+        $p1->done(function($result) use ($self) {
+            $self->assertEquals($result, 300);
+        });
+        $p2 = $calculator->sub(\Hprose\Future\value(100), \Hprose\Future\value(200));
+        $p2->done(function($result) use ($self) {
+            $self->assertEquals($result, -100);
         });
     }
     public function testEach() {

@@ -14,14 +14,12 @@
  *                                                        *
  * asynchronous functions base on uv for hhvm             *
  *                                                        *
- * LastModified: Mar 26, 2016                             *
+ * LastModified: Jul 8, 2016                              *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
 
 namespace Hprose\Async;
-
-require_once("Base.php");
 
 class Libuv extends Base {
     private $uvloop;
@@ -29,7 +27,14 @@ class Libuv extends Base {
     public function __construct() {
         $this->uvloop = uv_default_loop();
     }
-    protected function setEvent($func, $delay, $loop, $args) {
+    function nextTick($func) {
+        $args = array_slice(func_get_args(), 1);
+        $task = function() use ($func, $args) {
+            call_user_func_array($func, $args);
+        };
+        $this->setTimeout($task);
+    }
+    protected function setTimer($func, $delay, $loop, $args) {
         $delay *= self::MICROSECONDS_PER_SECOND;
         $timer = uv_timer_init($this->uvloop);
         uv_timer_start($timer, $delay, $loop ? $delay : 0, function() use($func, $args) {
@@ -37,7 +42,7 @@ class Libuv extends Base {
         });
         return $e;
     }
-    protected function clearEvent($timer) {
+    protected function clearTimer($timer) {
         uv_timer_stop($timer);
     }
     function loop() {

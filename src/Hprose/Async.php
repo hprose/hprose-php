@@ -14,7 +14,7 @@
  *                                                        *
  * some asynchronous functions for php 5.3+               *
  *                                                        *
- * LastModified: Jul 5, 2016                              *
+ * LastModified: Jul 8, 2016                              *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -23,19 +23,15 @@ namespace Hprose {
     class Async {
         private static $async;
         private static function initSwoole() {
-            include("Async/Swoole.php");
             self::$async = new Async\Swoole();
         }
         private static function initEvent() {
-            require_once("Async/Event.php");
             self::$async = new Async\Event();
         }
         private static function initLibEvent() {
-            require_once("Async/LibEvent.php");
             self::$async = new Async\LibEvent();
         }
         private static function initBase() {
-            require_once("Async/Base.php");
             self::$async = new Async\Base();
         }
         /*
@@ -71,7 +67,7 @@ namespace Hprose {
                     }
                     break;
                 default:
-                        throw new \Exception("You can only specify swoole, event or libevent.");
+                    self::initBase();
                     break;
             }
         }
@@ -91,11 +87,7 @@ namespace Hprose {
             }
         }
         static function nextTick($func) {
-            $args = array_slice(func_get_args(), 1);
-            $task = function() use ($func, $args) {
-                call_user_func_array($func, $args);
-            };
-            self::setTimeout($task, 0);
+            return call_user_func_array(array(self::$async, "nextTick"), func_get_args());
         }
         static function setInterval($func, $delay) {
             return call_user_func_array(array(self::$async, "setInterval"), func_get_args());

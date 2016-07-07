@@ -14,14 +14,12 @@
  *                                                        *
  * asynchronous functions base on libevent for php 5.3+   *
  *                                                        *
- * LastModified: Mar 26, 2016                             *
+ * LastModified: Jul 8, 2016                              *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
 
 namespace Hprose\Async;
-
-require_once("Base.php");
 
 class LibEvent extends Base {
     private $eventbase;
@@ -29,7 +27,14 @@ class LibEvent extends Base {
     public function __construct() {
         $this->eventbase = event_base_new();
     }
-    protected function setEvent($func, $delay, $loop, $args) {
+    function nextTick($func) {
+        $args = array_slice(func_get_args(), 1);
+        $task = function() use ($func, $args) {
+            call_user_func_array($func, $args);
+        };
+        $this->setTimeout($task);
+    }
+    protected function setTimer($func, $delay, $loop, $args) {
         $delay *= self::MICROSECONDS_PER_SECOND;
         $e = event_new();
         event_set($e, 0, EV_TIMEOUT, function() use($func, $delay, $loop, $args, $e) {
@@ -42,7 +47,7 @@ class LibEvent extends Base {
         event_add($e, $delay);
         return $e;
     }
-    protected function clearEvent($timer) {
+    protected function clearTimer($timer) {
         event_del($timer);
         event_free($timer);
     }

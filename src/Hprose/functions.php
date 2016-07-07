@@ -14,7 +14,7 @@
  *                                                        *
  * some helper functions for php 5.3+                     *
  *                                                        *
- * LastModified: Jul 4, 2016                              *
+ * LastModified: Jul 8, 2016                              *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -59,6 +59,41 @@ namespace Hprose {
 }
 
 namespace Hprose\Future {
+
+    class Wrapper {
+        protected $obj;
+        public function __construct($obj) {
+            $this->obj = $obj;
+        }
+        public function __call($name, array $arguments) {
+            $method = array($this->obj, $name);
+            return all($arguments)->then(function($args) use ($method) {
+                return call_user_func_array($method, $args);
+            });
+        }
+        public function __get($name) {
+            return $this->obj->$name;
+        }
+        public function __set($name, $value) {
+            $this->obj->$name = $value;
+        }
+        public function __isset($name) {
+            return isset($this->obj->$name);
+        }
+        public function __unset($name) {
+            unset($this->obj->$name);
+        }
+    }
+
+    class CallableWrapper extends Wrapper {
+        public function __invoke() {
+            $obj = $this->obj;
+            return all(func_get_args())->then(function($args) use ($obj) {
+                return call_user_func_array($obj, $args);
+            });
+        }
+    }
+
     function isFuture($obj) {
         return $obj instanceof \Hprose\Future;
     }
@@ -253,13 +288,22 @@ namespace Hprose\Future {
     }
 
     function wrap($handler) {
-        return function() use ($handler) {
-            return all(func_get_args())->then(
-                function($args) use ($handler) {
-                    return call_user_func_array($handler, $args);
-                }
-            );
-        };
+        if (is_object($handler)) {
+            if (is_callable($handler)) {
+                return new CallableWrapper($handler);
+            }
+            return new Wrapper($handler);
+        }
+        if (is_callable($handler)) {
+            return function() use ($handler) {
+                return all(func_get_args())->then(
+                    function($args) use ($handler) {
+                        return call_user_func_array($handler, $args);
+                    }
+                );
+            };
+        }
+        return $handler;
     }
 
     function each($array, $callback) {
@@ -391,6 +435,69 @@ namespace Hprose\Future {
                 return call_user_func_array("array_udiff", $array);
             }
         );
+    }
+
+    function toPromise($obj) {
+        if (isFuture($obj)) return $obj;
+        if (class_exists("\\Generator") && ($obj instanceof \Generator)) return co($obj);
+        if (is_array($obj)) return arrayToPromise($obj);
+        if (is_object($obj)) return objectToPromise($obj);
+        return value($obj);
+    }
+
+    function arrayToPromise(array $array) {
+        return all(array_map("\\Hprose\\Future\\toPromise", $array));
+    }
+
+    function objectToPromise($obj) {
+        $result = clone $obj;
+        $values = array();
+        foreach ($result as $key => $value) {
+            $values[] = toPromise($value)->then(function($v) use ($result, $key) {
+                $result->$key = $v; 
+            });
+        }
+        return all($values)->then(function() use ($result) {
+            return $result;
+        });
+    }
+
+    if (class_exists("\\Generator")) {
+        function co($generator) {
+            if (is_callable($generator)) {
+                $generator = $generator();
+            }
+            elseif (!($generator instanceof \Generator)) {
+                return $generator;
+            }
+            $future = new \Hprose\Future();
+            $next = function() use ($generator, &$next, $future) {
+                if ($generator->valid()) {
+                    $current = $generator->current();
+                    if (is_callable($current)) {
+                        $current = $current();
+                    }
+                    toPromise($current)->then(function($value) use ($generator, &$next) {
+                        $generator->send($value);
+                        $next();
+                    },
+                    function($e) use ($generator, &$next) {
+                        $generator->throw($e);
+                        $next();
+                    });
+                }
+                else {
+                    if (method_exists($generator, "getReturn")) {
+                        $future->resolve($generator->getReturn());
+                    }
+                    else {
+                        $future->resolve(null);
+                    }
+                }
+            };
+            $next();
+            return $future;
+        }
     }
 }
 
