@@ -35,9 +35,6 @@ namespace {
 }
 
 namespace Hprose {
-    function nextTick($func) {
-        return call_user_func_array(array("\\Hprose\\Async", "nextTick"), func_get_args());
-    }
     function setInterval($func, $delay) {
         return call_user_func_array(array("\\Hprose\\Async", "setInterval"), func_get_args());
     }
@@ -59,6 +56,7 @@ namespace Hprose {
 }
 
 namespace Hprose\Future {
+    class UncatchableException extends \Exception {}
 
     class Wrapper {
         protected $obj;
@@ -107,6 +105,9 @@ namespace Hprose\Future {
                 }
                 $future->resolve($value);
             }
+            catch (UncatchableException $e) {
+                throw $e->getPrevious();
+            }
             catch (\Exception $e) {
                 $future->reject($e);
             }
@@ -139,6 +140,9 @@ namespace Hprose\Future {
     function sync($computation) {
         try {
             return toFuture(call_user_func($computation));
+        }
+        catch (UncatchableException $e) {
+            throw $e->getPrevious();
         }
         catch (\Exception $e) {
             return error($e);

@@ -27,13 +27,6 @@ class LibEvent extends Base {
     public function __construct() {
         $this->eventbase = event_base_new();
     }
-    function nextTick($func) {
-        $args = array_slice(func_get_args(), 1);
-        $task = function() use ($func, $args) {
-            call_user_func_array($func, $args);
-        };
-        $this->setTimeout($task);
-    }
     protected function setTimer($func, $delay, $loop, $args) {
         $delay *= self::MICROSECONDS_PER_SECOND;
         $e = event_new();

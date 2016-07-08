@@ -86,9 +86,6 @@ namespace Hprose {
                 self::initBase();
             }
         }
-        static function nextTick($func) {
-            return call_user_func_array(array(self::$async, "nextTick"), func_get_args());
-        }
         static function setInterval($func, $delay) {
             return call_user_func_array(array(self::$async, "setInterval"), func_get_args());
         }

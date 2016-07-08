@@ -30,26 +30,6 @@ class Swoole extends Base {
             swoole_event_exit();
         }
     }
-    function nextTick($func) {
-        $self = $this;
-        $this->n++;
-        $args = array_slice(func_get_args(), 1);
-        $task = function() use ($self, $func, $args) {
-            try {
-                call_user_func_array($func, $args);
-            }
-            catch (\Exception $e) {
-                $self->stopTimer();
-                throw $e;
-            }
-            catch (\Throwable $e) {
-                $self->stopTimer();
-                throw $e;
-            }
-            $self->stopTimer();
-        };
-        return swoole_timer_after(1, $task);
-    }
     protected function setTimer($func, $delay, $loop, $args) {
         $delay = $delay * self::MILLISECONDS_PER_SECOND;
         $this->n++;

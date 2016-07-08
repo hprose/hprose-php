@@ -33,10 +33,6 @@ class Base {
                 " event or libevent extension.");
     }
     function loop() {}
-    function nextTick($func) {
-        $args = array_slice(func_get_args(), 1);
-        call_user_func_array($func, $args);
-    }
     function setInterval($func, $delay) {
         return $this->setTimer($func, $delay, true, array_slice(func_get_args(), 2));
     }

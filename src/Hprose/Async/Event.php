@@ -26,13 +26,6 @@ class Event extends Base {
     public function __construct() {
         $this->eventbase = new \EventBase();
     }
-    function nextTick($func) {
-        $args = array_slice(func_get_args(), 1);
-        $task = function() use ($func, $args) {
-            call_user_func_array($func, $args);
-        };
-        $this->setTimeout($task);
-    }
     protected function setTimer($func, $delay, $loop, $args) {
         $e = \Event::timer($this->eventbase, function() use($func, $delay, $loop, $args, &$e) {
             $e->delTimer();

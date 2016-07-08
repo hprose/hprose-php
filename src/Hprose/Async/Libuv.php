@@ -27,13 +27,6 @@ class Libuv extends Base {
     public function __construct() {
         $this->uvloop = uv_default_loop();
     }
-    function nextTick($func) {
-        $args = array_slice(func_get_args(), 1);
-        $task = function() use ($func, $args) {
-            call_user_func_array($func, $args);
-        };
-        $this->setTimeout($task);
-    }
     protected function setTimer($func, $delay, $loop, $args) {
         $delay *= self::MICROSECONDS_PER_SECOND;
         $timer = uv_timer_init($this->uvloop);
