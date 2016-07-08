@@ -16,15 +16,6 @@ class Calculator {
 }
 
 class PromiseTest extends PHPUnit_Framework_TestCase {
-    public function testDelayed() {
-        $self = $this;
-        $promise = \Hprose\Future\delayed(0.3, function() {
-            return "promise from Future.delayed";
-        });
-        $promise->done(function($result) use ($self) {
-            $self->assertEquals($result, "promise from Future.delayed");
-        });
-    }
     public function testValue() {
         $self = $this;
         $promise = \Hprose\Future\value("hello");
@@ -113,44 +104,6 @@ class PromiseTest extends PHPUnit_Framework_TestCase {
         $all = \Hprose\Future\join($p1, $p2, $p3);
         $all->done(function($result) use ($self) {
             $self->assertEquals($result, array(100, 200, 300));
-        });
-    }
-    public function testRace() {
-        $self = $this;
-        $p1 = \Hprose\Future\delayed(0.3, 100);
-        $p2 = \Hprose\Future\delayed(0.2, 200);
-        $p3 = \Hprose\Future\delayed(0.1, 300);
-        $p = \Hprose\Future\race(array($p1, $p2, $p3));
-        $p->done(function($result) use ($self) {
-            $self->assertEquals($result, 300);
-        });
-        $p4 = \Hprose\Future\error(new Exception('test'));
-        $p = \Hprose\Future\race(array($p4));
-        $p->fail(function($reason) use ($self) {
-            $self->assertEquals($reason->getMessage(), 'test');
-        });
-    }
-    public function testAny() {
-        $self = $this;
-        $p1 = \Hprose\Future\delayed(0.3, 100);
-        $p2 = \Hprose\Future\delayed(0.2, 200);
-        $p3 = \Hprose\Future\delayed(0.1, 300);
-        $p = \Hprose\Future\any(array($p1, $p2, $p3));
-        $p->done(function($result) use ($self) {
-            $self->assertEquals($result, 300);
-        });
-        $p = \Hprose\Future\any(array());
-        $p->fail(function($reason) use ($self) {
-            $self->assertEquals($reason->getMessage(), 'any(): $array must not be empty');
-        });
-        $p4 = \Hprose\Future\error(new Exception('test'));
-        $p = \Hprose\Future\any(array($p1, $p2, $p3, $p4));
-        $p->done(function($result) use ($self) {
-            $self->assertEquals($result, 300);
-        });
-        $p = \Hprose\Future\any(array($p4));
-        $p->fail(function($reasons) use ($self) {
-            $self->assertEquals($reasons[0]->getMessage(), 'test');
         });
     }
     public function testSettle() {
@@ -408,33 +361,13 @@ class PromiseTest extends PHPUnit_Framework_TestCase {
             $self->assertEquals($result, new Exception("test"));
         });
     }
-    public function testFutureTimeout() {
-        $self = $this;
-        $p = \Hprose\Future\delayed(0.3, 100);
-        $p->timeout(0.1)->fail(function($reason) use ($self) {
-            $self->assertEquals($reason, new \Hprose\TimeoutException("timeout"));
-        });
-        $p->timeout(0.1, new Exception("timeout"))->fail(function($reason) use ($self) {
-            $self->assertEquals($reason, new Exception("timeout"));
-        });
-    }
-    public function testFutureDelay() {
-        $self = $this;
-        $p = \Hprose\Future\value(100)->delay(0.3);
-        $p->timeout(0.1)->fail(function($reason) use ($self) {
-            $self->assertEquals($reason, new \Hprose\TimeoutException("timeout"));
-        });
-        $p->timeout(0.1, new Exception("timeout"))->fail(function($reason) use ($self) {
-            $self->assertEquals($reason, new Exception("timeout"));
-        });
-    }
-    /*public function testFutureTap() {
+    public function testFutureTap() {
         $self = $this;
         $p = \Hprose\Future\value(100);
         $p->tap('print_r')->done(function($result) use ($self) {
             $self->assertEquals($result, 100);
         });
-    }*/
+    }
     public function testFutureSpread() {
         $self = $this;
         $sum = function($a, $b) { return $a + $b; };

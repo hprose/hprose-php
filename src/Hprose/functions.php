@@ -35,21 +35,6 @@ namespace {
 }
 
 namespace Hprose {
-    function setInterval($func, $delay) {
-        return call_user_func_array(array("\\Hprose\\Async", "setInterval"), func_get_args());
-    }
-    function setTimeout($func, $delay = 0) {
-        return call_user_func_array(array("\\Hprose\\Async", "setTimeout"), func_get_args());
-    }
-    function clearInterval($timer) {
-        Async::clearInterval($timer);
-    }
-    function clearTimeout($timer) {
-        Async::clearTimeout($timer);
-    }
-    function loop() {
-        Async::loop();
-    }
     function deferred() {
         return new Deferred();
     }
@@ -96,28 +81,6 @@ namespace Hprose\Future {
         return $obj instanceof \Hprose\Future;
     }
 
-    function delayed($duration, $value) {
-        $future = new \Hprose\Future();
-        \Hprose\setTimeout(function() use ($future, $value) {
-            try {
-                if (is_callable($value)) {
-                    $value = call_user_func($value);
-                }
-                $future->resolve($value);
-            }
-            catch (UncatchableException $e) {
-                throw $e->getPrevious();
-            }
-            catch (\Exception $e) {
-                $future->reject($e);
-            }
-            catch (\Throwable $e) {
-                $future->reject($e);
-            }
-        }, $duration);
-        return $future;
-    }
-
     function error($e) {
         $future = new \Hprose\Future();
         $future->reject($e);
@@ -139,7 +102,7 @@ namespace Hprose\Future {
 
     function sync($computation) {
         try {
-            return toFuture(call_user_func($computation));
+            return toPromise(call_user_func($computation));
         }
         catch (UncatchableException $e) {
             throw $e->getPrevious();

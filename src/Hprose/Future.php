@@ -280,38 +280,6 @@ namespace Hprose {
             $this->then(array($future, 'resolve'), array($future, 'reject'));
         }
 
-        public function timeout($duration, $reason = NULL) {
-            $future = new Future();
-            $timeoutId = setTimeout(function() use ($future, $reason) {
-                if ($reason === NULL) {
-                    $future->reject(new TimeoutException('timeout'));
-                }
-                else {
-                    $future->reject($reason);
-                }
-            }, $duration);
-            $this->whenComplete(function() use ($timeoutId) {
-                clearTimeout($timeoutId);
-            })->fill($future);
-            return $future;
-        }
-
-        public function delay($duration) {
-            $future = new Future();
-            $this->then(
-                function($result) use ($future, $duration) {
-                    setTimeout(
-                        function() use ($future, $result) {
-                            $future->resolve($result);
-                        },
-                        $duration
-                    );
-                },
-                array($future, 'reject')
-            );
-            return $future;
-        }
-
         public function tap($onfulfilledSideEffect) {
             return $this->then(
                 function($result) use ($onfulfilledSideEffect) {
