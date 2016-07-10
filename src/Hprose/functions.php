@@ -14,7 +14,7 @@
  *                                                        *
  * some helper functions for php 5.3+                     *
  *                                                        *
- * LastModified: Jul 8, 2016                              *
+ * LastModified: Jul 10, 2016                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -406,9 +406,9 @@ namespace Hprose\Future {
 
     function toPromise($obj) {
         if (isFuture($obj)) return $obj;
-        if (class_exists("\\Generator") && ($obj instanceof \Generator)) return co($obj);
         if (is_array($obj)) return arrayToPromise($obj);
         if (is_object($obj)) return objectToPromise($obj);
+        if (class_exists("\\Generator") && ($obj instanceof \Generator)) return co($obj);
         return value($obj);
     }
 
