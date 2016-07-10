@@ -48,8 +48,32 @@ namespace Hprose {
         protected abstract function invokeHandler($name, array &$args, \stdClass $context);
         protected abstract function beforeFilterHandler($request, \stdClass $context);
         protected abstract function afterFilterHandler($request, \stdClass $context);
-        protected abstract function getNextInvokeHandler($next, $handler);
-        protected abstract function getNextFilterHandler($next, $handler);
+        protected function getNextInvokeHandler($next, $handler) {
+            return function($name, array $args, \stdClass $context) use ($next, $handler) {
+                    try {
+                        return Future\toPromise(call_user_func($handler, $name, $args, $context, $next));
+                    }
+                    catch (\Exception $e) {
+                        return Future\error($e);
+                    }
+                    catch (\Throwable $e) {
+                        return Future\error($e);
+                    }
+            };
+        }
+        protected function getNextFilterHandler($next, $handler) {
+            return function($request, \stdClass $context) use ($next, $handler) {
+                try {
+                    return Future\toPromise(call_user_func($handler, $request, $context, $next));
+                }
+                catch (\Exception $e) {
+                    return Future\error($e);
+                }
+                catch (\Throwable $e) {
+                    return Future\error($e);
+                }
+            };
+        }
         public function addInvokeHandler($handler) {
             if ($handler == null) return;
             $this->invokeHandlers[] = $handler;
