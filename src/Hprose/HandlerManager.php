@@ -14,7 +14,7 @@
  *                                                        *
  * hprose HandlerManager class for php 5.3+               *
  *                                                        *
- * LastModified: Jul 6, 2015                              *
+ * LastModified: Jul 10, 2015                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -30,7 +30,7 @@ namespace Hprose {
         protected $invokeHandler;
         protected $beforeFilterHandler;
         protected $afterFilterHandler;
-        public function __construct() {
+        public function __construct($sync = true) {
             $self = $this;
             $this->defaultInvokeHandler = function($name, array &$args, \stdClass $context) use ($self) {
                 return $self->invokeHandler($name, $args, $context);
@@ -48,32 +48,8 @@ namespace Hprose {
         protected abstract function invokeHandler($name, array &$args, \stdClass $context);
         protected abstract function beforeFilterHandler($request, \stdClass $context);
         protected abstract function afterFilterHandler($request, \stdClass $context);
-        private function getNextInvokeHandler($next, $handler) {
-            return function($name, array $args, \stdClass $context) use ($next, $handler) {
-                    try {
-                        return Future\toFuture(call_user_func($handler, $name, $args, $context, $next));
-                    }
-                    catch (\Exception $e) {
-                        return Future\error($e);
-                    }
-                    catch (\Throwable $e) {
-                        return Future\error($e);
-                    }
-            };
-        }
-        private function getNextFilterHandler($next, $handler) {
-            return function($request, \stdClass $context) use ($next, $handler) {
-                try {
-                    return Future\toFuture(call_user_func($handler, $request, $context, $next));
-                }
-                catch (\Exception $e) {
-                    return Future\error($e);
-                }
-                catch (\Throwable $e) {
-                    return Future\error($e);
-                }
-            };
-        }
+        protected abstract function getNextInvokeHandler($next, $handler);
+        protected abstract function getNextFilterHandler($next, $handler);
         public function addInvokeHandler($handler) {
             if ($handler == null) return;
             $this->invokeHandlers[] = $handler;
