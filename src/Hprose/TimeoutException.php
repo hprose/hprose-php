@@ -14,11 +14,11 @@
  *                                                        *
  * hprose TimeoutException for php 5.3+                   *
  *                                                        *
- * LastModified: Mar 27, 2016                             *
+ * LastModified: Jul 11, 2016                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
 
-namespace Hprose {
-    class TimeoutException extends \Exception {}
-}
+namespace Hprose;
+
+class TimeoutException extends \Exception {}
