@@ -14,7 +14,7 @@
  *                                                        *
  * hprose tags enum for php 5.3+                          *
  *                                                        *
- * LastModified: Mar 6, 2015                              *
+ * LastModified: Jul 11, 2016                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
