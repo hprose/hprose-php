@@ -10,20 +10,26 @@
 
 /**********************************************************\
  *                                                        *
- * Hprose/Promise.php                                     *
+ * Hprose/Promise/functions.php                           *
  *                                                        *
- * Promise for php 5.3+                                   *
+ * some helper functions for php 5.3+                     *
  *                                                        *
  * LastModified: Jul 11, 2016                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
 
-namespace Hprose {
-    class Promise extends Future {
-        public function __construct($executor) {
-            parent::__construct();
-            call_user_func($executor, array($this, "resolve"), array($this, "reject"));
-        }
+namespace Hprose\Promise {
+    function all($array) {
+        return \Hprose\Future\all($array);
+    }
+    function race($array) {
+        return \Hprose\Future\race($array);
+    }
+    function resolve($value) {
+        return \Hprose\Future\value($value);
+    }
+    function reject($reason) {
+        return \Hprose\Future\error($reason);
     }
 }

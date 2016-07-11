@@ -19,11 +19,7 @@
  *                                                        *
 \**********************************************************/
 
-namespace {
-    if (!class_exists('TypeError')) {
-        class TypeError extends Exception {}
-    }
-}
+
 
 namespace Hprose {
     class Future {
