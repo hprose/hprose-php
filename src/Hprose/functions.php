@@ -19,8 +19,8 @@
  *                                                        *
 \**********************************************************/
 
-namespace Hprose {
-    function deferred() {
-        return new Deferred();
-    }
+namespace Hprose;
+
+function deferred() {
+    return new Deferred();
 }
