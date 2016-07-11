@@ -14,14 +14,14 @@
  *                                                        *
  * hprose filter interface for php 5.3+                   *
  *                                                        *
- * LastModified: Jul 5, 2016                              *
+ * LastModified: Jul 11, 2016                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
 
-namespace Hprose {
-    interface Filter {
-        public function inputFilter($data, \stdClass $context);
-        public function outputFilter($data, \stdClass $context);
-    }
+namespace Hprose;
+
+interface Filter {
+    public function inputFilter($data, \stdClass $context);
+    public function outputFilter($data, \stdClass $context);
 }
