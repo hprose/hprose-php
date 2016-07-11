@@ -14,7 +14,7 @@
  *                                                        *
  * json rpc client filter class for php 5.3+              *
  *                                                        *
- * LastModified: Jul 6, 2016                              *
+ * LastModified: Jul 11, 2016                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -56,11 +56,7 @@ namespace Hprose\Filter\JSONRPC {
                 $writer->serialize($response->result);
             }
             $stream->write(\Hprose\Tags::TagEnd);
-            $data = $stream->toString();
-            unset($response);
-            unset($writer);
-            unset($stream);
-            return $data;
+            return $stream->toString();
         }
 
         function outputFilter($data, \stdClass $context) {
@@ -85,8 +81,6 @@ namespace Hprose\Filter\JSONRPC {
             else {
                 throw new \Exception("Error Processing Request", 1);
             }
-            unset($reader);
-            unset($stream);
             $request->id = self::$id++;
             return json_encode($request);
         }
