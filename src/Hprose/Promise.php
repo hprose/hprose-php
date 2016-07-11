@@ -19,11 +19,11 @@
  *                                                        *
 \**********************************************************/
 
-namespace Hprose {
-    class Promise extends Future {
-        public function __construct($executor) {
-            parent::__construct();
-            call_user_func($executor, array($this, "resolve"), array($this, "reject"));
-        }
+namespace Hprose;
+
+class Promise extends Future {
+    public function __construct($executor) {
+        parent::__construct();
+        call_user_func($executor, array($this, "resolve"), array($this, "reject"));
     }
 }
