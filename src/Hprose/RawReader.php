@@ -21,6 +21,8 @@
 
 namespace Hprose;
 
+use Exception;
+
 class RawReader {
     public $stream;
     public function __construct(BytesIO $stream) {
@@ -28,22 +30,22 @@ class RawReader {
     }
     public function unexpectedTag($tag, $expectTags = '') {
         if ($tag && $expectTags) {
-            return new \Exception("Tag '" . $expectTags . "' expected, but '" . $tag . "' found in stream");
+            return new Exception("Tag '" . $expectTags . "' expected, but '" . $tag . "' found in stream");
         }
         else if ($tag) {
-            return new \Exception("Unexpected serialize tag '" . $tag . "' in stream");
+            return new Exception("Unexpected serialize tag '" . $tag . "' in stream");
         }
         else {
-            return new \Exception('No byte found in stream');
+            return new Exception('No byte found in stream');
         }
     }
     public function readRaw() {
         $ostream = new BytesIO();
-        $this->__readRaw($ostream);
+        $this->privateReadRaw($ostream);
         return $ostream;
     }
 
-    private function __readRaw(BytesIO $ostream, $tag = '') {
+    private function privateReadRaw(BytesIO $ostream, $tag = '') {
         if ($tag == '') {
             $tag = $this->stream->getc();
         }
@@ -97,10 +99,10 @@ class RawReader {
                 break;
             case Tags::TagClass:
                 $this->readComplexRaw($ostream);
-                $this->__readRaw($ostream);
+                $this->privateReadRaw($ostream);
                 break;
             case Tags::TagError:
-                $this->__readRaw($ostream);
+                $this->privateReadRaw($ostream);
                 break;
             default: throw $this->unexpectedTag($tag);
         }
@@ -149,7 +151,7 @@ class RawReader {
              Tags::TagOpenbrace;
         $ostream->write($s);
         while (($tag = $this->stream->getc()) != Tags::TagClosebrace) {
-            $this->__readRaw($ostream, $tag);
+            $this->privateReadRaw($ostream, $tag);
         }
         $ostream->write($tag);
     }
