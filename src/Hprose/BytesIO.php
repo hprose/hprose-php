@@ -21,6 +21,8 @@
 
 namespace Hprose;
 
+use Exception;
+
 class BytesIO {
     protected $buffer;
     protected $length;
@@ -100,12 +102,12 @@ class BytesIO {
                     $pos += 4;
                     ++$i;
                     if ($i >= $n) {
-                        throw new \Exception('bad utf-8 encoding');
+                        throw new Exception('bad utf-8 encoding');
                     }
                     break;
                 }
                 default: {
-                    throw new \Exception('bad utf-8 encoding');
+                    throw new Exception('bad utf-8 encoding');
                 }
             }
         }
