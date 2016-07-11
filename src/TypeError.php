@@ -19,8 +19,6 @@
  *                                                        *
 \**********************************************************/
 
-namespace {
-    if (!class_exists('TypeError')) {
-        class TypeError extends Exception {}
-    }
+if (!class_exists('TypeError')) {
+    class TypeError extends Exception {}
 }
