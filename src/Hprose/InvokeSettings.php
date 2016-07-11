@@ -14,33 +14,33 @@
  *                                                        *
  * hprose InvokeSettings class for php 5.3+               *
  *                                                        *
- * LastModified: Jul 6, 2015                              *
+ * LastModified: Jul 11, 2015                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
 
-namespace Hprose {
-    class InvokeSettings {
-        public $settings;
-        public function __construct(array $settings = array()) {
-            if ($settings !== null) {
-                $this->settings = $settings;
-            }
-            else {
-                $this->settings = array();
-            }
+namespace Hprose;
+
+class InvokeSettings {
+    public $settings;
+    public function __construct(array $settings = array()) {
+        if ($settings !== null) {
+            $this->settings = $settings;
         }
-        public function __set($name, $value) {
-            $this->settings[$name] = $value;
+        else {
+            $this->settings = array();
         }
-        public function __get($name) {
-            return $this->settings[$name];
-        }
-        public function __isset($name) {
-            return isset($this->settings[$name]);
-        }
-        public function __unset($name) {
-            unset($this->settings[$name]);
-        }
+    }
+    public function __set($name, $value) {
+        $this->settings[$name] = $value;
+    }
+    public function __get($name) {
+        return $this->settings[$name];
+    }
+    public function __isset($name) {
+        return isset($this->settings[$name]);
+    }
+    public function __unset($name) {
+        unset($this->settings[$name]);
     }
 }
