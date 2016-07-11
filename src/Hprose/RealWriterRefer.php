@@ -21,13 +21,15 @@
 
 namespace Hprose;
 
+use SplObjectStorage;
+
 class RealWriterRefer implements WriterRefer {
     private $oref;
     private $sref = array();
     private $refcount = 0;
 
     public function __construct() {
-        $this->oref = new \SplObjectStorage();
+        $this->oref = new SplObjectStorage();
     }
 
     private function writeRef(BytesIO $stream, $index) {
