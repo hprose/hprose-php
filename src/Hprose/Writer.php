@@ -21,6 +21,14 @@
 
 namespace Hprose;
 
+use stdClass;
+use DateTime;
+use Exception;
+use ReflectionClass;
+use ReflectionProperty;
+use SplObjectStorage;
+use Traversable;
+
 class Writer {
     public $stream;
     private $classref = array();
@@ -95,16 +103,16 @@ class Writer {
             if ($val instanceof BytesIO) {
                 $this->writeBytesIOWithRef($val);
             }
-            elseif ($val instanceof \DateTime) {
+            elseif ($val instanceof DateTime) {
                 $this->writeDateTimeWithRef($val);
             }
-            elseif ($val instanceof \SplObjectStorage) {
+            elseif ($val instanceof SplObjectStorage) {
                 $this->writeMapWithRef($val);
             }
-            elseif ($val instanceof \Traversable) {
+            elseif ($val instanceof Traversable) {
                 $this->writeListWithRef($val);
             }
-            elseif ($val instanceof \stdClass) {
+            elseif ($val instanceof stdClass) {
                 $this->writeStdClassWithRef($val);
             }
             else {
@@ -112,7 +120,7 @@ class Writer {
             }
         }
         else {
-            throw new \Exception('Not support to serialize this data');
+            throw new Exception('Not support to serialize this data');
         }
     }
     public function writeInteger($int) {
@@ -192,7 +200,7 @@ class Writer {
             $this->writeBytesIO($bytes);
         }
     }
-    public function writeDateTime(\DateTime $datetime) {
+    public function writeDateTime(DateTime $datetime) {
         $this->refer->set($datetime);
         if ($datetime->getOffset() == 0) {
             $this->stream->write($datetime->format('\DYmd\THis.u\Z'));
@@ -201,7 +209,7 @@ class Writer {
             $this->stream->write($datetime->format('\DYmd\THis.u;'));
         }
     }
-    public function writeDateTimeWithRef(\DateTime $datetime) {
+    public function writeDateTimeWithRef(DateTime $datetime) {
         if (!$this->refer->write($this->stream, $datetime)) {
             $this->writeDateTime($datetime);
         }
@@ -233,7 +241,7 @@ class Writer {
         }
         $this->stream->write(Tags::TagClosebrace);
     }
-    public function writeList(\Traversable $list) {
+    public function writeList(Traversable $list) {
         $this->refer->set($list);
         $count = count($list);
         $this->stream->write(Tags::TagList);
@@ -246,12 +254,12 @@ class Writer {
         }
         $this->stream->write(Tags::TagClosebrace);
     }
-    public function writeListWithRef(\Traversable $list) {
+    public function writeListWithRef(Traversable $list) {
         if (!$this->refer->write($this->stream, $list)) {
             $this->writeList($list);
         }
     }
-    public function writeMap(\SplObjectStorage $map) {
+    public function writeMap(SplObjectStorage $map) {
         $this->refer->set($map);
         $count = count($map);
         $this->stream->write(Tags::TagMap);
@@ -265,12 +273,12 @@ class Writer {
         }
         $this->stream->write(Tags::TagClosebrace);
     }
-    public function writeMapWithRef(\SplObjectStorage $map) {
+    public function writeMapWithRef(SplObjectStorage $map) {
         if (!$this->refer->write($this->stream, $map)) {
             $this->writeMap($map);
         }
     }
-    public function writeStdClass(\stdClass $obj) {
+    public function writeStdClass(stdClass $obj) {
         $this->refer->set($obj);
         $vars = get_object_vars($obj);
         $count = count($vars);
@@ -285,7 +293,7 @@ class Writer {
         }
         $this->stream->write(Tags::TagClosebrace);
     }
-    public function writeStdClassWithRef(\stdClass $obj) {
+    public function writeStdClassWithRef(stdClass $obj) {
         if (!$this->refer->write($this->stream, $obj)) {
             $this->writeStdClass($obj);
         }
@@ -297,11 +305,11 @@ class Writer {
             $index = $this->classref[$alias];
         }
         else {
-            $reflector = new \ReflectionClass($obj);
+            $reflector = new ReflectionClass($obj);
             $props = $reflector->getProperties(
-                \ReflectionProperty::IS_PUBLIC |
-                \ReflectionProperty::IS_PROTECTED |
-                \ReflectionProperty::IS_PRIVATE);
+                ReflectionProperty::IS_PUBLIC |
+                ReflectionProperty::IS_PROTECTED |
+                ReflectionProperty::IS_PRIVATE);
             $index = $this->writeClass($alias, $props);
         }
         $this->refer->set($obj);
