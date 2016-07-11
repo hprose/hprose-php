@@ -21,6 +21,11 @@
 
 namespace Hprose;
 
+use stdClass;
+use Exception;
+use ReflectionClass;
+use SplFixedArray;
+
 class Reader extends RawReader {
     private $classref;
     private $refer;
@@ -62,7 +67,7 @@ class Reader extends RawReader {
             case Tags::TagClass: $this->readClass(); return $this->readObject();
             case Tags::TagObject: return $this->readObjectWithoutTag();
             case Tags::TagRef: return $this->readRef();
-            case Tags::TagError: throw new \Exception($this->privateReadString());
+            case Tags::TagError: throw new Exception($this->privateReadString());
             default: throw $this->unexpectedTag($tag);
         }
     }
@@ -93,7 +98,7 @@ class Reader extends RawReader {
             case Tags::TagString: return $this->readStringWithoutTag();
             case Tags::TagGuid: return $this->readGuidWithoutTag();
             case Tags::TagRef: return (string)$this->readRef();
-            case Tags::TagError: throw new \Exception($this->privateReadString());
+            case Tags::TagError: throw new Exception($this->privateReadString());
             default: throw $this->unexpectedTag($tag);
         }
     }
@@ -399,14 +404,14 @@ class Reader extends RawReader {
         $index = (int)$this->stream->readuntil(Tags::TagOpenbrace);
         list($classname, $props) = $this->classref[$index];
         if ($classname == 'stdClass') {
-            $object = new \stdClass();
+            $object = new stdClass();
             $this->refer->set($object);
             foreach ($props as $prop) {
                 $object->$prop = $this->unserialize();
             }
         }
         else {
-            $reflector = new \ReflectionClass($classname);
+            $reflector = new ReflectionClass($classname);
             if ($reflector->getConstructor() === null) {
                 if (version_compare(PHP_VERSION, '5.4.0', '>=')) {
                     $object = $reflector->newInstanceWithoutConstructor();
@@ -455,7 +460,7 @@ class Reader extends RawReader {
     protected function readClass() {
         $classname = ClassManager::getClass($this->privateReadStringWithoutTag());
         $count = (int)$this->stream->readuntil(Tags::TagOpenbrace);
-        $props = new \SplFixedArray($count);
+        $props = new SplFixedArray($count);
         for ($i = 0; $i < $count; ++$i) {
             $props[$i] = $this->privateReadString();
         }
