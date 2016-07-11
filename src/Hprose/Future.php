@@ -19,8 +19,6 @@
  *                                                        *
 \**********************************************************/
 
-
-
 namespace Hprose {
     class Future {
         const PENDING = 0;
@@ -55,7 +53,7 @@ namespace Hprose {
             But PHP 5.3 can't call private method in closure,
             so we comment the private keyword.
         */
-        /*private*/ function _call($callback, $next, $x) {
+        /*private*/ function privateCall($callback, $next, $x) {
             try {
                 $r = call_user_func($callback, $x);
                 $next->resolve($r);
@@ -76,9 +74,9 @@ namespace Hprose {
             But PHP 5.3 can't call private method in closure,
             so we comment the private keyword.
         */
-        /*private*/ function _reject($onreject, $next, $e) {
+        /*private*/ function privateReject($onreject, $next, $e) {
             if (is_callable($onreject)) {
-                $this->_call($onreject, $next, $e);
+                $this->privateCall($onreject, $next, $e);
             }
             else {
                 $next->reject($e);
@@ -90,13 +88,13 @@ namespace Hprose {
             But PHP 5.3 can't call private method in closure,
             so we comment the private keyword.
         */
-        /*private*/ function _resolve($onfulfill, $onreject, $next, $x) {
+        /*private*/ function privateResolve($onfulfill, $onreject, $next, $x) {
             $self = $this;
             $resolvePromise = function($y) use ($onfulfill, $onreject, $self, $next) {
-                $self->_resolve($onfulfill, $onreject, $next, $y);
+                $self->privateResolve($onfulfill, $onreject, $next, $y);
             };
             $rejectPromise = function($r) use ($onreject, $self, $next) {
-                $self->_reject($onreject, $next, $r);
+                $self->privateReject($onreject, $next, $r);
             };
             if (Future\isFuture($x)) {
                 if ($x === $this) {
@@ -145,7 +143,7 @@ namespace Hprose {
                 }
             }
             if ($onfulfill) {
-                $this->_call($onfulfill, $next, $x);
+                $this->privateCall($onfulfill, $next, $x);
             }
             else {
                 $next->resolve($x);
@@ -158,7 +156,7 @@ namespace Hprose {
                 $this->value = $value;
                 while (count($this->subscribers) > 0) {
                     $subscriber = array_shift($this->subscribers);
-                    $this->_resolve($subscriber['onfulfill'],
+                    $this->privateResolve($subscriber['onfulfill'],
                                     $subscriber['onreject'],
                                     $subscriber['next'],
                                     $value);
@@ -173,7 +171,7 @@ namespace Hprose {
                 while (count($this->subscribers) > 0) {
                     $subscriber = array_shift($this->subscribers);
                     if (is_callable($subscriber['onreject'])) {
-                        $this->_call($subscriber['onreject'],
+                        $this->privateCall($subscriber['onreject'],
                                      $subscriber['next'],
                                      $reason);
                     }
@@ -190,11 +188,11 @@ namespace Hprose {
             if (($onfulfill !== NULL) or ($onreject !== NULL)) {
                 $next = new Future();
                 if ($this->state === self::FULFILLED) {
-                    $this->_resolve($onfulfill, $onreject, $next, $this->value);
+                    $this->privateResolve($onfulfill, $onreject, $next, $this->value);
                 }
                 elseif ($this->state === self::REJECTED) {
                     if ($onreject !== NULL) {
-                        $this->_call($onreject, $next, $this->reason);
+                        $this->privateCall($onreject, $next, $this->reason);
                     }
                     else {
                         $next->reject($this->reason);
@@ -250,16 +248,12 @@ namespace Hprose {
         public function whenComplete($action) {
             return $this->then(
                 function($v) use ($action) {
-                    $f = call_user_func($action);
-                    if ($f === NULL) { return $v; }
-                    $f = Future\toFuture($f);
-                    return $f->then(function() use($v) { return $v; });
+                    call_user_func($action);
+                    return $v;
                 },
                 function($e) use ($action) {
-                    $f = call_user_func($action);
-                    if ($f === NULL) { throw $e; }
-                    $f = Future\toFuture($f);
-                    return $f->then(function() use($e) { throw $e; });
+                    call_user_func($action);
+                    throw $e;
                 }
             );
         }
