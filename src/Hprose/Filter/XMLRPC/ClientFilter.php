@@ -14,7 +14,7 @@
  *                                                        *
  * xml-rpc client filter class for php 5.3+               *
  *                                                        *
- * LastModified: Jul 6, 2016                              *
+ * LastModified: Jul 11, 2016                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -34,11 +34,7 @@ namespace Hprose\Filter\XMLRPC {
                 $writer->serialize($result);
             }
             $stream->write(\Hprose\Tags::TagEnd);
-            $data = $stream->toString();
-            unset($result);
-            unset($writer);
-            unset($stream);
-            return $data;
+            return $stream->toString();
         }
 
         function outputFilter($data, \stdClass $context) {
@@ -48,7 +44,7 @@ namespace Hprose\Filter\XMLRPC {
             $reader = new \Hprose\Reader($stream);
             $tag = $stream->getc();
             if ($tag === \Hprose\Tags::TagCall) {
-                $method = $reader->readString();;
+                $method = $reader->readString();
                 $tag = $stream->getc();
                 if ($tag == \Hprose\Tags::TagList) {
                     $reader->reset();
@@ -58,8 +54,6 @@ namespace Hprose\Filter\XMLRPC {
             else {
                 throw new \Exception("Error Processing Request", 1);
             }
-            unset($reader);
-            unset($stream);
             return xmlrpc_encode_request($method, $params);
         }
     }

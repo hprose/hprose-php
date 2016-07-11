@@ -10,72 +10,16 @@
 
 /**********************************************************\
  *                                                        *
- * Hprose/functions.php                                   *
+ * Hprose/Future/functions.php                            *
  *                                                        *
  * some helper functions for php 5.3+                     *
  *                                                        *
- * LastModified: Jul 10, 2016                             *
+ * LastModified: Jul 11, 2016                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
 
-namespace {
-    if (!interface_exists("Throwable")) {
-        interface Throwable {
-            public function getMessage();
-            public function getCode();
-            public function getFile();
-            public function getLine();
-            public function getTrace();
-            public function getTraceAsString();
-            public function getPrevious();
-            public function __toString();
-        }
-    }
-}
-
-namespace Hprose {
-    function deferred() {
-        return new Deferred();
-    }
-}
-
 namespace Hprose\Future {
-    class UncatchableException extends \Exception {}
-
-    class Wrapper {
-        protected $obj;
-        public function __construct($obj) {
-            $this->obj = $obj;
-        }
-        public function __call($name, array $arguments) {
-            $method = array($this->obj, $name);
-            return all($arguments)->then(function($args) use ($method) {
-                return call_user_func_array($method, $args);
-            });
-        }
-        public function __get($name) {
-            return $this->obj->$name;
-        }
-        public function __set($name, $value) {
-            $this->obj->$name = $value;
-        }
-        public function __isset($name) {
-            return isset($this->obj->$name);
-        }
-        public function __unset($name) {
-            unset($this->obj->$name);
-        }
-    }
-
-    class CallableWrapper extends Wrapper {
-        public function __invoke() {
-            $obj = $this->obj;
-            return all(func_get_args())->then(function($args) use ($obj) {
-                return call_user_func_array($obj, $args);
-            });
-        }
-    }
 
     function isFuture($obj) {
         return $obj instanceof \Hprose\Future;
@@ -133,8 +77,7 @@ namespace Hprose\Future {
     }
 
     function all($array) {
-        $array = toFuture($array);
-        return $array->then(
+        return toFuture($array)->then(
             function($array) {
                 $keys = array_keys($array);
                 $n = count($array);
@@ -174,7 +117,7 @@ namespace Hprose\Future {
                 $future = new \Hprose\Future();
                 foreach ($array as $element) {
                     toFuture($element)->fill($future);
-                };
+                }
                 return $future;
             }
         );
@@ -185,7 +128,6 @@ namespace Hprose\Future {
             function($array) {
                 $keys = array_keys($array);
                 $n = count($array);
-                $result = array();
                 if ($n === 0) {
                     throw new \RangeException('any(): $array must not be empty');
                 }
@@ -214,8 +156,7 @@ namespace Hprose\Future {
     }
 
     function settle($array) {
-        $array = toFuture($array);
-        return $array->then(
+        return toFuture($array)->then(
             function($array) {
                 $keys = array_keys($array);
                 $n = count($array);
@@ -239,7 +180,7 @@ namespace Hprose\Future {
                 foreach ($array as $index => $element) {
                     $f = toFuture($element);
                     $f->whenComplete($oncomplete($index, $f));
-                };
+                }
                 return $future;
             }
         );
@@ -378,7 +319,7 @@ namespace Hprose\Future {
         );
     }
 
-    function diff($array1, $array2/*, $...*/) {
+    function diff(/*$array1, $array2, ...*/) {
         $args = func_get_args();
         for ($i = 0, $n = func_num_args(); $i < $n; ++$i) {
             $args[$i] = all($args[$i]);
@@ -390,7 +331,7 @@ namespace Hprose\Future {
         );
     }
 
-    function udiff($array1, $array2/*, $...*/) {
+    function udiff(/*$array1, $array2, $...*/) {
         $args = func_get_args();
         $callback = array_pop($args);
         for ($i = 0, $n = func_num_args() - 1; $i < $n; ++$i) {
@@ -465,20 +406,5 @@ namespace Hprose\Future {
             $next();
             return $future;
         }
-    }
-}
-
-namespace Hprose\Promise {
-    function all($array) {
-        return \Hprose\Future\all($array);
-    }
-    function race($array) {
-        return \Hprose\Future\race($array);
-    }
-    function resolve($value) {
-        return \Hprose\Future\value($value);
-    }
-    function reject($reason) {
-        return \Hprose\Future\error($reason);
     }
 }
