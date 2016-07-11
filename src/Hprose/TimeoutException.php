@@ -21,4 +21,6 @@
 
 namespace Hprose;
 
-class TimeoutException extends \Exception {}
+use Exception;
+
+class TimeoutException extends Exception {}
