@@ -38,18 +38,17 @@ class Future {
 
     public function __construct($computation = NULL) {
         if (is_callable($computation)) {
-            $self = $this;
             try {
-                $self->resolve(call_user_func($computation));
+                $this->resolve(call_user_func($computation));
             }
             catch (UncatchableException $e) {
                 throw $e->getPrevious();
             }
             catch (Exception $e) {
-                $self->reject($e);
+                $this->reject($e);
             }
             catch (Throwable $e) {
-                $self->reject($e);
+                $this->reject($e);
             }
         }
     }

@@ -352,9 +352,9 @@ function udiff(/*$array1, $array2, $...*/) {
 
 function toPromise($obj) {
     if (isFuture($obj)) return $obj;
+    if (class_exists("\\Generator") && ($obj instanceof \Generator)) return co($obj);
     if (is_array($obj)) return arrayToPromise($obj);
     if (is_object($obj)) return objectToPromise($obj);
-    if (class_exists("\\Generator") && ($obj instanceof \Generator)) return co($obj);
     return value($obj);
 }
 
@@ -376,39 +376,39 @@ function objectToPromise($obj) {
 }
 
 if (class_exists("\\Generator")) {
-    function co($generator) {
+    function co($generator/*, arg1, arg2...*/) {
         if (is_callable($generator)) {
-            $generator = $generator();
+            $args = array_slice(func_get_args(), 1);
+            $generator = call_user_func_array($generator, $args);
         }
-        elseif (!($generator instanceof \Generator)) {
-            return $generator;
+        if (!($generator instanceof \Generator)) {
+            return value($generator);
         }
-        $future = new Future();
-        $next = function() use ($generator, &$next, $future) {
+        $next = function($yield) use ($generator, &$next) {
             if ($generator->valid()) {
-                $current = $generator->current();
-                if (is_callable($current)) {
-                    $current = $current();
-                }
-                toPromise($current)->then(function($value) use ($generator, &$next) {
-                    $generator->send($value);
-                    $next();
+                return toPromise($yield)->then(function($value) use ($generator, &$next) {
+                    $yield = $generator->send($value);
+                    if ($generator->valid()) {
+                        return $next($yield);
+                    }
+                    if (method_exists($generator, "getReturn")) {
+                        return $generator->getReturn();
+                    }
+                    return $value;
                 },
                 function($e) use ($generator, &$next) {
-                    $generator->throw($e);
-                    $next();
+                    return $next($generator->throw($e));
                 });
             }
             else {
                 if (method_exists($generator, "getReturn")) {
-                    $future->resolve($generator->getReturn());
+                    return value($generator->getReturn());
                 }
                 else {
-                    $future->resolve(null);
+                    return value(null);
                 }
             }
         };
-        $next();
-        return $future;
+        return $next($generator->current());
     }
 }

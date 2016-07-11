@@ -22,8 +22,10 @@
 namespace Hprose;
 
 class Promise extends Future {
-    public function __construct($executor) {
+    public function __construct($executor = null) {
         parent::__construct();
-        call_user_func($executor, array($this, "resolve"), array($this, "reject"));
+        if (is_callable($executor)) {
+            call_user_func($executor, array($this, "resolve"), array($this, "reject"));
+        }
     }
 }
