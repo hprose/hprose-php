@@ -14,11 +14,13 @@
  *                                                        *
  * UncatchableException for php 5.3+                      *
  *                                                        *
- * LastModified: Jul 10, 2016                             *
+ * LastModified: Jul 11, 2016                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
 
-namespace Hprose\Future {
-    class UncatchableException extends \Exception {}
-}
+namespace Hprose\Future;
+
+use Exception;
+
+class UncatchableException extends Exception {}

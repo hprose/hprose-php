@@ -21,6 +21,11 @@
 
 namespace Hprose;
 
+use Exception;
+use Throwable;
+use TypeError;
+use Hprose\Future\UncatchableException;
+
 class Future {
     const PENDING = 0;
     const FULFILLED = 1;
@@ -37,13 +42,13 @@ class Future {
             try {
                 $self->resolve(call_user_func($computation));
             }
-            catch (Future\UncatchableException $e) {
+            catch (UncatchableException $e) {
                 throw $e->getPrevious();
             }
-            catch (\Exception $e) {
+            catch (Exception $e) {
                 $self->reject($e);
             }
-            catch (\Throwable $e) {
+            catch (Throwable $e) {
                 $self->reject($e);
             }
         }
@@ -59,13 +64,13 @@ class Future {
             $r = call_user_func($callback, $x);
             $next->resolve($r);
         }
-        catch (Future\UncatchableException $e) {
+        catch (UncatchableException $e) {
             throw $e->getPrevious();
         }
-        catch (\Exception $e) {
+        catch (Exception $e) {
             $next->reject($e);
         }
-        catch (\Throwable $e) {
+        catch (Throwable $e) {
             $next->reject($e);
         }
     }
@@ -99,7 +104,7 @@ class Future {
         };
         if (Future\isFuture($x)) {
             if ($x === $this) {
-                $rejectPromise(new \TypeError('Self resolution'));
+                $rejectPromise(new TypeError('Self resolution'));
                 return;
             }
             $x->then($resolvePromise, $rejectPromise);
@@ -125,16 +130,16 @@ class Future {
                         }
                     );
                 }
-                catch (Future\UncatchableException $e) {
+                catch (UncatchableException $e) {
                     throw $e->getPrevious();
                 }
-                catch (\Exception $e) {
+                catch (Exception $e) {
                     if ($notrun) {
                         $notrun = false;
                         $rejectPromise($e);
                     }
                 }
-                catch (\Throwable $e) {
+                catch (Throwable $e) {
                     if ($notrun) {
                         $notrun = false;
                         $rejectPromise($e);
@@ -213,7 +218,7 @@ class Future {
 
     public function done($onfulfill, $onreject = NULL) {
         $this->then($onfulfill, $onreject)->then(NULL, function($error) {
-            throw new Future\UncatchableException("", 0, $error);
+            throw new UncatchableException("", 0, $error);
         });
     }
 
