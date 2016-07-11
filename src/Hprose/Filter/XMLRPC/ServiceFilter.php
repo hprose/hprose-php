@@ -14,7 +14,7 @@
  *                                                        *
  * xml-rpc service filter class for php 5.3+              *
  *                                                        *
- * LastModified: Jul 6, 2016                              *
+ * LastModified: Jul 11, 2016                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -37,8 +37,6 @@ namespace Hprose\Filter\XMLRPC {
                 }
                 $stream->write(\Hprose\Tags::TagEnd);
                 $data = $stream->toString();
-                unset($stream);
-                unset($writer);
             }
             return $data;
         }
@@ -57,14 +55,16 @@ namespace Hprose\Filter\XMLRPC {
                                 break;
                             case \Hprose\Tags::TagError:
                                 $lasterror = error_get_last();
-                                $result = array("faultCode" => $lasterror["type"], "faultString" => $reader->unserialize());
+                                $result = array(
+                                    "faultCode" => $lasterror["type"],
+                                    "faultString" => $reader->unserialize()
+                                );
                                 break;
                             case \Hprose\Tags::TagFunctions:
                                 $result = $reader->unserialize();
                                 break;
                             default:
                                 return xmlrpc_encode($result);
-                                break;
                         }
                     }
                 }
