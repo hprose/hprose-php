@@ -21,6 +21,11 @@
 
 namespace Hprose;
 
+use stdClass;
+use Closure;
+use Exception;
+use Throwable;
+
 abstract class HandlerManager {
     private $invokeHandlers = array();
     private $beforeFilterHandlers = array();
@@ -33,49 +38,64 @@ abstract class HandlerManager {
     protected $afterFilterHandler;
     public function __construct() {
         $self = $this;
-        $this->defaultInvokeHandler = function($name, array &$args, \stdClass $context) use ($self) {
+        $this->defaultInvokeHandler = function(/*string*/ $name, array &$args, stdClass $context) use ($self) {
             return $self->invokeHandler($name, $args, $context);
         };
-        $this->defaultBeforeFilterHandler = function($request, \stdClass $context) use ($self) {
+        $this->defaultBeforeFilterHandler = function(/*string*/ $request, stdClass $context) use ($self) {
             return $self->beforeFilterHandler($request, $context);
         };
-        $this->defaultAfterFilterHandler = function($request, \stdClass $context) use ($self) {
+        $this->defaultAfterFilterHandler = function(/*string*/ $request, stdClass $context) use ($self) {
             return $self->afterFilterHandler($request, $context);
         };
         $this->invokeHandler = $this->defaultInvokeHandler;
         $this->beforeFilterHandler = $this->defaultBeforeFilterHandler;
         $this->afterFilterHandler = $this->defaultAfterFilterHandler;
     }
-    protected abstract function invokeHandler($name, array &$args, \stdClass $context);
-    protected abstract function beforeFilterHandler($request, \stdClass $context);
-    protected abstract function afterFilterHandler($request, \stdClass $context);
-    protected function getNextInvokeHandler($next, $handler) {
-        return function($name, array $args, \stdClass $context) use ($next, $handler) {
+    /*
+        This method is a protected method.
+        But PHP 5.3 can't call protected method in closure,
+        so we comment the protected keyword.
+    */
+    /*protected*/ abstract function invokeHandler(/*string*/ $name, array &$args, stdClass $context);
+    /*
+        This method is a protected method.
+        But PHP 5.3 can't call protected method in closure,
+        so we comment the protected keyword.
+    */
+    /*protected*/ abstract function beforeFilterHandler(/*string*/ $request, stdClass $context);
+    /*
+        This method is a protected method.
+        But PHP 5.3 can't call protected method in closure,
+        so we comment the protected keyword.
+    */
+    /*protected*/ abstract function afterFilterHandler(/*string*/ $request, stdClass $context);
+    protected function getNextInvokeHandler(Closure $next, /*callable*/ $handler) {
+        return function(/*string*/ $name, array $args, stdClass $context) use ($next, $handler) {
                 try {
                     return Future\toPromise(call_user_func($handler, $name, $args, $context, $next));
                 }
-                catch (\Exception $e) {
+                catch (Exception $e) {
                     return Future\error($e);
                 }
-                catch (\Throwable $e) {
+                catch (Throwable $e) {
                     return Future\error($e);
                 }
         };
     }
-    protected function getNextFilterHandler($next, $handler) {
-        return function($request, \stdClass $context) use ($next, $handler) {
+    protected function getNextFilterHandler(Closure $next, /*callable*/ $handler) {
+        return function(/*string*/ $request, stdClass $context) use ($next, $handler) {
             try {
                 return Future\toPromise(call_user_func($handler, $request, $context, $next));
             }
-            catch (\Exception $e) {
+            catch (Exception $e) {
                 return Future\error($e);
             }
-            catch (\Throwable $e) {
+            catch (Throwable $e) {
                 return Future\error($e);
             }
         };
     }
-    public function addInvokeHandler($handler) {
+    public function addInvokeHandler(/*callable*/ $handler) {
         if ($handler == null) return;
         $this->invokeHandlers[] = $handler;
         $next = $this->defaultInvokeHandler;
@@ -85,7 +105,7 @@ abstract class HandlerManager {
         $this->invokeHandler = $next;
         return $this;
     }
-    public function addBeforeFilterHandler($handler) {
+    public function addBeforeFilterHandler(/*callable*/ $handler) {
         if ($handler == null) return;
         $this->beforeFilterHandlers[] = $handler;
         $next = $this->defaultBeforeFilterHandler;
@@ -95,7 +115,7 @@ abstract class HandlerManager {
         $this->beforeFilterHandler = $next;
         return $this;
     }
-    public function addAfterFilterHandler($handler) {
+    public function addAfterFilterHandler(/*callable*/ $handler) {
         if ($handler == null) return;
         $this->afterFilterHandlers[] = $handler;
         $next = $this->defaultAfterFilterHandler;
