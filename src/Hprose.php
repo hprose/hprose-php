@@ -19,9 +19,11 @@
  *                                                        *
 \**********************************************************/
 
-if (!function_exists('Hprose\nextTick')) {
-    require_once 'Hprose/functions.php';
-}
+require_once 'Throwable.php';
+require_once 'TypeError.php';
+require_once 'Hprose/Future/functions.php';
+require_once 'Hprose/Promise/functions.php';
+require_once 'Hprose/functions.php';
 
 spl_autoload_register(function($className) {
     if (strtolower(substr($className, 0, 6)) === "hprose") {
@@ -150,13 +152,4 @@ spl_autoload_register(function($className) {
     return false;
 });
 
-if (!function_exists('hprose_serialize')) {
-    function hprose_serialize($var, $simple = false) {
-        return \Hprose\Formatter::serialize($var, $simple);
-    }
-}
-if (!function_exists('hprose_unserialize')) {
-    function hprose_unserialize($data, $simple = false) {
-        return \Hprose\Formatter::unserialize($data, $simple);
-    }
-}
+require_once 'functions.php';
