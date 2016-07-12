@@ -85,12 +85,19 @@ namespace Hprose\Base {
                 $error = $self->sendError($err, $context);
             }, $this->error_types);
 
-            ob_start();
-            ob_implicit_flush(0);
+            if( !php_sapi_name() == 'cli' )
+            {
+                ob_start();
+                ob_implicit_flush(0);
+            }
+
 
             $result = parent::defaultHandle($request, $context);
 
-            ob_end_clean();
+            if( !php_sapi_name() == 'cli' )
+            {
+                ob_end_clean();
+            }
             restore_error_handler();
             return ($error === null) ? $result : $error;
         }
