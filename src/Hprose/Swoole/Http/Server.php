@@ -32,6 +32,12 @@ namespace Hprose\Swoole\Http {
         public function addListener($host, $port) {
             $this->server->addListener($host, $port);
         }
+        public function on($name, $callback) {
+            $this->server->on($name, $callback);
+        }
+        public function listen($host, $port, $type) {
+            return $this->server->listen($host, $port, $type);
+        }
         public function start() {
             $this->server->on('request', array($this, 'handle'));
             $this->server->start();
