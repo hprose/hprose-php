@@ -81,6 +81,10 @@ class Client extends \Hprose\Client {
     public function setOptions(array $options) {
         $this->options = $options;
     }
+    public function set($key, $value) {
+        $this->options[$key] = $value;
+        return $this;
+    }
     public function loop() {
         if ($this->fullDuplex) {
             $this->fdtrans->loop();
