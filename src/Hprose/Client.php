@@ -66,6 +66,9 @@ abstract class Client extends HandlerManager {
         tryRegisterClientFactory("http", "\\Hprose\\Http\\Client");
         tryRegisterClientFactory("tcp", "\\Hprose\\Socket\\Client");
         tryRegisterClientFactory("ssl", "\\Hprose\\Socket\\Client");
+        tryRegisterClientFactory("sslv2", "\\Hprose\\Socket\\Client");
+        tryRegisterClientFactory("sslv3", "\\Hprose\\Socket\\Client");
+        tryRegisterClientFactory("tls", "\\Hprose\\Socket\\Client");
         tryRegisterClientFactory("unix", "\\Hprose\\Socket\\Client");
         // }
         self::$clientFactoriesInited = true;
