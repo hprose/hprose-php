@@ -14,7 +14,7 @@
  *                                                        *
  * hprose socket Transporter class for php 5.3+           *
  *                                                        *
- * LastModified: Jul 14, 2016                             *
+ * LastModified: Jul 12, 2016                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -31,9 +31,9 @@ class FullDuplexTransporter extends Transporter {
         while (!empty($this->pool)) {
             $conn = array_pop($this->pool);
             if ($conn->isConnected()) {
-                if ($this->counts[$conn->sock] === 0) {
-                    swoole_timer_clear($this->timers[$conn->sock]);
-                    unset($this->timers[$conn->sock]);
+                if ($conn->count === 0) {
+                    swoole_timer_clear($conn->timer);
+                    $conn->timer = null;
                     $conn->wakeup();
                 }
                 return $conn;
@@ -43,39 +43,51 @@ class FullDuplexTransporter extends Transporter {
     }
     public function init($conn) {
         $self = $this;
-        $this->counts[$conn->sock] = 0;
-        $this->futures[$conn->sock] = array();
-        $this->timeoutIds[$conn->sock] = array();
-        $this->receives[$conn->sock] = function($conn, $data, $id) use ($self) {
-            if (isset($self->futures[$conn->sock][$id])) {
-                $future = $self->futures[$conn->sock][$id];
+        $conn->count = 0;
+        $conn->futures = array();
+        $conn->timeoutIds = array();
+        $conn->receive = function($conn, $data, $id) use ($self) {
+            if (isset($conn->futures[$id])) {
+                $future = $conn->futures[$id];
                 $self->clean($conn, $id);
-                if ($self->counts[$conn->sock] === 0) {
+                if ($conn->count === 0) {
                     $self->recycle($conn);
                 }
                 $future->resolve($data);
             }
         };
+        $conn->on('close', function($conn) use ($self) {
+            if ($conn->errCode !== 0) {
+                $futures = $conn->futures;
+                $error = new Exception(socket_strerror($conn->errCode));
+                foreach ($futures as $id => $future) {
+                    $self->clean($conn, $id);
+                    $future->reject($error);
+                }
+            }
+            $self->size--;
+        });
     }
     public function recycle($conn) {
-        $self = $this;
         $conn->sleep();
-        $this->timers[$conn->sock] = swoole_timer_after($this->client->poolTimeout, function() use ($self, $conn) {
-            swoole_timer_clear($self->timers[$conn->sock]);
-            $conn->close();
+        $conn->timer = swoole_timer_after($this->client->poolTimeout, function() use ($conn) {
+            swoole_timer_clear($conn->timer);
+            if ($conn->isConnected()) {
+                $conn->close();
+            }
         });
     }
     public function clean($conn, $id) {
-        if (isset($this->timeountIds[$conn->sock][$id])) {
-            swoole_timer_clear($this->timeountIds[$conn->sock][$id]);
-            unset($this->timeountIds[$conn->sock][$id]);
+        if (isset($conn->timeountIds[$id])) {
+            swoole_timer_clear($conn->timeountIds[$id]);
+            unset($conn->timeountIds[$id]);
         }
-        unset($this->futures[$conn->sock][$id]);
-        $this->counts[$conn->sock]--;
+        unset($conn->futures[$id]);
+        $conn->count--;
         $this->sendNext($conn);
     }
     public function sendNext($conn) {
-        if ($this->counts[$conn->sock] < 10) {
+        if ($conn->count < 10) {
             if (!empty($this->requests)) {
                 $request = array_pop($this->requests);
                 $request[] = $conn;
@@ -92,16 +104,16 @@ class FullDuplexTransporter extends Transporter {
         $self = $this;
         $timeout = $context->timeout;
         if ($timeout > 0) {
-            $this->timeoutIds[$conn->sock][$id] = swoole_timer_after($timeout, function() use ($self, $future, $id, $conn) {
+            $conn->timeoutIds[$id] = swoole_timer_after($timeout, function() use ($self, $future, $id, $conn) {
                 $self->clean($conn, $id);
-                if ($self->counts[$conn->sock] === 0) {
+                if ($conn->count === 0) {
                     $self->recycle($conn);
                 }
                 $future->reject(new TimeoutException('timeout'));
             });
         }
-        $this->counts[$conn->sock]++;
-        $this->futures[$conn->sock][$id] = $future;
+        $conn->count++;
+        $conn->futures[$id] = $future;
         $header = pack('NN', strlen($request) | 0x80000000, $id);
         $conn->send($header);
         $conn->send($request);
@@ -119,23 +131,12 @@ class FullDuplexTransporter extends Transporter {
         else if ($this->size < $this->client->maxPoolSize) {
             $self = $this;
             $conn = $this->create();
+            $self->init($conn);
             $conn->on('error', function($conn) use ($self, $future) {
                 $self->size--;
                 $future->reject(new Exception(socket_strerror($conn->errCode)));
             });
-            $conn->on('close', function($conn) use ($self) {
-                if ($conn->errCode !== 0) {
-                    $futures = $self->futures[$conn->sock];
-                    $error = new Exception(socket_strerror($conn->errCode));
-                    foreach ($futures as $id => $future) {
-                        $self->clean($conn, $id);
-                        $future->reject($error);
-                    }
-                }
-                $self->size--;
-            });
             $conn->on('connect', function($conn) use ($self, $request, $future, $id, $context) {
-                $self->init($conn);
                 $self->send($request, $future, $id, $context, $conn);
             });
             $conn->connect($this->client->host, $this->client->port);

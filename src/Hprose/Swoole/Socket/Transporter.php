@@ -14,7 +14,7 @@
  *                                                        *
  * hprose socket Transporter class for php 5.3+           *
  *                                                        *
- * LastModified: Jul 14, 2016                             *
+ * LastModified: Jul 12, 2016                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -28,11 +28,6 @@ abstract class Transporter {
     public $uri;
     public $size = 0;
     public $pool = array();
-    public $receives = array();
-    public $futures = array();
-    public $timeoutIds = array();
-    public $counts = array();
-    public $timers = array();
     public $requests = array();
     public function __construct(Client $client) {
         $this->client = $client;
@@ -40,9 +35,9 @@ abstract class Transporter {
     }
     public function close() {
         foreach ($this->pool as $conn) {
-            if (isset($this->timers[$conn->sock])) {
-                swoole_timer_clear($this->timers[$conn->sock]);
-                unset($this->timers[$conn->sock]);
+            if (isset($conn->timer)) {
+                swoole_timer_clear($conn->timer);
+                unset($conn->timer);
             }
             if ($conn->isConnected()) {
                 $conn->close();
@@ -50,12 +45,11 @@ abstract class Transporter {
         }
     }
     public function setReceiveEvent($conn) {
-        $self = $this;
         $bytes = '';
         $headerLength = 4;
         $dataLength = -1;
         $id = null;
-        $conn->on('receive', function($conn, $chunk) use ($self, &$bytes, &$headerLength, &$dataLength, &$id) {
+        $conn->on('receive', function($conn, $chunk) use (&$bytes, &$headerLength, &$dataLength, &$id) {
             $bytes .= $chunk;
             while (true) {
                 $length = strlen($bytes);
@@ -70,7 +64,7 @@ abstract class Transporter {
                     list(, $id) = unpack('N', substr($bytes, 4, 4));
                 }
                 if (($dataLength >= 0) && (($length - $headerLength) >= $dataLength)) {
-                    $receive = $self->receives[$conn->sock];
+                    $receive = $conn->receive;
                     $receive($conn, substr($bytes, $headerLength, $dataLength), $id);
                     $bytes = substr($bytes, $headerLength + $dataLength);
                     $id = null;
