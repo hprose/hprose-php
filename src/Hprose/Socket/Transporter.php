@@ -147,14 +147,20 @@ abstract class Transporter {
         $errstr = '';
         $context = stream_context_create($client->options);
         for ($i = 0; $i < $n; $i++) {
-            $stream = @stream_socket_client(
-                $client->uri . '/' . $i,
-                $errno,
-                $errstr,
-                0,
-                STREAM_CLIENT_ASYNC_CONNECT | STREAM_CLIENT_PERSISTENT,
-                $context
-            );
+            $scheme = parse_url($client->uri, PHP_URL_SCHEME);
+            if ($scheme == 'unix') {
+                $stream = fsockopen('unix://' . parse_url($client->uri, PHP_URL_PATH));
+            }
+            else {
+                $stream = @stream_socket_client(
+                    $client->uri . '/' . $i,
+                    $errno,
+                    $errstr,
+                    0,
+                    STREAM_CLIENT_ASYNC_CONNECT | STREAM_CLIENT_PERSISTENT,
+                    $context
+                );
+            }
             if (($stream !== false) &&
                 (@stream_set_blocking($stream, false) !== false)) {
                 @stream_set_read_buffer($stream, $client->readBuffer);
