@@ -22,6 +22,7 @@
 namespace Hprose;
 
 use stdClass;
+use Closure;
 use Exception;
 use Throwable;
 use ReflectionMethod;
