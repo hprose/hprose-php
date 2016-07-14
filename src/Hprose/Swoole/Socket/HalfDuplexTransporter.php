@@ -83,7 +83,9 @@ class HalfDuplexTransporter extends Transporter {
         };
         $conn->onclose = function($conn) use ($self, $future) {
             $self->clean($conn);
-            $future->reject(new Exception(socket_strerror($conn->errCode)));
+            if ($conn->errCode !== 0) {
+                $future->reject(new Exception(socket_strerror($conn->errCode)));
+            }
         };
         $header = pack('N', strlen($request));
         $conn->send($header);
@@ -99,7 +101,9 @@ class HalfDuplexTransporter extends Transporter {
             $conn = $this->create();
             $conn->onclose = function($conn) use ($self, $future) {
                 $self->clean($conn);
-                $future->reject(new Exception(socket_strerror($conn->errCode)));
+                if ($conn->errCode !== 0) {
+                    $future->reject(new Exception(socket_strerror($conn->errCode)));
+                }
             };
             $conn->on('close', function($conn) {
                 $onclose = $conn->onclose;
@@ -109,7 +113,6 @@ class HalfDuplexTransporter extends Transporter {
                 $future->reject(new Exception(socket_strerror($conn->errCode)));
             });
             $conn->on('connect', function($conn) use ($self, $request, $future, $context) {
-                var_dump('xxx');
                 $self->send($request, $future, $context, $conn);
             });
             $conn->connect($this->client->host, $this->client->port);
