@@ -46,7 +46,7 @@ class FullDuplexTransporter extends Transporter {
         $conn->count = 0;
         $conn->futures = array();
         $conn->timeoutIds = array();
-        $conn->receive = function($conn, $data, $id) use ($self) {
+        $conn->onreceive = function($conn, $data, $id) use ($self) {
             if (isset($conn->futures[$id])) {
                 $future = $conn->futures[$id];
                 $self->clean($conn, $id);

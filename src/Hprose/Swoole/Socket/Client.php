@@ -84,12 +84,12 @@ class Client extends \Hprose\Client {
                 case 'sslv2':
                 case 'sslv3':
                 case 'tls':
-                    $this->type = SWOOLE_TCP;
+                    $this->type = SWOOLE_SOCK_TCP;
                     $this->host = $p['host'];
                     $this->port = $p['port'];
                     break;
                 case 'tcp6':
-                    $this->type = SWOOLE_TCP6;
+                    $this->type = SWOOLE_SOCK_TCP6;
                     $this->host = $p['host'];
                     $this->port = $p['port'];
                     break;

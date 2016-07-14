@@ -26,7 +26,6 @@ use Exception;
 use Hprose\TimeoutException;
 
 class HalfDuplexTransporter extends Transporter {
-    private $nextid = 0;
     public function fetch() {
         while (!empty($this->pool)) {
             $conn = array_pop($this->pool);
@@ -38,33 +37,6 @@ class HalfDuplexTransporter extends Transporter {
             }
         }
         return null;
-    }
-    public function init($conn) {
-        $self = $this;
-        $conn->count = 0;
-        $conn->futures = array();
-        $conn->timeoutIds = array();
-        $conn->receive = function($conn, $data, $id) use ($self) {
-            if (isset($conn->futures[$id])) {
-                $future = $conn->futures[$id];
-                $self->clean($conn, $id);
-                if ($conn->count === 0) {
-                    $self->recycle($conn);
-                }
-                $future->resolve($data);
-            }
-        };
-        $conn->on('close', function($conn) use ($self) {
-            if ($conn->errCode !== 0) {
-                $futures = $conn->futures;
-                $error = new Exception(socket_strerror($conn->errCode));
-                foreach ($futures as $id => $future) {
-                    $self->clean($conn, $id);
-                    $future->reject($error);
-                }
-            }
-            $self->size--;
-        });
     }
     public function recycle($conn) {
         if (array_search($conn, $this->pool, true) === false) {
@@ -104,15 +76,15 @@ class HalfDuplexTransporter extends Transporter {
                 $future->reject(new TimeoutException('timeout'));
             });
         }
-        $conn->receive = function($conn, $data) use ($self, $future) {
+        $conn->onreceive = function($conn, $data) use ($self, $future) {
             $self->clean($conn);
             $self->sendNext($conn);
             $future->resolve($data);
         };
-        $conn->on('close', function($conn) use ($self, $future) {
+        $conn->onclose = function($conn) use ($self, $future) {
             $self->clean($conn);
             $future->reject(new Exception(socket_strerror($conn->errCode)));
-        });
+        };
         $header = pack('N', strlen($request));
         $conn->send($header);
         $conn->send($request);
@@ -125,14 +97,19 @@ class HalfDuplexTransporter extends Transporter {
         else if ($this->size < $this->client->maxPoolSize) {
             $self = $this;
             $conn = $this->create();
-            $conn->on('close', function($conn) use ($self, $future) {
+            $conn->onclose = function($conn) use ($self, $future) {
                 $self->clean($conn);
                 $future->reject(new Exception(socket_strerror($conn->errCode)));
+            };
+            $conn->on('close', function($conn) {
+                $onclose = $conn->onclose;
+                $onclose($conn);
             });
             $conn->on('error', function($conn) use ($future) {
                 $future->reject(new Exception(socket_strerror($conn->errCode)));
             });
             $conn->on('connect', function($conn) use ($self, $request, $future, $context) {
+                var_dump('xxx');
                 $self->send($request, $future, $context, $conn);
             });
             $conn->connect($this->client->host, $this->client->port);

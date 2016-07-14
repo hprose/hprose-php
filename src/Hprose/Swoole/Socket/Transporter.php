@@ -64,8 +64,8 @@ abstract class Transporter {
                     list(, $id) = unpack('N', substr($bytes, 4, 4));
                 }
                 if (($dataLength >= 0) && (($length - $headerLength) >= $dataLength)) {
-                    $receive = $conn->receive;
-                    $receive($conn, substr($bytes, $headerLength, $dataLength), $id);
+                    $onreceive = $conn->onreceive;
+                    $onreceive($conn, substr($bytes, $headerLength, $dataLength), $id);
                     $bytes = substr($bytes, $headerLength + $dataLength);
                     $id = null;
                     $headerLength = 4;
