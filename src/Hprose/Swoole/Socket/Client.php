@@ -14,7 +14,7 @@
  *                                                        *
  * hprose swoole socket client library for php 5.3+       *
  *                                                        *
- * LastModified: Jul 14, 2016                             *
+ * LastModified: Jul 15, 2016                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -114,6 +114,13 @@ class Client extends \Hprose\Client {
         if (isset($this->hdtrans)) {
             $this->hdtrans->close();
         }
+    }
+    protected function wait($interval, $callback) {
+        $future = new Future();
+        swoole_timer_after($interval * 1000, function() use ($future, $callback) {
+            Future\sync($callback)->fill($future);
+        });
+        return $future;
     }
     protected function sendAndReceive($request, stdClass $context) {
         $future = new Future();
