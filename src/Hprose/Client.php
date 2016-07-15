@@ -14,7 +14,7 @@
  *                                                        *
  * hprose client class for php 5.3+                       *
  *                                                        *
- * LastModified: Jul 11, 2016                             *
+ * LastModified: Jul 16, 2016                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -336,11 +336,15 @@ abstract class Client extends HandlerManager {
             }
         }
         elseif ($tag === Tags::TagError) {
-            throw new Exception($reader->readString());
+            $e = new Exception($reader->readString());
+            $stream->close();
+            throw $e;
         }
         if ($tag !== Tags::TagEnd) {
+            $stream->close();
             throw new Exception("Wrong Response: \r\n$response");
         }
+        $stream->close();
         return $result;
     }
 
