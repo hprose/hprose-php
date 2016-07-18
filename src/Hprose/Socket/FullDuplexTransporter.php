@@ -83,6 +83,7 @@ class FullDuplexTransporter extends Transporter {
             $id = $headerInfo[1];
             $response = $o->queue[$stream_id][$id];
             $response->length = $headerInfo[0];
+            $o->responses[$stream_id] = $response;
         }
         return $response;
     }

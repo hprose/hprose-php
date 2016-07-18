@@ -125,11 +125,12 @@ abstract class Transporter {
         }
         $response->buffer .= $buffer;
         if (strlen($response->buffer) === $response->length) {
-            $o->results[$response->index]->resolve($response->buffer);
+            $result = $o->results[$response->index];
             $this->free($o, $response->index);
             $stream_id = (integer)$stream;
             unset($o->responses[$stream_id]);
             $this->afterRead($stream, $o, $response);
+            $result->resolve($response->buffer);
         }
     }
     private function checkTimeout($o) {
