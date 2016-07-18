@@ -14,98 +14,60 @@
  *                                                        *
  * hprose swoole server library for php 5.3+              *
  *                                                        *
- * LastModified: Jun 6, 2015                              *
+ * LastModified: Jul 19, 2016                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
 
 namespace Hprose\Swoole {
     class Server {
-        private $real_server = null;
-        private $type = null;
+        private $server = null;
         private $mode = SWOOLE_PROCESS;
-        private function init_server($url) {
-            $result = new \stdClass();
-            $p = parse_url($url);
+        public function __construct($uri, $mode = SWOOLE_PROCESS) {
+            $this->mode = $mode;
+            $p = parse_url($uri);
             if ($p) {
                 switch (strtolower($p['scheme'])) {
                     case 'ws':
                     case 'wss':
-                        if ($this->real_server) {
-                            if ($this->type == "ws" || $this->type == "wss") {
-                                $this->real_server->addListener($p['host'], $p['port']);
-                            }
-                            else {
-                                throw new \Exception($this->type . " server didn't support add " . $p['scheme'] . " scheme");
-                            }
-                        }
-                        else {
-                            $this->real_server = new \Hprose\Swoole\WebSocket\Server($p['host'], $p['port'], $this->mode);
-                            $this->type = strtolower($p['scheme']);
-                        }
+                        $this->server = new \Hprose\Swoole\WebSocket\Server($uri, $this->mode);
                         break;
                     case 'http':
                     case 'https':
-                        if ($this->real_server) {
-                            if ($this->type == "http" || $this->type == "https") {
-                                $this->real_server->addListener($p['host'], $p['port']);
-                            }
-                            else {
-                                throw new \Exception($this->type . " server didn't support add " . $p['scheme'] . " scheme");
-                            }
-                        }
-                        else {
-                            $this->real_server = new \Hprose\Swoole\Http\Server($p['host'], $p['port'], $this->mode);
-                            $this->type = strtolower($p['scheme']);
-                        }
+                        $this->server = new \Hprose\Swoole\Http\Server($uri, $this->mode);
                         break;
                     case 'tcp':
                     case 'tcp4':
                     case 'tcp6':
+                    case 'ssl':
+                    case 'sslv2':
+                    case 'sslv3':
+                    case 'tls':
                     case 'unix':
-                        if ($this->real_server) {
-                            if ($this->type == "socket") {
-                                $this->real_server->addListener($url);
-                            }
-                            else {
-                                throw new \Exception($this->type . " server didn't support add " . $p['scheme'] . " scheme");
-                            }
-                        }
-                        else {
-                            $this->real_server = new \Hprose\Swoole\Socket\Server($url, $this->mode);
-                            $this->type = "socket";
-                        }
+                        $this->server = new \Hprose\Swoole\Socket\Server($uri, $this->mode);
                         break;
                     default:
-                        throw new \Exception("Only support ws, wss, http, https, tcp, tcp4, tcp6 or unix scheme");
+                        throw new Exception("Can't support this scheme: {$p['scheme']}");
                 }
             }
             else {
-                throw new \Exception("Can't parse this url: " . $url);
+                throw new \Exception("Can't parse this url: " . $uri);
             }
-            return $result;
-        }
-        public function __construct($url, $mode = SWOOLE_PROCESS) {
-            $this->mode = $mode;
-            $this->init_server($url);
-        }
-        public function addListener($url) {
-            $this->init_server($url);
         }
         public function __call($name, $args) {
-            return call_user_func_array(array($this->real_server, $name), $args);
+            return call_user_func_array(array($this->server, $name), $args);
         }
         public function __set($name, $value) {
-            $this->real_server->$name = $value;
+            $this->server->$name = $value;
         }
         public function __get($name) {
-            return $this->real_server->$name;
+            return $this->server->$name;
         }
         public function __isset($name) {
-            return isset($this->real_server->$name);
+            return isset($this->server->$name);
         }
         public function __unset($name) {
-            unset($this->real_server->$name);
+            unset($this->server->$name);
         }
     }
 }

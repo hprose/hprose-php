@@ -14,23 +14,20 @@
  *                                                        *
  * hprose symfony http server class for php 5.3+          *
  *                                                        *
- * LastModified: Apr 20, 2015                             *
+ * LastModified: Jul 18, 2016                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
 
-namespace Hprose\Symfony {
-    use Symfony\Component\HttpFoundation\Request;
-    use Symfony\Component\HttpFoundation\Response;
-    use Symfony\Component\HttpFoundation\Session\Session;
+namespace Hprose\Symfony;
 
-    class Server extends Service {
-        public function start() {
-            $request = Request::createFromGlobals();
-            $response = new Response();
-            $session = new Session();
-            $session->start();
-            return $this->handle($request, $response, $session);
-        }
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
+
+class Server extends Service {
+    public function start() {
+        $request = Request::createFromGlobals();
+        $response = new Response();
+        return $this->handle($request, $response);
     }
 }

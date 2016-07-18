@@ -14,67 +14,139 @@
  *                                                        *
  * hprose swoole socket service library for php 5.3+      *
  *                                                        *
- * LastModified: Dec 11, 2015                             *
+ * LastModified: Jul 18, 2016                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
 
-namespace Hprose\Swoole\Socket {
-    class Service extends \Hprose\Base\Service {
-        const MAX_PACK_LEN = 0x200000;
-        static private $default_setting = array(
-            'open_length_check' => true,
-            'package_length_type' => 'N',
-            'package_length_offset' => 0,
-            'package_body_offset' => 4,
-            'open_eof_check' => false,
-        );
-        public $setting = array();
-        public function send($server, $fd, $data) {
-            $len = strlen($data);
-            if ($len < self::MAX_PACK_LEN - 4) {
-                return $server->send($fd, pack("N", $len) . $data);
-            }
-            if (!$server->send($fd, pack("N", $len))) {
-                return false;
-            }
-            for ($i = 0; $i < $len; $i += self::MAX_PACK_LEN) {
-                if (!$server->send($fd, substr($data, $i, min($len - $i, self::MAX_PACK_LEN)))) {
+namespace Hprose\Swoole\Socket;
+
+use stdClass;
+use Exception;
+use Throwable;
+use Hprose\Future;
+
+class Service extends \Hprose\Service {
+    const MAX_PACK_LEN = 0x200000;
+    public $settings = array();
+    public $onAccept = null;
+    public $onClose = null;
+    public function set($settings) {
+        $this->settings = array_replace($this->settings, $settings);
+    }
+    public function socketWrite($server, $socket, $data, $id) {
+        $dataLength = strlen($data);
+        if ($id === null) {
+            $server->send($socket, pack("N", $dataLength));
+        }
+        else {
+            $server->send($socket, pack("NN", $dataLength | 0x80000000, $id));
+        }
+        if ($dataLength <= self::MAX_PACK_LEN) {
+            return $server->send($socket, $data);
+        }
+        else {
+            for ($i = 0; $i < $dataLength; $i += self::MAX_PACK_LEN) {
+                if (!$server->send($socket, substr($data, $i, min($dataLength - $i, self::MAX_PACK_LEN)))) {
                     return false;
                 }
             }
             return true;
         }
-        public function set($setting) {
-            $this->setting = array_replace($this->setting, $setting);
-        }
-        public function handle($server) {
+    }
+    public function socketSend($server, $socket, $data, $id) {
+        if (Future\isFuture($data)) {
             $self = $this;
-            $setting = array_replace($this->setting, self::$default_setting);
-            if (!isset($setting['package_max_length']) ||
-                $setting['package_max_length'] < 0) {
-                $setting['package_max_length'] = self::MAX_PACK_LEN * 4;
-            }
-            $server->set($setting);
-            $server->on("receive", function ($server, $fd, $from_id, $data) use($self) {
-                $context = new \stdClass();
-                $context->server = $server;
-                $context->fd = $fd;
-                $context->from_id = $from_id;
-                $context->userdata = new \stdClass();
-
-                $self->user_fatal_error_handler = function($error) use ($self, $context) {
-                    $self->send($context->server, $context->fd, $self->sendError($error, $context));
-                };
-
-                $result = $self->defaultHandle(substr($data, 4), $context);
-                if ($result instanceof \Hprose\Future) {
-                    $result->then(function($result) use ($self, $server, $fd) { $self->send($server, $fd, $result); });
-                }
-                else {
-                    $self->send($server, $fd, $result);
-                }
+            $data->then(function($data) use ($self, $server, $socket, $id) {
+                $self->socketWrite($server, $socket, $data, $id);
             });
         }
+        else {
+            $this->socketWrite($server, $socket, $data, $id);
+        }   
+    }
+    public function getOnReceive() {
+        $self = $this;
+        $bytes = '';
+        $headerLength = 4;
+        $dataLength = -1;
+        $id = null;
+        return function($server, $socket, $fromid, $data)
+                use ($self, &$bytes, &$headerLength, &$dataLength, &$id) {
+            $bytes .= $data;
+            while (true) {
+                $length = strlen($bytes);
+                if (($dataLength < 0) && ($length >= $headerLength)) {
+                    list(, $dataLength) = unpack('N', substr($bytes, 0, 4));
+                    if (($dataLength & 0x80000000) !== 0) {
+                        $dataLength &= 0x7FFFFFFF;
+                        $headerLength = 8;
+                    }
+                }
+                if (($headerLength === 8) && ($id === null) && ($length >= $headerLength)) {
+                    list(, $id) = unpack('N', substr($bytes, 4, 4));
+                }
+                if (($dataLength >= 0) && (($length - $headerLength) >= $dataLength)) {
+                    $context = new stdClass();
+                    $context->server = $server;
+                    $context->socket = $socket;
+                    $context->fromid = $fromid;
+                    $context->userdata = new stdClass();
+                    $data = substr($bytes, $headerLength, $dataLength);
+                    $this->userFatalErrorHandler = function($error) use ($self, $server, $socket, $id, $context) {
+                        $self->socketSend($server, $socket, $self->endError($error, $context), $id);
+                    };
+                    $self->socketSend($server, $socket, $self->defaultHandle($data, $context), $id);
+                    $bytes = substr($bytes, $headerLength + $dataLength);
+                    $id = null;
+                    $headerLength = 4;
+                    $dataLength = -1;
+                }
+                else {
+                    break;
+                }
+            }
+        };
+    }
+    public function socketHandle($server) {
+        $self = $this;
+        $onReceives = array();
+        $server->on('connect', function($server, $socket, $fromid) use ($self, &$onReceives) {
+            $onReceives[$socket] = $self->getOnReceive();
+            $context = new stdClass();
+            $context->server = $server;
+            $context->socket = $socket;
+            $context->fromid = $fromid;
+            $context->userdata = new stdClass();
+            try {
+                $onAccept = $self->onAccept;
+                if (is_callable($onAccept)) {
+                    call_user_func($onAccept, $context);
+                }
+            }
+            catch (Exception $e) { $server->close($socket); }
+            catch (Throwable $e) { $server->close($socket); }
+        });
+        $server->on('close', function($server, $socket, $fromid) use ($self, &$onReceives) {
+            unset($onReceives[$socket]);
+            $context = new stdClass();
+            $context->server = $server;
+            $context->socket = $socket;
+            $context->fromid = $fromid;
+            $context->userdata = new stdClass();
+            try {
+                $onClose = $self->onClose;
+                if (is_callable($onClose)) {
+                    call_user_func($onClose, $context);
+                }
+            }
+            catch (Exception $e) {}
+            catch (Throwable $e) {}
+        });
+        $server->on("receive", function ($server, $socket, $fromid, $data) use(&$onReceives) {
+            $onReceive = $onReceives[$socket];
+            $onReceive($server, $socket, $fromid, $data);
+        });
     }
 }
+

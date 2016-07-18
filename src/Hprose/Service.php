@@ -14,721 +14,902 @@
  *                                                        *
  * hprose service class for php 5.3+                      *
  *                                                        *
- * LastModified: Jun 28, 2015                             *
+ * LastModified: Jul 17, 2016                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
 
-namespace Hprose {
+namespace Hprose;
 
-    define('HPROSE_DEFAULT_ERROR_TYPES', E_ALL & ~E_NOTICE);
+use stdClass;
+use ErrorException;
+use Exception;
+use Throwable;
 
-    class RemoteCall {
-        public $func;
-        public $mode;
-        public $simple;
-        public $params;
-        public $byref;
-        public $async;
-        public function __construct($func, $mode, $simple, $async) {
-            $this->func = $func;
-            $this->mode = $mode;
-            $this->simple = $simple;
-            $this->async = $async;
-            if (is_array($func)) {
-                $tmp = new \ReflectionMethod($func[0], $func[1]);
-            }
-            else {
-                $tmp = new \ReflectionFunction($func);
-            }
-            $this->params = $tmp->getParameters();
-            $this->byref = false;
-            foreach($this->params as $param) {
-                if ($param->isPassedByReference()) {
-                    $this->byref = true;
-                    break;
-                }
+abstract class Service extends HandlerManager {
+    private static $magicMethods = array(
+        "__construct",
+        "__destruct",
+        "__call",
+        "__callStatic",
+        "__get",
+        "__set",
+        "__isset",
+        "__unset",
+        "__sleep",
+        "__wakeup",
+        "__toString",
+        "__invoke",
+        "__set_state",
+        "__clone"
+    );
+    private $calls = array();
+    private $names = array();
+    private $filters = array();
+    public $onBeforeInvoke = null;
+    public $onAfterInvoke = null;
+    public $onSendError = null;
+    public $timeout = 120000;
+    public $heartbeat = 3000;
+    public $errorDelay = 10000;
+    public $errorTypes;
+    public $simple = false;
+    public $debug = false;
+    public $passContext = false;
+    private $topics = array();
+    private $events = array();
+    protected $userFatalErrorHandler = null;
+    private $nextid = 0;
+    public function __construct() {
+        parent::__construct();
+        $this->errorTypes = error_reporting();
+        register_shutdown_function(array($this, 'fatalErrorHandler'));
+        $this->addMethod('getNextId', $this, '#', array('simple' => true));
+    }
+    public function getNextId() {
+        return ($this->nextid < 0x7FFFFFFF) ? $this->nextid++ : $this->nextid = 0;
+    }
+    public function fatalErrorHandler() {
+        if (!is_callable($this->userFatalErrorHandler)) return;
+        $e = error_get_last();
+        if ($e == null) return;
+        switch ($e['type']) {
+            case E_ERROR:
+            case E_PARSE:
+            case E_USER_ERROR:
+            case E_CORE_ERROR:
+            case E_COMPILE_ERROR: {
+                $error = new ErrorException($e['message'], 0, $e['type'], $e['file'], $e['line']);
+                @ob_end_clean();
+                $userFatalErrorHandler = $this->userFatalErrorHandler;
+                call_user_func($userFatalErrorHandler, $error);
             }
         }
     }
-
-    class AsyncCallback {
-        private $completer;
-        public function __construct($completer) {
-            $this->completer = $completer;
-        }
-        public function handler($result) {
-            if ($result instanceof \Exception) {
-                $this->completer->completeError($result);
-            }
-            else {
-                $this->completer->complete($result);
-            }
-        }
+    public final function getTimeout() {
+        return $this->timeout;
     }
-
-    class AfterInvokeCallback {
-        private $service;
-        private $completer;
-        private $name;
-        private $args;
-        private $byref;
-        private $mode;
-        private $simple;
-        private $context;
-        public function __construct($service, $completer, $name, $args, $byref, $mode, $simple, $context) {
-            $this->service = $service;
-            $this->completer = $completer;
-            $this->name = $name;
-            $this->args = $args;
-            $this->byref = $byref;
-            $this->mode = $mode;
-            $this->simple = $simple;
-            $this->context = $context;
-        }
-        public function handler($result) {
-            if ($result instanceof \Exception) {
-                $this->errorHandler($result);
-            }
-            else {
-                try {
-                    $result = $this->service->afterInvoke(
-                        $this->name,
-                        $this->args,
-                        $this->byref,
-                        $this->mode,
-                        $this->simple,
-                        $this->context,
-                        $result,
-                        new BytesIO(),
-                        true);
-                    $this->completer->complete($result);
-                }
-                catch (\Exception $e) {
-                    $this->errorHandler($e);
-                }
-            }
-        }
-        public function errorHandler($e) {
-            $error = $e->getMessage();
-            if ($this->service->isDebugEnabled()) {
-                $error .= "\nfile: " . $e->getFile() .
-                          "\nline: " . $e->getLine() .
-                          "\ntrace: " . $e->getTraceAsString();
-            }
-            $this->completer->complete(
-                $this->service->sendError(
-                    $error,
-                    $this->context));
-        }
+    public final function setTimeout($value) {
+        $this->timeout = $value;
     }
-
-    abstract class Service {
-        private static $magic_methods = array(
-            "__construct",
-            "__destruct",
-            "__call",
-            "__callStatic",
-            "__get",
-            "__set",
-            "__isset",
-            "__unset",
-            "__sleep",
-            "__wakeup",
-            "__toString",
-            "__invoke",
-            "__set_state",
-            "__clone"
-        );
-        private static $errorTable = array(
-            E_ERROR => 'Error',
-            E_WARNING => 'Warning',
-            E_PARSE => 'Parse Error',
-            E_NOTICE => 'Notice',
-            E_CORE_ERROR => 'Core Error',
-            E_CORE_WARNING => 'Core Warning',
-            E_COMPILE_ERROR => 'Compile Error',
-            E_COMPILE_WARNING => 'Compile Warning',
-            E_DEPRECATED => 'Deprecated',
-            E_USER_ERROR => 'User Error',
-            E_USER_WARNING => 'User Warning',
-            E_USER_NOTICE => 'User Notice',
-            E_USER_DEPRECATED => 'User Deprecated',
-            E_STRICT => 'Runtime Notice',
-            E_RECOVERABLE_ERROR  => 'Catchable Fatal Error'
-        );
-        public static function getErrorTypeString($errno) {
-            return self::$errorTable[$errno];
-        }
-        private $calls = array();
-        private $names = array();
-        private $filters = array();
-        private $simple = false;
-        protected $debug = false;
-        protected $error_types = HPROSE_DEFAULT_ERROR_TYPES;
-        public $onBeforeInvoke = null;
-        public $onAfterInvoke = null;
-        public $onSendError = null;
-
-        private function inputFilter($data, $context) {
-            $count = count($this->filters);
-            for ($i = $count - 1; $i >= 0; $i--) {
-                $data = $this->filters[$i]->inputFilter($data, $context);
-            }
-            return $data;
-        }
-        private function outputFilter($data, $context) {
-            $count = count($this->filters);
-            for ($i = 0; $i < $count; $i++) {
-                $data = $this->filters[$i]->outputFilter($data, $context);
-            }
-            return $data;
-        }
-        public function sendError($error, $context) {
-            if ($this->onSendError !== null) {
-                $sendError = $this->onSendError;
-                call_user_func_array($sendError, array(&$error, $context));
-            }
-            $stream = new BytesIO();
-            $writer = new Writer($stream, true);
-            $stream->write(Tags::TagError);
-            $writer->writeString($error);
-            $stream->write(Tags::TagEnd);
-            $data = $stream->toString();
-            $stream->close();
-            return $this->outputFilter($data, $context);
-        }
-        // this method is public only for async callback
-        public function afterInvoke($name, $args, $byref, $mode, $simple, $context, $result, $output, $async) {
-            if ($this->onAfterInvoke !== null) {
-                $afterInvoke = $this->onAfterInvoke;
-                call_user_func_array($afterInvoke, array($name, &$args, $byref, &$result, $context));
-            }
-            if ($mode == ResultMode::RawWithEndTag) {
-                return $this->outputFilter($result, $context);
-            }
-            elseif ($mode == ResultMode::Raw) {
-                $output->write($result);
-            }
-            else {
-                $writer = new Writer($output, $simple);
-                $output->write(Tags::TagResult);
-                if ($mode == ResultMode::Serialized) {
-                    $output->write($result);
-                }
-                else {
-                    $writer->reset();
-                    $writer->serialize($result);
-                }
-                if ($byref) {
-                    $output->write(Tags::TagArgument);
-                    $writer->reset();
-                    $writer->writeArray($args);
-                }
-            }
-            if ($async) {
-                $output->write(Tags::TagEnd);
-                return $this->outputFilter($output->toString(), $context);
-            }
+    public final function getHeartbeat() {
+        return $this->heartbeat;
+    }
+    public final function setHeartbeat($value) {
+        $this->heartbeat = $value;
+    }
+    public final function getErrorDelay() {
+        return $this->errorDelay;
+    }
+    public final function setErrorDelay($value) {
+        $this->errorDelay = $value;
+    }
+    public final function getErrorTypes() {
+        return $this->errorTypes;
+    }
+    public final function setErrorTypes($value) {
+        $this->errorTypes = $value;
+    }
+    public final function isDebugEnabled() {
+        return $this->debug;
+    }
+    public final function setDebugEnabled($value = true) {
+        $this->debug = $value;
+    }
+    public final function isSimple() {
+        return $this->simple;
+    }
+    public final function setSimple($value = true) {
+        $this->simple = $value;
+    }
+    public final function isPassContext() {
+        return $this->passContext;
+    }
+    public final function setPassContext($value = true) {
+        $this->simple = $value;
+    }
+    public final function getFilter() {
+        if (empty($this->filters)) {
             return null;
         }
-        protected function doInvoke($input, $context) {
-            $output = new BytesIO();
-            $reader = new Reader($input);
-            do {
-                $reader->reset();
-                $name = $reader->readString();
-                $alias = strtolower($name);
-                if (isset($this->calls[$alias])) {
-                    $call = $this->calls[$alias];
-                }
-                elseif (isset($this->calls['*'])) {
-                    $call = $this->calls['*'];
-                }
-                else {
-                    throw new \Exception("Can't find this function " . $name . "().");
-                }
-                $mode = $call->mode;
-                $simple = $call->simple;
-                if ($simple === null) {
-                    $simple = $this->simple;
-                }
-                $args = array();
-                $byref = false;
-                $async = $call->async;
-                $tag = $input->getc();
-                if ($tag == Tags::TagList) {
-                    $reader->reset();
-                    $args = $reader->readListWithoutTag();
-                    $tag = $input->getc();
-                    if ($tag == Tags::TagTrue) {
-                        $byref = true;
-                        $tag = $input->getc();
-                    }
-                    if ($call->byref) {
-                        $_args = array();
-                        foreach($args as $i => &$arg) {
-                            if ($call->params[$i]->isPassedByReference()) {
-                                $_args[] = &$arg;
-                            }
-                            else {
-                                $_args[] = $arg;
-                            }
-                        }
-                        $args = $_args;
-                    }
-                }
-                if (($tag != Tags::TagEnd) && ($tag != Tags::TagCall)) {
-                    throw new \Exception('Unknown tag: ' . $tag . "\r\n" .
-                                         'with following data: ' . $input->toString());
-                }
-                if ($this->onBeforeInvoke !== null) {
-                    $beforeInvoke = $this->onBeforeInvoke;
-                    call_user_func_array($beforeInvoke, array($name, &$args, $byref, $context));
-                }
-                if (array_key_exists('*', $this->calls) &&
-                    $call === $this->calls['*']) {
-                    $args = array($name, $args);
-                }
-                if ($async) {
-                    $completer = new Completer();
-                    $args[] = array(new AsyncCallback($completer), "handler");
-                    call_user_func_array($call->func, $args);
-                    $result = $completer->future();
-                }
-                else {
-                    $result = call_user_func_array($call->func, $args);
-                }
-                if ($result != null && $result instanceof Future) {
-                    $completer = new Completer();
-                    $callback = new AfterInvokeCallback($this, $completer, $name, $args, $byref, $mode, $simple, $context);
-                    $result->then(array($callback, "handler"))->catchError(array($callback, "errorHandler"));
-                    return $completer->future();
-                }
-                $result = $this->afterInvoke($name, $args, $byref, $mode, $simple, $context, $result, $output, false);
-                if ($result != null) return $result;
-            } while ($tag == Tags::TagCall);
-            $output->write(Tags::TagEnd);
-            return $this->outputFilter($output->toString(), $context);
+        return $this->filters[0];
+    }
+    public final function setFilter(Filter $filter) {
+        $this->filters = array();
+        if ($filter !== null) {
+            $this->filters[] = $filter;
         }
-        protected function doFunctionList($context) {
-            $stream = new BytesIO();
-            $writer = new Writer($stream, true);
-            $stream->write(Tags::TagFunctions);
-            $writer->writeArray($this->names);
-            $stream->write(Tags::TagEnd);
-            $data = $stream->toString();
-            $stream->close();
-            return $this->outputFilter($data, $context);
-        }
-        private static function getDeclaredOnlyMethods($class) {
-            $result = get_class_methods($class);
-            if ($parent_class = get_parent_class($class)) {
-                $inherit = get_class_methods($parent_class);
-                $result = array_diff($result, $inherit);
-            }
-            $result = array_diff($result, self::$magic_methods);
-            return $result;
-        }
-        public function addMissingFunction($func,
-                                           $mode = ResultMode::Normal,
-                                           $simple = null,
-                                           $async = false) {
-            $this->addFunction($func, '*', $mode, $simple, $async);
-        }
-        public function addAsyncMissingFunction($func,
-                                                $mode = ResultMode::Normal,
-                                                $simple = null) {
-            $this->addMissingFunction($func, $mode, $simple, true);
-        }
-        public function addFunction($func,
-                                    $alias = '',
-                                    $mode = ResultMode::Normal,
-                                    $simple = null,
-                                    $async = false) {
-            if (!is_callable($func)) {
-                throw new \Exception('Argument func is not callable.');
-            }
-            if ($alias == '') {
-                if (is_string($func)) {
-                    $alias = $func;
-                }
-                elseif (is_array($func)) {
-                    $alias = $func[1];
-                }
-                else {
-                    throw new \Exception('alias must be a string.');
-                }
-            }
-            $name = strtolower($alias);
-            if (!array_key_exists($name, $this->calls)) {
-                $this->names[] = $alias;
-            }
-            $this->calls[$name] = new RemoteCall($func, $mode, $simple, $async);
-        }
-        public function addAsyncFunction($func,
-                                         $alias = '',
-                                         $mode = ResultMode::Normal,
-                                         $simple = null) {
-            $this->addFunction($func, $alias, $mode, $simple, true);
-        }
-        public function addFunctions($funcs,
-                                     $aliases = array(),
-                                     $mode = ResultMode::Normal,
-                                     $simple = null,
-                                     $async = false) {
-            $count = count($aliases);
-            if ($count == 0) {
-                foreach ($funcs as $func) {
-                    $this->addFunction($func, '', $mode, $simple, $async);
-                }
-            }
-            elseif ($count == count($funcs)) {
-                foreach ($funcs as $i => $func) {
-                    $this->addFunction($func, $aliases[$i], $mode, $simple, $async);
-                }
+    }
+    public final function addFilter(Filter $filter) {
+        if ($filter !== null) {
+            if (empty($this->filters)) {
+                $this->filters = array($filter);
             }
             else {
-                throw new \Exception('The count of functions is not matched with aliases');
-            }
-        }
-        public function addAsyncFunctions($funcs,
-                                          $aliases = array(),
-                                          $mode = ResultMode::Normal,
-                                          $simple = null) {
-            $this->addFunctions($funcs, $aliases, $mode, $simple, true);
-        }
-        public function addMethod($methodname,
-                                  $belongto,
-                                  $alias = '',
-                                  $mode = ResultMode::Normal,
-                                  $simple = null,
-                                  $async = false) {
-            $func = array($belongto, $methodname);
-            $this->addFunction($func, $alias, $mode, $simple, $async);
-        }
-        public function addAsyncMethod($methodname,
-                                       $belongto,
-                                       $alias = '',
-                                       $mode = ResultMode::Normal,
-                                       $simple = null) {
-            $this->addMethod($methodname, $belongto, $alias, $mode, $simple, true);
-        }
-        public function addMethods($methods,
-                                   $belongto,
-                                   $aliases = '',
-                                   $mode = ResultMode::Normal,
-                                   $simple = null,
-                                   $async = false) {
-            if ($aliases === null || count($aliases) == 0) {
-                $aliases = '';
-            }
-            $_aliases = array();
-            if (is_string($aliases)) {
-                $aliasPrefix = $aliases;
-                if ($aliasPrefix !== '') {
-                    $aliasPrefix .= '_';
-                }
-                foreach ($methods as $k => $method) {
-                    $_aliases[$k] = $aliasPrefix . $method;
-                }
-            }
-            elseif (is_array($aliases)) {
-                $_aliases = $aliases;
-            }
-            if (count($methods) != count($_aliases)) {
-                throw new \Exception('The count of methods is not matched with aliases');
-            }
-            foreach($methods as $k => $method) {
-                $func = array($belongto, $method);
-                $this->addFunction($func, $_aliases[$k], $mode, $simple, $async);
-            }
-        }
-        public function addAsyncMethods($methods,
-                                        $belongto,
-                                        $aliases = '',
-                                        $mode = ResultMode::Normal,
-                                        $simple = null) {
-            $this->addMethods($methods, $belongto, $aliases, $mode, $simple, true);
-        }
-        public function addInstanceMethods($object,
-                                           $class = '',
-                                           $aliasPrefix = '',
-                                           $mode = ResultMode::Normal,
-                                           $simple = null,
-                                           $async = false) {
-            if ($class == '') {
-                $class = get_class($object);
-            }
-            $this->addMethods(self::getDeclaredOnlyMethods($class),
-                              $object, $aliasPrefix, $mode, $simple, $async);
-        }
-        public function addAsyncInstanceMethods($object,
-                                                $class = '',
-                                                $aliasPrefix = '',
-                                                $mode = ResultMode::Normal,
-                                                $simple = null) {
-            $this->addInstanceMethods($object, $class, $aliasPrefix, $mode, $simple, true);
-        }
-        public function addClassMethods($class,
-                                        $execclass = '',
-                                        $aliasPrefix = '',
-                                        $mode = ResultMode::Normal,
-                                        $simple = null,
-                                        $async = false) {
-            if ($execclass == '') {
-                $execclass = $class;
-            }
-            $this->addMethods(self::getDeclaredOnlyMethods($class),
-                              $execclass, $aliasPrefix, $mode, $simple, $async);
-        }
-        public function addAsyncClassMethods($class,
-                                             $execclass = '',
-                                             $aliasPrefix = '',
-                                             $mode = ResultMode::Normal,
-                                             $simple = null) {
-            $this->addClassMethods($class, $execclass, $aliasPrefix, $mode, $simple, true);
-        }
-        public function add() {
-            $args_num = func_num_args();
-            $args = func_get_args();
-            switch ($args_num) {
-                case 1: {
-                    if (is_callable($args[0])) {
-                        $this->addFunction($args[0]);
-                        return;
-                    }
-                    elseif (is_array($args[0])) {
-                        $this->addFunctions($args[0]);
-                        return;
-                    }
-                    elseif (is_object($args[0])) {
-                        $this->addInstanceMethods($args[0]);
-                        return;
-                    }
-                    elseif (is_string($args[0])) {
-                        $this->addClassMethods($args[0]);
-                        return;
-                    }
-                    break;
-                }
-                case 2: {
-                    if (is_callable($args[0]) && is_string($args[1])) {
-                        $this->addFunction($args[0], $args[1]);
-                        return;
-                    }
-                    elseif (is_string($args[0])) {
-                        if (is_string($args[1]) && !is_callable(array($args[1], $args[0]))) {
-                            if (class_exists($args[1])) {
-                                $this->addClassMethods($args[0], $args[1]);
-                            }
-                            else {
-                                $this->addClassMethods($args[0], '', $args[1]);
-                            }
-                        }
-                        else {
-                            $this->addMethod($args[0], $args[1]);
-                        }
-                        return;
-                    }
-                    elseif (is_array($args[0])) {
-                        if (is_array($args[1])) {
-                            $this->addFunctions($args[0], $args[1]);
-                        }
-                        else {
-                            $this->addMethods($args[0], $args[1]);
-                        }
-                        return;
-                    }
-                    elseif (is_object($args[0])) {
-                        $this->addInstanceMethods($args[0], $args[1]);
-                        return;
-                    }
-                    break;
-                }
-                case 3: {
-                    if (is_callable($args[0]) && $args[1] == '' && is_string($args[2])) {
-                        $this->addFunction($args[0], $args[2]);
-                        return;
-                    }
-                    elseif (is_string($args[0]) && is_string($args[2])) {
-                        if (is_string($args[1]) && !is_callable(array($args[1], $args[0]))) {
-                            $this->addClassMethods($args[0], $args[1], $args[2]);
-                        }
-                        else {
-                            $this->addMethod($args[0], $args[1], $args[2]);
-                        }
-                        return;
-                    }
-                    elseif (is_array($args[0])) {
-                        if ($args[1] == '' && is_array($args[2])) {
-                            $this->addFunctions($args[0], $args[2]);
-                        }
-                        else {
-                            $this->addMethods($args[0], $args[1], $args[2]);
-                        }
-                        return;
-                    }
-                    elseif (is_object($args[0])) {
-                        $this->addInstanceMethods($args[0], $args[1], $args[2]);
-                        return;
-                    }
-                    break;
-                }
-            }
-            throw new \Exception('Wrong arguments');
-        }
-        public function addAsync() {
-            $args_num = func_num_args();
-            $args = func_get_args();
-            switch ($args_num) {
-                case 1: {
-                    if (is_callable($args[0])) {
-                        $this->addAsyncFunction($args[0]);
-                        return;
-                    }
-                    elseif (is_array($args[0])) {
-                        $this->addAsyncFunctions($args[0]);
-                        return;
-                    }
-                    elseif (is_object($args[0])) {
-                        $this->addAsyncInstanceMethods($args[0]);
-                        return;
-                    }
-                    elseif (is_string($args[0])) {
-                        $this->addAsyncClassMethods($args[0]);
-                        return;
-                    }
-                    break;
-                }
-                case 2: {
-                    if (is_callable($args[0]) && is_string($args[1])) {
-                        $this->addAsyncFunction($args[0], $args[1]);
-                        return;
-                    }
-                    elseif (is_string($args[0])) {
-                        if (is_string($args[1]) && !is_callable(array($args[1], $args[0]))) {
-                            if (class_exists($args[1])) {
-                                $this->addAsyncClassMethods($args[0], $args[1]);
-                            }
-                            else {
-                                $this->addAsyncClassMethods($args[0], '', $args[1]);
-                            }
-                        }
-                        else {
-                            $this->addAsyncMethod($args[0], $args[1]);
-                        }
-                        return;
-                    }
-                    elseif (is_array($args[0])) {
-                        if (is_array($args[1])) {
-                            $this->addAsyncFunctions($args[0], $args[1]);
-                        }
-                        else {
-                            $this->addAsyncMethods($args[0], $args[1]);
-                        }
-                        return;
-                    }
-                    elseif (is_object($args[0])) {
-                        $this->addAsyncInstanceMethods($args[0], $args[1]);
-                        return;
-                    }
-                    break;
-                }
-                case 3: {
-                    if (is_callable($args[0]) && $args[1] == '' && is_string($args[2])) {
-                        $this->addAsyncFunction($args[0], $args[2]);
-                        return;
-                    }
-                    elseif (is_string($args[0]) && is_string($args[2])) {
-                        if (is_string($args[1]) && !is_callable(array($args[1], $args[0]))) {
-                            $this->addAsyncClassMethods($args[0], $args[1], $args[2]);
-                        }
-                        else {
-                            $this->addAsyncMethod($args[0], $args[1], $args[2]);
-                        }
-                        return;
-                    }
-                    elseif (is_array($args[0])) {
-                        if ($args[1] == '' && is_array($args[2])) {
-                            $this->addAsyncFunctions($args[0], $args[2]);
-                        }
-                        else {
-                            $this->addAsyncMethods($args[0], $args[1], $args[2]);
-                        }
-                        return;
-                    }
-                    elseif (is_object($args[0])) {
-                        $this->addAsyncInstanceMethods($args[0], $args[1], $args[2]);
-                        return;
-                    }
-                    break;
-                }
-            }
-            throw new \Exception('Wrong arguments');
-        }
-        public function isDebugEnabled() {
-            return $this->debug;
-        }
-        public function setDebugEnabled($enable = true) {
-            $this->debug = $enable;
-        }
-        public function getFilter() {
-            if (count($this->filters) === 0) {
-                return null;
-            }
-            return $this->filters[0];
-        }
-        public function setFilter($filter) {
-            $this->filters = array();
-            if ($filter !== null) {
                 $this->filters[] = $filter;
             }
         }
-        public function addFilter($filter) {
-            $this->filters[] = $filter;
+    }
+    public final function removeFilter(Filter $filter) {
+        if (empty($this->filters)) {
+            return false;
         }
-        public function removeFilter($filter) {
-            $i = array_search($filter, $this->filters);
-            if ($i === false || $i === null) {
-                return false;
+        $i = array_search($filter, $this->filters);
+        if ($i === false || $i === null) {
+            return false;
+        }
+        $this->filters = array_splice($this->filters, $i, 1);
+        return true;
+    }
+    private function setErrorHandler() {
+        $error = null;
+        set_error_handler(function($errno, $errstr, $errfile, $errline) use (&$error) {
+            $error = new \ErrorException($errstr, 0, $errno, $errfile, $errline);
+        }, $this->errorTypes);
+        ob_start();
+        ob_implicit_flush(0);
+        return $error;
+    }
+    private function restoreErrorHandler() {
+        @ob_end_clean();
+        restore_error_handler();
+    }
+    protected function nextTick($callback) {
+        $callback();
+    }
+    /*
+        This method is a private method.
+        But PHP 5.3 can't call private method in closure,
+        so we comment the private keyword.
+    */
+    /*private*/ function callService(array $args, stdClass $context) {
+        if ($context->oneway) {
+            $this->nextTick(function() use ($args, $context) {
+                try {
+                    call_user_func_array($context->method, $args);
+                }
+                catch (Exception $e) {}
+                catch (Throwable $e) {}
+            });
+            if ($context->async) {
+                call_user_func($args[count($args) - 1], null);
             }
-            $this->filters = array_splice($this->filters, $i, 1);
-            return true;
+            return null;
         }
-        public function getSimpleMode() {
-            return $this->simple;
+        return call_user_func_array($context->method, $args);
+    }
+    private function inputFilter($data, stdClass $context) {
+        for ($i = count($this->filters) - 1; $i >= 0; $i--) {
+            $data = $this->filters[$i]->inputFilter($data, $context);
         }
-        public function setSimpleMode($simple = true) {
-            $this->simple = $simple;
+        return $data;
+    }
+    /*
+        This method is a private method.
+        But PHP 5.3 can't call private method in closure,
+        so we comment the private keyword.
+    */
+    /*private*/ function outputFilter($data, stdClass $context) {
+        for ($i = 0, $n = count($this->filters); $i < $n; $i++) {
+            $data = $this->filters[$i]->outputFilter($data, $context);
         }
-        public function getErrorTypes() {
-            return $this->error_types;
+        return $data;
+    }
+    
+    /*
+        This method is a private method.
+        But PHP 5.3 can't call private method in closure,
+        so we comment the private keyword.
+    */
+    /*private*/ function sendError($error, stdClass $context) {
+        if (is_string($error)) {
+            $error = new Exception($error);
         }
-        public function setErrorTypes($error_types) {
-            $this->error_types = $error_types;
-        }
-        public function defaultHandle($request, $context) {
-            try {
-                $input = new BytesIO($this->inputFilter($request, $context));
-                switch ($input->getc()) {
-                    case Tags::TagCall:
-                        return $this->doInvoke($input, $context);
-                    case Tags::TagEnd:
-                        return $this->doFunctionList($context);
-                    default:
-                        throw new \Exception("Wrong Request: \r\n" . $request);
+        try {
+            if ($this->onSendError !== null) {
+                $onSendError = $this->onSendError;
+                $e = call_user_func_array($onSendError, array(&$error, $context));
+                if ($e instanceof Exception || $e instanceof Throwable) {
+                    $error = $e;
                 }
             }
-            catch (\Exception $e) {
-                $error = $e->getMessage();
-                if ($this->debug) {
-                    $error .= "\nfile: " . $e->getFile() .
-                              "\nline: " . $e->getLine() .
-                              "\ntrace: " . $e->getTraceAsString();
+        }
+        catch (Exception $e) {
+            $error = $e;
+        }
+        $stream = new BytesIO();
+        $writer = new Writer($stream, true);
+        $stream->write(Tags::TagError);
+        $writer->writeString($this->debug ? $error->getTraceAsString() : $error->getMessage());
+        return $stream;
+    }
+    public function endError($error, stdClass $context) {
+        $stream = $this->sendError($error, $context);
+        $stream->write(Tags::TagEnd);
+        $data = $stream->toString();
+        $stream->close();
+        return $data;
+    }
+    private function beforeInvoke($name, array &$args, stdClass $context) {
+        try {
+            $self = $this;
+            if ($this->onBeforeInvoke !== null) {
+                $onBeforeInvoke = $this->onBeforeInvoke;
+                $value = call_user_func_array($onBeforeInvoke, array($name, &$args, $context->byref, $context));
+                if ($value instanceof Exception || $value instanceof Throwable) {
+                    throw $value;
                 }
-                return $this->sendError($error, $context);
+                if (Future\isFuture($value)) {
+                    return $value->then(function($value) use ($self, $name, $args, $context) {
+                        if ($value instanceof Exception || $value instanceof Throwable) {
+                            throw $value;
+                        }
+                        return $self->invoke($name, $args, $context);
+                    })->then(null, function($error) use ($self, $context) {
+                        return $self->sendError($error, $context);
+                    });
+                }
+            }
+            return $this->invoke($name, $args, $context)->then(null, function($error) use ($self, $context) {
+                return $self->sendError($error, $context);
+            });
+        }
+        catch (Exception $error) {
+            return $this->sendError($error, $context);
+        }
+    }
+    /*
+        This method is a protected method.
+        But PHP 5.3 can't call protected method in closure,
+        so we comment the protected keyword.
+    */
+    /*protected*/ function invokeHandler($name, array &$args, stdClass $context) {
+        if (array_key_exists('*', $this->calls) &&
+                ($context->method === $this->calls['*']->method)) {
+            $args = array($name, $args);
+        }
+        $passContext = $context->passContext;
+        if ($passContext === null) {
+            $passContext = $this->passContext;
+        }
+        if ($context->async) {
+            $self = $this;
+            return Future\promise(function($resolve, $reject) use ($self, $passContext, &$args, $context) {
+                if ($passContext) $args[] = $context;
+                $args[] = function($value) use ($resolve, $reject) {
+                    if ($value instanceof Exception || $value instanceof Throwable) {
+                        $reject($value);
+                    }
+                    else {
+                        $resolve($value);
+                    }
+                };
+                $self->callService($args, $context);
+            });
+        }
+        else {
+            if ($passContext) $args[] = $context;
+            return Future\toPromise($this->callService($args, $context));
+        }
+    }
+    /*
+        This method is a private method.
+        But PHP 5.3 can't call private method in closure,
+        so we comment the private keyword.
+    */
+    /*private*/ function invoke($name, array &$args, stdClass $context) {
+        $invokeHandler = $this->invokeHandler;
+        $self = $this;
+        return $invokeHandler($name, $args, $context)
+                ->then(function($value) use ($self, $name, &$args, $context) {
+                    if ($value instanceof Exception || $value instanceof Throwable) {
+                        throw $value;
+                    }
+                    return $self->afterInvoke($name, $args, $context, $value);
+                });
+    }
+    /*
+        This method is a private method.
+        But PHP 5.3 can't call private method in closure,
+        so we comment the private keyword.
+    */
+    /*private*/ function afterInvoke($name, array $args, stdClass $context, $result) {
+        if ($context->async && is_callable($args[count($args) - 1])) {
+            unset($args[count($args) - 1]);
+        }
+        if ($context->passContext && ($args[count($args) - 1] === $context)) {
+            unset($args[count($args) - 1]);
+        }
+        if ($this->onAfterInvoke !== null) {
+            $onAfterInvoke = $this->onAfterInvoke;
+            $value = call_user_func_array($onAfterInvoke, array($name, &$args, $context->byref, &$result, $context));
+            if ($value instanceof Exception || $value instanceof Throwable) {
+                throw $value;
+            }
+            if (Future\isFuture($value)) {
+                $self = $this;
+                return $value->then(function($value) use ($self, $args, $context, $result) {
+                    if ($value instanceof Exception || $value instanceof Throwable) {
+                        throw $value;
+                    }
+                    return $self->doOutput($args, $context, $result);
+                });
             }
         }
+        return $this->doOutput($args, $context, $result);
+    }
+    /*
+        This method is a private method.
+        But PHP 5.3 can't call private method in closure,
+        so we comment the private keyword.
+    */
+    /*private*/ function doOutput(array $args, stdClass $context, $result) {
+        $mode = $context->mode;
+        $simple = $context->simple;
+        if ($simple === null) {
+            $simple = $this->simple;
+        }
+        if ($mode === ResultMode::RawWithEndTag || $mode == ResultMode::Raw) {
+            return $result;
+        }
+        $stream = new BytesIO();
+        $writer = new Writer($stream, $simple);
+        $stream->write(Tags::TagResult);
+        if ($mode === ResultMode::Serialized) {
+            $stream->write($result);
+        }
+        else {
+            $writer->reset();
+            $writer->serialize($result);
+        }
+        if ($context->byref) {
+            $stream->write(Tags::TagArgument);
+            $writer->reset();
+            $writer->writeArray($args);
+        }
+        $data = $stream->toString();
+        $stream->close();
+        return $data;
+    }
+    private function doInvoke(BytesIO $stream, stdClass $context) {
+        $results = array();
+        $reader = new Reader($stream);
+        do {
+            $reader->reset();
+            $name = $reader->readString();
+            $alias = strtolower($name);
+            $cc = new stdClass();
+            foreach ($context as $key => $value) {
+                $cc->$key = $value;
+            }
+            $call = $this->calls[$alias] or $this->call['*'];
+            if ($call) {
+                foreach ($call as $key => $value) {
+                    $cc->$key = $value;
+                }
+            }
+            $args = array();
+            $cc->byref = false;
+            $tag = $stream->getc();
+            if ($tag === Tags::TagList) {
+                $reader->reset();
+                $args = $reader->readListWithoutTag();
+                $tag = $stream->getc();
+                if ($tag === Tags::TagTrue) {
+                    $cc->byref = true;
+                    $tag = $stream->getc();
+                }
+            }
+            if ($tag !== Tags::TagEnd && $tag !== Tags::TagCall) {
+                $data = $stream->toString();
+                throw new Exception("Unknown tag: $tag\r\nwith following data: $data");
+            }
+            if ($call) {
+                $results[] = $this->beforeInvoke($name, $args, $cc);
+            }
+            else {
+                $results[] = $this->sendError(new Exception("Can\'t find this function $name()."), $cc);
+            }
+        } while($tag === Tags::TagCall);
+        return Future\reduce($results, function($stream, $result) {
+            $stream->write($result);
+            return $stream;
+        }, new BytesIO())->then(function($stream) {
+            $stream->write(Tags::TagEnd);
+            $data = $stream->toString();
+            $stream->close();
+            return $data;
+        });
+    }
+    protected function doFunctionList() {
+        $stream = new BytesIO();
+        $writer = new Writer($stream, true);
+        $stream->write(Tags::TagFunctions);
+        $writer->writeArray($this->names);
+        $stream->write(Tags::TagEnd);
+        $data = $stream->toString();
+        $stream->close();
+        return $data;
+    }
+    protected function delay($interval, $data) {
+        $seconds = floor($interval);
+        $nanoseconds = ($interval - $seconds) * 1000000000;
+        time_nanosleep($seconds, $nanoseconds);
+        return Future\value($data);
+    }
+    /*
+        This method is a private method.
+        But PHP 5.3 can't call private method in closure,
+        so we comment the private keyword.
+    */
+    /*private*/ function delayError($error, $context) {
+        $err = $this->endError($error, $context);
+        if ($this->errorDelay > 0) {
+            return $this->delay($this->errorDelay, $err);
+        }
+        return Future\value($err);
+    }
+     /*
+        This method is a protected method.
+        But PHP 5.3 can't call protected method in closure,
+        so we comment the protected keyword.
+    */
+    /*protected*/ function beforeFilterHandler($request, stdClass $context) {
+        $self = $this;
+        try {
+            $afterFilterHandler = $this->afterFilterHandler;
+            $response = $afterFilterHandler($this->inputFilter($request, $context), $context)
+                    ->then(null, function($error) use ($self, $context) {
+                        return $self->delayError($error, $context);
+                    });
+        }
+        catch (Exception $error) {
+            $response = $this->delayError($error, $context);
+        }
+        return $response->then(function($value) use ($self, $context) {
+            return $self->outputFilter($value, $context);
+        });
+    }
+    /*
+        This method is a protected method.
+        But PHP 5.3 can't call protected method in closure,
+        so we comment the protected keyword.
+    */
+    /*protected*/ function afterFilterHandler($request, stdClass $context) {
+        $stream = new BytesIO($request);
+        try {
+            switch ($stream->getc()) {
+                case Tags::TagCall: {
+                    $data = $this->doInvoke($stream, $context);
+                    $stream->close();
+                    return $data;
+                }
+                case Tags::TagEnd: {
+                    $stream->close();
+                    return Future\value($this->doFunctionList());
+                }
+                default: throw new Exception("Wrong Request: \r\n$request");
+            }
+        }
+        catch (Exception $e) {
+            $stream->close();
+            return Future\error($e);
+        }
+    }
+    public function defaultHandle($request, stdClass $context) {
+        $this->setErrorHandler();
+        $context->clients = $this;
+        $beforeFilterHandler = $this->beforeFilterHandler;
+        $response = $beforeFilterHandler($request, $context);
+        $this->restoreErrorHandler();
+        return $response;
+    }
+    private static function getDeclaredOnlyMethods($class) {
+        $result = get_class_methods($class);
+        if (($parentClass = get_parent_class($class)) !== false) {
+            $inherit = get_class_methods($parentClass);
+            $result = array_diff($result, $inherit);
+        }
+        return array_diff($result, self::$magicMethods);
+    }
+    public function addFunction($func, $alias = '', array $options = array()) {
+        if (!is_callable($func)) {
+            throw new \Exception('Argument func must be callable.');
+        }
+        if (is_array($alias) && empty($options)) {
+            $options = $alias;
+            $alias = '';
+        }
+        if (empty($alias)) {
+            if (is_string($func)) {
+                $alias = $func;
+            }
+            elseif (is_array($func)) {
+                $alias = $func[1];
+            }
+            else {
+                throw new \Exception('Need an alias');
+            }
+        }
+        $name = strtolower($alias);
+        if (!array_key_exists($name, $this->calls)) {
+            $this->names[] = $alias;
+        }
+        $call = new stdClass();
+        $call->method = $func;
+        $call->mode = @$options['mode'] or ResultMode::Normal;
+        $call->simple = @$options['simple'];
+        $call->oneway = !!@$options['oneway'];
+        $call->async = !!@$options['async'];
+        $call->passContext = @$options['passContext'];
+        $this->calls[$name] = $call;
+    }
+    public function addAsyncFunction($func,
+                                     $alias = '',
+                                     array $options = array()) {
+        if (is_array($alias) && empty($options)) {
+            $options = $alias;
+            $alias = '';
+        }
+        $options['async'] = true;
+        $this->addFunction($func, $alias, $options);
+    }
+    public function addMissingFunction($func, array $options = array()) {
+        $this->addFunction($func, '*', $options);
+    }
+    public function addAsyncMissingFunction($func, array $options = array()) {
+        $this->addAsyncFunction($func, '*', $options);
+    }
+    public function addFunctions(array $funcs,
+                                 array $aliases = array(),
+                                 array $options = array()) {
+        if (!empty($aliases) && empty($options) && (array_keys($funcs) != array_key($aliases))) {
+            $options = $aliases;
+            $aliases = array();
+        }
+        $count = count($aliases);
+        if ($count == 0) {
+            foreach ($funcs as $func) {
+                $this->addFunction($func, '', $options);
+            }
+        }
+        elseif ($count == count($funcs)) {
+            foreach ($funcs as $i => $func) {
+                $this->addFunction($func, $aliases[$i], $options);
+            }
+        }
+        else {
+            throw new \Exception('The count of functions is not matched with aliases');
+        }
+    }
+    public function addAsyncFunctions(array $funcs,
+                                      array $aliases = array(),
+                                      array $options = array()) {
+        if (!empty($aliases) && empty($options) && (array_keys($funcs) != array_key($aliases))) {
+            $options = $aliases;
+            $aliases = array();
+        }
+        $options['async'] = true;
+        $this->addFunctions($funcs, $aliases, $options);
+    }
+    public function addMethod($method,
+                              $scope,
+                              $alias = '',
+                              array $options = array()) {
+        $func = array($scope, $method);
+        $this->addFunction($func, $alias, $options);
+    }
+    public function addAsyncMethod($method,
+                                   $scope,
+                                   $alias = '',
+                                   array $options = array()) {
+        $func = array($scope, $method);
+        $this->addAsyncFunction($func, $alias, $options);
+    }
+    public function addMissingMethod($method, $scope, array $options = array()) {
+        $this->addMethod($method, $scope, '*', $options);
+    }
+    public function addAsyncMissingMethod($method, $scope, array $options = array()) {
+        $this->addAsyncMethod($method, $scope, '*', $options);
+    }
+    public function addMethods($methods,
+                               $scope,
+                               $aliases = array(),
+                               array $options = array()) {
+        $aliasPrefix = '';
+        if (is_string($aliases)) {
+            $aliasPrefix = $aliases;
+            if ($aliasPrefix !== '') {
+                $aliasPrefix .= '_';
+            }
+            $aliases = array();
+        }
+        else if (!empty($aliases) && empty($options) && (array_keys($methods) != array_key($aliases))) {
+            $options = $aliases;
+            $aliases = array();
+        }
+        if (empty($aliases)) {
+            foreach ($methods as $k => $method) {
+                $aliases[$k] = $aliasPrefix . $method;
+            }
+        }
+        if (count($methods) != count($aliases)) {
+            throw new \Exception('The count of methods is not matched with aliases');
+        }
+        foreach($methods as $k => $method) {
+            $func = array($scope, $method);
+            if (is_callable($func)) {
+                $this->addFunction($func, $aliases[$k], $options);
+            }
+        }
+    }
+    public function addAsyncMethods($methods,
+                                    $scope,
+                                    $aliases = array(),
+                                    array $options = array()) {
+        $aliasPrefix = '';
+        if (is_string($aliases)) {
+            $aliasPrefix = $aliases;
+            if ($aliasPrefix !== '') {
+                $aliasPrefix .= '_';
+            }
+            $aliases = array();
+        }
+        else if (!empty($aliases) && empty($options) && (array_keys($methods) != array_key($aliases))) {
+            $options = $aliases;
+            $aliases = array();
+        }
+        if (empty($aliases)) {
+            foreach ($methods as $k => $method) {
+                $aliases[$k] = $aliasPrefix . $method;
+            }
+        }
+        if (count($methods) != count($aliases)) {
+            throw new \Exception('The count of methods is not matched with aliases');
+        }
+        foreach($methods as $k => $method) {
+            $func = array($scope, $method);
+            if (is_callable($func)) {
+                $this->addAsyncFunction($func, $aliases[$k], $options);
+            }
+        }
+    }
+    public function addInstanceMethods($object,
+                                       $class = '',
+                                       $aliasPrefix = '',
+                                       array $options = array()) {
+        if ($class == '') {
+            $class = get_class($object);
+        }
+        $this->addMethods(self::getDeclaredOnlyMethods($class),
+                          $object, $aliasPrefix, $options);
+    }
+    public function addAsyncInstanceMethods($object,
+                                            $class = '',
+                                            $aliasPrefix = '',
+                                            array $options = array()) {
+        if ($class == '') {
+            $class = get_class($object);
+        }
+        $this->addAsyncMethods(self::getDeclaredOnlyMethods($class),
+                          $object, $aliasPrefix, $options);
+    }
+    public function addClassMethods($class,
+                                    $scope = '',
+                                    $aliasPrefix = '',
+                                    array $options = array()) {
+        if ($scope == '') {
+            $scope = $class;
+        }
+        $this->addMethods(self::getDeclaredOnlyMethods($class),
+                          $scope, $aliasPrefix, $options);
+    }
+    public function addAsyncClassMethods($class,
+                                         $scope = '',
+                                         $aliasPrefix = '',
+                                         array $options = array()) {
+        if ($scope == '') {
+            $scope = $class;
+        }
+        $this->addAsyncMethods(self::getDeclaredOnlyMethods($class),
+                               $scope, $aliasPrefix, $options);
+    }
+    public function add() {
+        $args_num = func_num_args();
+        $args = func_get_args();
+        switch ($args_num) {
+            case 1: {
+                if (is_callable($args[0])) {
+                    $this->addFunction($args[0]);
+                    return;
+                }
+                elseif (is_array($args[0])) {
+                    $this->addFunctions($args[0]);
+                    return;
+                }
+                elseif (is_object($args[0])) {
+                    $this->addInstanceMethods($args[0]);
+                    return;
+                }
+                elseif (is_string($args[0])) {
+                    $this->addClassMethods($args[0]);
+                    return;
+                }
+                break;
+            }
+            case 2: {
+                if (is_callable($args[0]) && is_string($args[1])) {
+                    $this->addFunction($args[0], $args[1]);
+                    return;
+                }
+                elseif (is_string($args[0])) {
+                    if (is_string($args[1]) && !is_callable(array($args[1], $args[0]))) {
+                        if (class_exists($args[1])) {
+                            $this->addClassMethods($args[0], $args[1]);
+                        }
+                        else {
+                            $this->addClassMethods($args[0], '', $args[1]);
+                        }
+                    }
+                    else {
+                        $this->addMethod($args[0], $args[1]);
+                    }
+                    return;
+                }
+                elseif (is_array($args[0])) {
+                    if (is_array($args[1])) {
+                        $this->addFunctions($args[0], $args[1]);
+                    }
+                    else {
+                        $this->addMethods($args[0], $args[1]);
+                    }
+                    return;
+                }
+                elseif (is_object($args[0])) {
+                    $this->addInstanceMethods($args[0], $args[1]);
+                    return;
+                }
+                break;
+            }
+            case 3: {
+                if (is_callable($args[0]) && $args[1] == '' && is_string($args[2])) {
+                    $this->addFunction($args[0], $args[2]);
+                    return;
+                }
+                elseif (is_string($args[0]) && is_string($args[2])) {
+                    if (is_string($args[1]) && !is_callable(array($args[1], $args[0]))) {
+                        $this->addClassMethods($args[0], $args[1], $args[2]);
+                    }
+                    else {
+                        $this->addMethod($args[0], $args[1], $args[2]);
+                    }
+                    return;
+                }
+                elseif (is_array($args[0])) {
+                    if ($args[1] == '' && is_array($args[2])) {
+                        $this->addFunctions($args[0], $args[2]);
+                    }
+                    else {
+                        $this->addMethods($args[0], $args[1], $args[2]);
+                    }
+                    return;
+                }
+                elseif (is_object($args[0])) {
+                    $this->addInstanceMethods($args[0], $args[1], $args[2]);
+                    return;
+                }
+                break;
+            }
+        }
+        throw new \Exception('Wrong arguments');
+    }
+    public function addAsync() {
+        $args_num = func_num_args();
+        $args = func_get_args();
+        switch ($args_num) {
+            case 1: {
+                if (is_callable($args[0])) {
+                    $this->addAsyncFunction($args[0]);
+                    return;
+                }
+                elseif (is_array($args[0])) {
+                    $this->addAsyncFunctions($args[0]);
+                    return;
+                }
+                elseif (is_object($args[0])) {
+                    $this->addAsyncInstanceMethods($args[0]);
+                    return;
+                }
+                elseif (is_string($args[0])) {
+                    $this->addAsyncClassMethods($args[0]);
+                    return;
+                }
+                break;
+            }
+            case 2: {
+                if (is_callable($args[0]) && is_string($args[1])) {
+                    $this->addAsyncFunction($args[0], $args[1]);
+                    return;
+                }
+                elseif (is_string($args[0])) {
+                    if (is_string($args[1]) && !is_callable(array($args[1], $args[0]))) {
+                        if (class_exists($args[1])) {
+                            $this->addAsyncClassMethods($args[0], $args[1]);
+                        }
+                        else {
+                            $this->addAsyncClassMethods($args[0], '', $args[1]);
+                        }
+                    }
+                    else {
+                        $this->addAsyncMethod($args[0], $args[1]);
+                    }
+                    return;
+                }
+                elseif (is_array($args[0])) {
+                    if (is_array($args[1])) {
+                        $this->addAsyncFunctions($args[0], $args[1]);
+                    }
+                    else {
+                        $this->addAsyncMethods($args[0], $args[1]);
+                    }
+                    return;
+                }
+                elseif (is_object($args[0])) {
+                    $this->addAsyncInstanceMethods($args[0], $args[1]);
+                    return;
+                }
+                break;
+            }
+            case 3: {
+                if (is_callable($args[0]) && $args[1] == '' && is_string($args[2])) {
+                    $this->addAsyncFunction($args[0], $args[2]);
+                    return;
+                }
+                elseif (is_string($args[0]) && is_string($args[2])) {
+                    if (is_string($args[1]) && !is_callable(array($args[1], $args[0]))) {
+                        $this->addAsyncClassMethods($args[0], $args[1], $args[2]);
+                    }
+                    else {
+                        $this->addAsyncMethod($args[0], $args[1], $args[2]);
+                    }
+                    return;
+                }
+                elseif (is_array($args[0])) {
+                    if ($args[1] == '' && is_array($args[2])) {
+                        $this->addAsyncFunctions($args[0], $args[2]);
+                    }
+                    else {
+                        $this->addAsyncMethods($args[0], $args[1], $args[2]);
+                    }
+                    return;
+                }
+                elseif (is_object($args[0])) {
+                    $this->addAsyncInstanceMethods($args[0], $args[1], $args[2]);
+                    return;
+                }
+                break;
+            }
+        }
+        throw new \Exception('Wrong arguments');
     }
 }

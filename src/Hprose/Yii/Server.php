@@ -14,15 +14,16 @@
  *                                                        *
  * hprose yii http server class for php 5.3+              *
  *                                                        *
- * LastModified: Apr 20, 2015                             *
+ * LastModified: Jul 18, 2016                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
 
-namespace Hprose\Yii {
-    class Server extends Service {
-        public function start() {
-            return $this->handle(\Yii::$app);
-        }
+namespace Hprose\Yii;
+
+class Server extends Service {
+    public function start() {
+        $app = \Yii::$app;
+        return $this->handle($app->request, $app->response);
     }
 }
