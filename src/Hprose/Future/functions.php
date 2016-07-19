@@ -14,7 +14,7 @@
  *                                                        *
  * some helper functions for php 5.3+                     *
  *                                                        *
- * LastModified: Jul 11, 2016                             *
+ * LastModified: Jul 19, 2016                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -392,7 +392,7 @@ if (class_exists("\\Generator")) {
                         return $next($yield);
                     }
                     if (method_exists($generator, "getReturn")) {
-                        return $generator->getReturn();
+                        return $generator->getReturn() or $value;
                     }
                     return $value;
                 },
