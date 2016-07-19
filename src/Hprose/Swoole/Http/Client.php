@@ -85,24 +85,6 @@ class Client extends \Hprose\Client {
     public function isSSL() {
         return $this->ssl;
     }
-    public function setFullDuplex($value) {
-        $this->fullDuplex = $value;
-    }
-    public function isFullDuplex() {
-        return $this->fullDuplex;
-    }
-    public function setMaxPoolSize($value) {
-        $this->maxPoolSize = $value;
-    }
-    public function getMaxPoolSize() {
-        return $this->maxPoolSize;
-    }
-    public function setPoolTimeout($value) {
-        $this->poolTimeout = $value;
-    }
-    public function getPoolTimeout() {
-        return $this->poolTimeout;
-    }
     protected function setUri($uri) {
         parent::setUri($uri);
         $p = parse_url($uri);
@@ -168,7 +150,8 @@ class Client extends \Hprose\Client {
         if ($this->ready) {
             $self = $this;
             $cli = new swoole_http_client($this->ip, $this->port, $this->ssl);
-            $cli->set(array('keep_alive' => $this->keepAlive));
+            $cli->set(array('keep_alive' => $this->keepAlive,
+                            'timeout' => $context->timeout / 1000));
             $cli->setHeaders($this->header);
             $cli->setCookies($this->cookies);
             $cli->post($this->path, $request, function($cli) use ($self, $future) {
