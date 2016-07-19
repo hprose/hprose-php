@@ -32,12 +32,12 @@ class Client extends \Hprose\Client {
     public $ip = '';
     public $port = 80;
     public $ssl = false;
-    public $ready = false;
     public $keepAlive = true;
     public $keepAliveTimeout = 300;
     private $header = array();
     private $requests = array();
     private $cookies = array();
+    private $ready = false;
     public function __construct($uris = null) {
         parent::__construct($uris);
     }
@@ -127,8 +127,7 @@ class Client extends \Hprose\Client {
                     $self->ip = $ip;
                     $self->ready = true;
                     foreach ($self->requests as $request) {
-                        $future = $request[1];
-                        $self->sendAndReceive($request[0], $context)->fill($future);
+                        $self->sendAndReceive($request[0], $request[1])->fill($request[2]);
                     }
                 }
             });
@@ -173,7 +172,7 @@ class Client extends \Hprose\Client {
             });
         }
         else {
-            $self->requests[] = array($request, $future);
+            $self->requests[] = array($request, $context, $future);
         }
         return $future;
     }
