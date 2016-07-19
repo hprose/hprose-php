@@ -35,9 +35,7 @@ class Client extends \Hprose\Client {
     public $keepAlive = true;
     public $keepAliveTimeout = 300;
     private $header = array();
-    private $requests = array();
     private $cookies = array();
-    private $ready = false;
     public function __construct($uris = null) {
         parent::__construct($uris);
     }
@@ -115,26 +113,19 @@ class Client extends \Hprose\Client {
             $this->header['Keep-Ailve'] = $this->keepAliveTimeout;
         }
         if (filter_var($this->host, FILTER_VALIDATE_IP) === false) {
-            $self = $this;
-            swoole_async_dns_lookup($this->host, function($host, $ip) use ($self) {
-                if ($ip == null) {
-                    $onError = $self->onError;
-                    if (is_callable($onError)) {
-                        call_user_func($onError, 'swoole_async_dns_lookup', 'dns lookup fails');
-                    }
+            $ip = gethostbyname($this->host);
+            if ($ip === $this->host) {
+                $onError = $this->onError;
+                if (is_callable($onError)) {
+                    call_user_func($onError, 'gethostbyname', 'dns lookup failed');
                 }
-                else {
-                    $self->ip = $ip;
-                    $self->ready = true;
-                    foreach ($self->requests as $request) {
-                        $self->sendAndReceive($request[0], $request[1])->fill($request[2]);
-                    }
-                }
-            });
+            }
+            else {
+                $this->ip = $ip;
+            }
         }
         else {
             $this->ip = $this->host;
-            $this->ready = true;
         }
     }
     protected function wait($interval, $callback) {
@@ -146,34 +137,29 @@ class Client extends \Hprose\Client {
     }
     protected function sendAndReceive($request, stdClass $context) {
         $future = new Future();
-        if ($this->ready) {
-            $self = $this;
-            $cli = new swoole_http_client($this->ip, $this->port, $this->ssl);
-            $cli->on('error', function($cli) use ($future) {
-                $future->reject(new Exception(socket_strerror($cli->errCode)));
-            });
-            $cli->set(array('keep_alive' => $this->keepAlive,
-                            'timeout' => $context->timeout / 1000));
-            $cli->setHeaders($this->header);
-            $cli->setCookies($this->cookies);
-            $cli->post($this->path, $request, function($cli) use ($self, $future) {
-                $self->cookies = $cli->cookies;
-                if ($cli->errCode === 0) {
-                    if ($cli->statusCode == 200) {
-                        $future->resolve($cli->body);
-                    }
-                    else {
-                        $future->reject(new Exception($cli->body));
-                    }
+        $cli = new swoole_http_client($this->ip, $this->port, $this->ssl);
+        $cli->on('error', function($cli) use ($future) {
+            $future->reject(new Exception(socket_strerror($cli->errCode)));
+        });
+        $cli->set(array('keep_alive' => $this->keepAlive,
+                        'timeout' => $context->timeout / 1000));
+        $cli->setHeaders($this->header);
+        $cli->setCookies($this->cookies);
+        $self = $this;
+        $cli->post($this->path, $request, function($cli) use ($self, $future) {
+            $self->cookies = $cli->cookies;
+            if ($cli->errCode === 0) {
+                if ($cli->statusCode == 200) {
+                    $future->resolve($cli->body);
                 }
                 else {
-                    $future->reject(new Exception(socket_strerror($cli->errCode)));
+                    $future->reject(new Exception($cli->body));
                 }
-            });
-        }
-        else {
-            $self->requests[] = array($request, $context, $future);
-        }
+            }
+            else {
+                $future->reject(new Exception(socket_strerror($cli->errCode)));
+            }
+        });
         return $future;
     }
 }
