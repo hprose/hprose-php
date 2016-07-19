@@ -392,7 +392,8 @@ if (class_exists("\\Generator")) {
                         return $next($yield);
                     }
                     if (method_exists($generator, "getReturn")) {
-                        return $generator->getReturn() or $value;
+                        $result = $generator->getReturn();
+                        return ($result === null) ? $value : $result;
                     }
                     return $value;
                 },
