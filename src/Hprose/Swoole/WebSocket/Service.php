@@ -14,7 +14,7 @@
  *                                                        *
  * hprose swoole websocket service library for php 5.3+   *
  *                                                        *
- * LastModified: Jul 19, 2016                             *
+ * LastModified: Jul 20, 2016                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -22,7 +22,8 @@
 namespace Hprose\Swoole\WebSocket;
 
 use stdClass;
-use Hprose\Future;
+use Exception;
+use Throwable;
 
 class Service extends \Hprose\Swoole\Http\Service {
     public $onAccept = null;
@@ -45,14 +46,9 @@ class Service extends \Hprose\Swoole\Http\Service {
 
         $response = $this->defaultHandle($request, $context);
 
-        if (Future\isFuture($response)) {
-            $response->then(function($response) use ($server, $fd, $id) {
-                $server->push($fd, $id . $response, true);
-            });
-        }
-        else {
-            $server->push($fd, $id . $response, true);
-        }
+        $response->then(function($response) use ($server, $fd, $id) {
+            $server->push($fd, $id . $response, WEBSOCKET_OPCODE_BINARY, true);
+        });
     }
     public function wsHandle($server) {
         $self = $this;
