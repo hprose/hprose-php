@@ -402,7 +402,8 @@ abstract class Service extends HandlerManager {
             foreach ($context as $key => $value) {
                 $cc->$key = $value;
             }
-            $call = $this->calls[$alias] or $this->call['*'];
+            $call = isset($this->calls[$alias]) ?
+                    $this->calls[$alias] : $this->call['*'];
             if ($call) {
                 foreach ($call as $key => $value) {
                     $cc->$key = $value;
@@ -557,7 +558,7 @@ abstract class Service extends HandlerManager {
         }
         $call = new stdClass();
         $call->method = $func;
-        $call->mode = @$options['mode'] or ResultMode::Normal;
+        $call->mode = isset($options['mode']) ? $options['mode'] : ResultMode::Normal;
         $call->simple = @$options['simple'];
         $call->oneway = !!@$options['oneway'];
         $call->async = !!@$options['async'];
