@@ -14,7 +14,7 @@
  *                                                        *
  * hprose client class for php 5.3+                       *
  *                                                        *
- * LastModified: Jul 16, 2016                             *
+ * LastModified: Jul 19, 2016                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -40,6 +40,7 @@ abstract class Client extends HandlerManager {
     public $failswitch = false;
     public $byref = false;
     public $simple = false;
+    public $onError = null;
 
     private static $clientFactories = array();
     private static $clientFactoriesInited = false;
@@ -521,7 +522,8 @@ abstract class Client extends HandlerManager {
                 $f = new ReflectionFunction($callback);
             }
             $n = $f->getNumberOfParameters();
-            return Future\all($args)->then(function($args) use ($invokeHandler, $name, $context, $n, $callback) {
+            $onError = $this->onError;
+            return Future\all($args)->then(function($args) use ($invokeHandler, $name, $context, $n, $callback, $onError) {
                 $result = Future\toPromise($invokeHandler($name, $args, $context));
                 $result->then(
                     function($result) use ($n, $callback, $args) {
@@ -532,9 +534,14 @@ abstract class Client extends HandlerManager {
                             case 3: call_user_func($callback, $result, $args, null); break;
                         }
                     },
-                    function($error) use ($n, $callback, $args) {
+                    function($error) use ($n, $callback, $args, $name, $onError) {
                         switch($n) {
-                            case 0: call_user_func($callback); break;
+                            case 0:
+                                call_user_func($callback);
+                                if (is_callable($onError)) {
+                                    call_user_func($onError, $name, $error);
+                                }
+                                break;
                             case 1: call_user_func($callback, $error); break;
                             case 2: call_user_func($callback, $error, $args); break;
                             case 3: call_user_func($callback, null, $args, $error); break;
