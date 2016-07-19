@@ -150,6 +150,9 @@ class Client extends \Hprose\Client {
         if ($this->ready) {
             $self = $this;
             $cli = new swoole_http_client($this->ip, $this->port, $this->ssl);
+            $cli->on('error', function($cli) use ($future) {
+                $future->reject(new Exception(socket_strerror($cli->errCode)));
+            });
             $cli->set(array('keep_alive' => $this->keepAlive,
                             'timeout' => $context->timeout / 1000));
             $cli->setHeaders($this->header);
