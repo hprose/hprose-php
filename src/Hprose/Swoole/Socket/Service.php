@@ -14,7 +14,7 @@
  *                                                        *
  * hprose swoole socket service library for php 5.3+      *
  *                                                        *
- * LastModified: Jul 18, 2016                             *
+ * LastModified: Jul 20, 2016                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -24,7 +24,6 @@ namespace Hprose\Swoole\Socket;
 use stdClass;
 use Exception;
 use Throwable;
-use Hprose\Future;
 
 class Service extends \Hprose\Service {
     const MAX_PACK_LEN = 0x200000;
@@ -34,7 +33,7 @@ class Service extends \Hprose\Service {
     public function set($settings) {
         $this->settings = array_replace($this->settings, $settings);
     }
-    public function socketWrite($server, $socket, $data, $id) {
+    public function socketSend($server, $socket, $data, $id) {
         $dataLength = strlen($data);
         if ($id === null) {
             $server->send($socket, pack("N", $dataLength));
@@ -53,17 +52,6 @@ class Service extends \Hprose\Service {
             }
             return true;
         }
-    }
-    public function socketSend($server, $socket, $data, $id) {
-        if (Future\isFuture($data)) {
-            $self = $this;
-            $data->then(function($data) use ($self, $server, $socket, $id) {
-                $self->socketWrite($server, $socket, $data, $id);
-            });
-        }
-        else {
-            $this->socketWrite($server, $socket, $data, $id);
-        }   
     }
     public function getOnReceive() {
         $self = $this;
@@ -93,10 +81,12 @@ class Service extends \Hprose\Service {
                     $context->fromid = $fromid;
                     $context->userdata = new stdClass();
                     $data = substr($bytes, $headerLength, $dataLength);
-                    $this->userFatalErrorHandler = function($error) use ($self, $server, $socket, $id, $context) {
+                    $self->userFatalErrorHandler = function($error) use ($self, $server, $socket, $id, $context) {
                         $self->socketSend($server, $socket, $self->endError($error, $context), $id);
                     };
-                    $self->socketSend($server, $socket, $self->defaultHandle($data, $context), $id);
+                    $self->defaultHandle($data, $context)->then(function($data) use ($self, $server, $socket, $id) {
+                        $self->socketSend($server, $socket, $data, $id);
+                    });
                     $bytes = substr($bytes, $headerLength + $dataLength);
                     $id = null;
                     $headerLength = 4;
