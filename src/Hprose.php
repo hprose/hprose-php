@@ -14,7 +14,7 @@
  *                                                        *
  * hprose for php 5.3+                                    *
  *                                                        *
- * LastModified: Jul 11, 2016                             *
+ * LastModified: Jul 20, 2016                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -24,6 +24,7 @@ require_once 'TypeError.php';
 require_once 'Hprose/Future/functions.php';
 require_once 'Hprose/Promise/functions.php';
 require_once 'Hprose/functions.php';
+require_once 'functions.php';
 
 spl_autoload_register(function($className) {
     if (strtolower(substr($className, 0, 6)) === "hprose") {
@@ -31,6 +32,9 @@ spl_autoload_register(function($className) {
             include __DIR__ . DIRECTORY_SEPARATOR . str_replace("\\", DIRECTORY_SEPARATOR, $className) . ".php";
         }
         else {
+            // Deprecated
+            // Compatible with older versions only
+            // You'd better not use these classes.
             switch (strtolower($className)) {
                 case 'hproseasync':
                     class_alias('Hprose\\Async', 'HproseAsync');
@@ -68,20 +72,11 @@ spl_autoload_register(function($className) {
                 case 'hprosefilter':
                     class_alias('Hprose\\Filter', 'HproseFilter');
                     break;
-                case 'hproseinvokesettings':
-                    class_alias('Hprose\\InvokeSettings', 'HproseInvokeSettings');
-                    break;
-                case 'hprosehandlermanager':
-                    class_alias('Hprose\\HandlerManager', 'HproseHandlerManager');
-                    break;
                 case 'hproseclient':
                     class_alias('Hprose\\Client', 'HproseClient');
                     break;
                 case 'hproseservice':
                     class_alias('Hprose\\Service', 'HproseService');
-                    break;
-                case 'hprosebaseservice':
-                    class_alias('Hprose\\Base\\Service', 'HproseBaseService');
                     break;
                 case 'hprosehttpclient':
                     class_alias('Hprose\\Http\\Client', 'HproseHttpClient');
@@ -92,44 +87,8 @@ spl_autoload_register(function($className) {
                 case 'hprosehttpserver':
                     class_alias('Hprose\\Http\\Server', 'HproseHttpServer');
                     break;
-                case 'hproseswooleclient':
-                    class_alias('Hprose\\Swoole\\Client', 'HproseSwooleClient');
-                    break;
-                case 'hproseswooleserver':
-                    class_alias('Hprose\\Swoole\\Server', 'HproseSwooleServer');
-                    break;
-                case 'hproseswoolehttpservice':
-                    class_alias('Hprose\\Swoole\\Http\\Service', 'HproseSwooleHttpService');
-                    break;
-                case 'hproseswoolehttpserver':
-                    class_alias('Hprose\\Swoole\\Http\\Server', 'HproseSwooleHttpServer');
-                    break;
-                case 'hproseswoolesocketclient':
-                    class_alias('Hprose\\Swoole\\Socket\\Client', 'HproseSwooleSocketClient');
-                    break;
-                case 'hproseswoolesocketservice':
-                    class_alias('Hprose\\Swoole\\Socket\\Service', 'HproseSwooleSocketService');
-                    break;
-                case 'hproseswoolesocketserver':
-                    class_alias('Hprose\\Swoole\\Socket\\Server', 'HproseSwooleSocketServer');
-                    break;
-                case 'hproseswoolewebsocketservice':
-                    class_alias('Hprose\\Swoole\\WebSocket\\Service', 'HproseSwooleWebSocketService');
-                    break;
-                case 'hproseswoolewebsocketserver':
-                    class_alias('Hprose\\Swoole\\WebSocket\\Server', 'HproseSwooleWebSocketServer');
-                    break;
-                case 'hprosesymfonyservice':
-                    class_alias('Hprose\\Symfony\\Service', 'HproseSymfonyService');
-                    break;
-                case 'hprosesymfonyserver':
-                    class_alias('Hprose\\Symfony\\Server', 'HproseSymfonyServer');
-                    break;
-                case 'hproseyiiservice':
-                    class_alias('Hprose\\Yii\\Service', 'HproseYiiService');
-                    break;
-                case 'hproseyiiserver':
-                    class_alias('Hprose\\Yii\\Server', 'HproseYiiServer');
+                case 'hprosesocketclient':
+                    class_alias('Hprose\\Socket\\Client', 'HproseSocketClient');
                     break;
                 case 'hprosejsonrpcclientfilter':
                     class_alias('Hprose\\Filter\\JSONRPC\\ClientFilter', 'HproseJSONRPCClientFilter');
@@ -151,5 +110,3 @@ spl_autoload_register(function($className) {
     }
     return false;
 });
-
-require_once 'functions.php';
