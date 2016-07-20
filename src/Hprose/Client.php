@@ -14,7 +14,7 @@
  *                                                        *
  * hprose client class for php 5.3+                       *
  *                                                        *
- * LastModified: Jul 19, 2016                             *
+ * LastModified: Jul 20, 2016                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -56,23 +56,14 @@ abstract class Client extends HandlerManager {
     }
 
     private static function initClientFactories() {
-        // TODO TODO TODO TODO TODO TODO TODO TODO
-        // TODO TODO TODO TODO TODO TODO TODO TODO
-        // TODO TODO TODO TODO TODO TODO TODO TODO
-        // TODO TODO TODO TODO TODO TODO TODO TODO
-        // TODO TODO TODO TODO TODO TODO TODO TODO
-        // if (php_sapi_name() == "cli" && extension_loaded("swoole")) {
-        //     tryRegisterClientFactory("http", "\\Hprose\\Swoole\\Http\\Client");
-        // }
-        // else {
-        tryRegisterClientFactory("http", "\\Hprose\\Http\\Client");
-        tryRegisterClientFactory("tcp", "\\Hprose\\Socket\\Client");
-        tryRegisterClientFactory("ssl", "\\Hprose\\Socket\\Client");
-        tryRegisterClientFactory("sslv2", "\\Hprose\\Socket\\Client");
-        tryRegisterClientFactory("sslv3", "\\Hprose\\Socket\\Client");
-        tryRegisterClientFactory("tls", "\\Hprose\\Socket\\Client");
-        tryRegisterClientFactory("unix", "\\Hprose\\Socket\\Client");
-        // }
+        self::tryRegisterClientFactory("http", "\\Hprose\\Http\\Client");
+        self::tryRegisterClientFactory("https", "\\Hprose\\Http\\Client");
+        self::tryRegisterClientFactory("tcp", "\\Hprose\\Socket\\Client");
+        self::tryRegisterClientFactory("ssl", "\\Hprose\\Socket\\Client");
+        self::tryRegisterClientFactory("sslv2", "\\Hprose\\Socket\\Client");
+        self::tryRegisterClientFactory("sslv3", "\\Hprose\\Socket\\Client");
+        self::tryRegisterClientFactory("tls", "\\Hprose\\Socket\\Client");
+        self::tryRegisterClientFactory("unix", "\\Hprose\\Socket\\Client");
         self::$clientFactoriesInited = true;
     }
 
