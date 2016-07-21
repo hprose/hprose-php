@@ -14,7 +14,7 @@
  *                                                        *
  * hprose client class for php 5.3+                       *
  *                                                        *
- * LastModified: Jul 20, 2016                             *
+ * LastModified: Jul 21, 2016                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -25,6 +25,7 @@ use stdClass;
 use Closure;
 use Exception;
 use Throwable;
+use TypeError;
 use ReflectionMethod;
 use ReflectionFunction;
 
@@ -515,7 +516,7 @@ abstract class Client extends HandlerManager {
             $n = $f->getNumberOfParameters();
             $onError = $this->onError;
             return Future\all($args)->then(function($args) use ($invokeHandler, $name, $context, $n, $callback, $onError) {
-                $result = Future\toPromise($invokeHandler($name, $args, $context));
+                $result = Future\toFuture($invokeHandler($name, $args, $context));
                 $result->then(
                     function($result) use ($n, $callback, $args) {
                         switch($n) {
@@ -555,4 +556,152 @@ abstract class Client extends HandlerManager {
 
     protected abstract function sendAndReceive($request, stdClass $context);
 
+    private $topics;
+    private $id;
+    private function autoId() {
+        $settings = new InvokeSettings(array(
+            'idempotent' => true,
+            'failswitch' => true
+        ));
+        return Future\toFuture($this->invoke('#', array(), $settings));
+    }
+    /*
+        This method is a private method.
+        But PHP 5.3 can't call private method in closure,
+        so we comment the private keyword.
+    */
+    /*private*/ function getTopic($name, $id, $create) {
+        if (isset($this->topics[$name])) {
+            $topics = $this->topics[$name];
+            if (isset($topics[$id])) {
+                return $topics[$id];
+            }
+            return null;
+        }
+        if ($create) {
+            $this->topics[$name] = array();
+        }
+    }
+    // subscribe($name, $callback, $timeout)
+    // subscribe($name, $id, $callback, $timeout)
+    public function subscribe($name, $id = null, $callback = null, $timeout = null) {
+        $self = $this;
+        if (!is_string($name)) {
+            throw new TypeError('topic name must be a string');
+        }
+        if (is_callable($id) && !is_callable($callback)) {
+            $timeout = $callback;
+            $callback = $id;
+            $id = null;
+        }
+        if (!is_callable($callback)) {
+            throw new TypeError('callback must be a function.');
+        }
+        if ($id === null) {
+            if ($this->id == null) {
+                $this->id = $this->autoId();
+            }
+            $this->id->then(function($id) use ($self, $name, $callback, $timeout) {
+                $self->subscribe($name, $id, $callback, $timeout);
+            });
+            return;
+        }
+        if (!is_int($timeout)) $timeout = $this->timeout;
+        $topic = $this->getTopic($name, $id, true);
+        if ($topic === null) {
+            $topic = new stdClass();
+            $settings = new InvokeSettings(array(
+                'idempotent' => true,
+                'failswitch' => false,
+                'timeout' => $timeout
+            ));
+            $cb = function() use ($self, &$cb, $topic, $name, $id, $settings) {
+                $self->invoke($name, array($id), $settings)
+                     ->then($topic->handler, $cb);
+            };
+            $topic->handler = function($result) use ($self, $name, $id, $cb) {
+                $topic = $self->getTopic($name, $id, false);
+                if ($topic !== null) {
+                    if ($result !== null) {
+                        $callbacks = $topic->callbacks;
+                        foreach ($callbacks as $callback) {
+                            try {
+                                call_user_func($callback, $result);
+                            }
+                            catch (Exception $ex) {}
+                            catch (Throwable $ex) {}
+                        }
+                    }
+                    if ($self->getTopic($name, $id, false) !== null) $cb();
+                }
+            };
+            $topic->callbacks = array($callback);
+            $this->topics[$name][$id] = $topic;
+            $cb();
+        }
+        elseif (array_search($callback, $topic->callbacks, true) === false) {
+            $topic->callbacks[] = $callback;
+        }
+    }
+    private function delTopic(&$topics, $id, $callback) {
+        if ($topics !== null) {
+            if (is_callable($callback)) {
+                $topic = @$topics[$id];
+                if ($topic !== null) {
+                    $callbacks = array_diff($topic->callbacks, array($callback));
+                    if (count($callbacks) > 0) {
+                        $topic->callbacks = $callbacks;
+                    }
+                    else {
+                        unset($topics[$id]);
+                    }
+                }
+            }
+            else {
+                unset($topics[$id]);
+            }
+        }
+    }
+    // unsubscribe($name)
+    // unsubscribe($name, $callback)
+    // unsubscribe($name, $id)
+    // unsubscribe($name, $id, $callback)
+    public function unsubscribe($name, $id = null, $callback = null) {
+        $self = $this;
+        if (!is_string($name)) {
+            throw new TypeError('topic name must be a string');
+        }
+        if (($id === null) && ($callback === null)) {
+            unset($this->topics[$name]);
+            return;
+        }
+        if (is_callable($id) && !is_callable($callback)) {
+            $callback = $id;
+            $id = null;
+        }
+        if ($id === null) {
+            if ($this->id === null) {
+                if (isset($this->topics[$name])) {
+                    $topics = $this->topics[$name];
+                    $ids = array_keys($topics);
+                    foreach ($ids as $id) {
+                        $this->delTopic($topics, $id, $callback);
+                    }
+                }
+            }
+            else {
+                $this->id->then(function($id) use ($self, $name, $callback) {
+                    $self->unsubscribe($name, $id, $callback);
+                });
+            }
+        }
+        elseif (Future\isFuture($id)) {
+            $id->then(function($id) use ($self, $name, $callback) {
+                $self->unsubscribe($name, $id, $callback);
+            });
+        }
+        else {
+            $this->delTopic($this->topics[$name], $id, $callback);
+        }
+    }
 }

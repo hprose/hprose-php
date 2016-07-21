@@ -14,7 +14,7 @@
  *                                                        *
  * hprose service class for php 5.3+                      *
  *                                                        *
- * LastModified: Jul 17, 2016                             *
+ * LastModified: Jul 21, 2016                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -25,6 +25,9 @@ use stdClass;
 use ErrorException;
 use Exception;
 use Throwable;
+use ArrayObject;
+use SplQueue;
+use Hprose\TimeoutException;
 
 abstract class Service extends HandlerManager {
     private static $magicMethods = array(
@@ -46,19 +49,22 @@ abstract class Service extends HandlerManager {
     private $calls = array();
     private $names = array();
     private $filters = array();
+    protected $userFatalErrorHandler = null;
     public $onBeforeInvoke = null;
     public $onAfterInvoke = null;
     public $onSendError = null;
-    public $timeout = 120000;
-    public $heartbeat = 3000;
     public $errorDelay = 10000;
     public $errorTypes;
     public $simple = false;
     public $debug = false;
     public $passContext = false;
+    // for push service
+    protected $timer = null;
+    public $timeout = 120000;
+    public $heartbeat = 3000;
+    public $onSubscribe = null;
+    public $onUnsubscribe = null;
     private $topics = array();
-    private $events = array();
-    protected $userFatalErrorHandler = null;
     private $nextid = 0;
     public function __construct() {
         parent::__construct();
@@ -126,7 +132,7 @@ abstract class Service extends HandlerManager {
         return $this->passContext;
     }
     public final function setPassContext($value = true) {
-        $this->simple = $value;
+        $this->passContext = $value;
     }
     public final function getFilter() {
         if (empty($this->filters)) {
@@ -535,7 +541,7 @@ abstract class Service extends HandlerManager {
     }
     public function addFunction($func, $alias = '', array $options = array()) {
         if (!is_callable($func)) {
-            throw new \Exception('Argument func must be callable.');
+            throw new Exception('Argument func must be callable.');
         }
         if (is_array($alias) && empty($options)) {
             $options = $alias;
@@ -549,7 +555,7 @@ abstract class Service extends HandlerManager {
                 $alias = $func[1];
             }
             else {
-                throw new \Exception('Need an alias');
+                throw new Exception('Need an alias');
             }
         }
         $name = strtolower($alias);
@@ -600,7 +606,7 @@ abstract class Service extends HandlerManager {
             }
         }
         else {
-            throw new \Exception('The count of functions is not matched with aliases');
+            throw new Exception('The count of functions is not matched with aliases');
         }
     }
     public function addAsyncFunctions(array $funcs,
@@ -655,7 +661,7 @@ abstract class Service extends HandlerManager {
             }
         }
         if (count($methods) != count($aliases)) {
-            throw new \Exception('The count of methods is not matched with aliases');
+            throw new Exception('The count of methods is not matched with aliases');
         }
         foreach($methods as $k => $method) {
             $func = array($scope, $method);
@@ -686,7 +692,7 @@ abstract class Service extends HandlerManager {
             }
         }
         if (count($methods) != count($aliases)) {
-            throw new \Exception('The count of methods is not matched with aliases');
+            throw new Exception('The count of methods is not matched with aliases');
         }
         foreach($methods as $k => $method) {
             $func = array($scope, $method);
@@ -822,7 +828,7 @@ abstract class Service extends HandlerManager {
                 break;
             }
         }
-        throw new \Exception('Wrong arguments');
+        throw new Exception('Wrong arguments');
     }
     public function addAsync() {
         $args_num = func_num_args();
@@ -911,6 +917,247 @@ abstract class Service extends HandlerManager {
                 break;
             }
         }
-        throw new \Exception('Wrong arguments');
+        throw new Exception('Wrong arguments');
+    }
+
+// for push service
+    private function checkPushService() {
+        if ($this->timer === null) {
+            throw new Exception(get_class($this) . " can't support push service.");
+        }
+    }
+    public function getTopics($topic) {
+        if (empty($this->topics[$topic])) {
+            throw new Exception('topic "' + $topic + '" is not published.');
+        }
+        return $this->topics[$topic];
+    }
+    
+    public function delTimer(ArrayObject $topics, $id) {
+        $t = $topics[$id];
+        if (isset($t->timer)) {
+            $this->timer->clearTimeout($t->timer);
+            unset($t->timer);
+        }
+    }
+    public function offline(ArrayObject $topics, $topic, $id) {
+        $this->delTimer($topics, $id);
+        $messages = $topics[$id]->messages;
+        unset($topics[$id]);
+        foreach ($messages as $message) {
+            $message->detector->resolve(false);
+        }
+        $onUnsubscribe = $this->onUnsubscribe;
+        if (is_callable($onUnsubscribe)) {
+            call_user_func($onUnsubscribe, $topic, $id, $this);
+        }
+    }
+    public function setTimer(ArrayObject $topics, $topic, $id) {
+        $t = $topics[$id];
+        if (!isset($t->timer)) {
+            $self = $this;
+            $t->timer = $this->timer->setTimeout(function()
+                    use ($self, $topics, $topic, $id) {
+                $self->offline($topics, $topic, $id);
+            }, $t->heartbeat);
+        }
+    }
+    public function resetTimer(ArrayObject $topics, $topic, $id) {
+        $this->delTimer($topics, $id);
+        $this->setTimer($topics, $topic, $id);
+    }
+    public function setRequestTimer($topic, $id, $request, $timeout) {
+        if ($timeout > 0) {
+            $self = $this;
+            $topics = $this->getTopics($topic);
+            $future = new Future();
+            $timer = $this->timer->setTimeout(function() use ($future) {
+                $future->reject(new TimeoutException('timeout'));
+            }, $timeout);
+            $request->whenComplete(function() use ($self, $timer) {
+                $self->timer->clearTimeout($timer);
+            })->fill($future);
+            return $future->catchError(function($e) use ($self, $topics, $topic, $id) {
+                $t = $topics[$id];
+                if ($e instanceof TimeoutException) {
+                    $checkoffline = function() use ($self, $t, &$checkoffline, $topics, $topic, $id) {
+                        $t->timer = $self->timer->setTimeout($checkoffline, $t->heartbeat);
+                        if ($t->count < 0) {
+                            $self->offline($topics, $topic, $id);
+                        }
+                        else {
+                            --$t->count;
+                        }
+                    };
+                    $checkoffline();
+                }
+                else {
+                    --$t->count;
+                }
+            });
+        }
+        return $request;
+    }
+    public function publish($topic, array $options = array()) {
+        $this->checkPushService();
+        if (is_array($topic)) {
+            foreach ($topic as $t) {
+                $this->publish($t, $options);
+            }
+            return;
+        }
+        $self = $this;
+        $timeout = isset($options['timeout']) ? $options['timeout'] : $this->timeout;
+        $heartbeat = isset($options['heartbeat']) ? $options['heartbeat'] : $this->heartbeat;
+        $this->topics[$topic] = new ArrayObject();
+        $this->addFunction(function($id) use ($self, $topic, $timeout, $heartbeat) {
+            $topics = $self->getTopics($topic);
+            if (isset($topics[$id])) {
+                if ($topics[$id]->count < 0) {
+                    $topics[$id]->count = 0;
+                }
+                $messages = $topics[$id]->messages;
+                if (!empty($messages)) {
+                    $message = $messages->shift();
+                    $message->detector->resolve(true);
+                    $self->resetTimer($topics, $topic, $id);
+                    return $message->result;
+                }
+                else {
+                    $self->delTimer($topics, $id);
+                    $topics[$id]->count++;
+                }
+            }
+            else {
+                $topics[$id] = new stdClass();
+                $topics[$id]->messages = new SplQueue();
+                $topics[$id]->count = 1;
+                $topics[$id]->heartbeat = $heartbeat;
+                $onSubscribe = $self->onSubscribe;
+                if (is_callable($onSubscribe)) {
+                    call_user_func($onSubscribe, $topic, $id, $self);
+                }
+            }
+            if (isset($topics[$id]->request)) {
+                $topics[$id]->request->resolve(null);
+            }
+            $request = new Future();
+            $request->complete(function() use ($topics, $id) {
+                $topics[$id]->count--;
+            });
+            $topics[$id]->request = $request;
+            return $self->setRequestTimer($topic, $id, $request, $timeout);
+        }, $topic);
+    }
+    private function internalPush($topic, $id, $result) {
+        $topics = $this->getTopics($topic);
+        if (!isset($topics[$id])) {
+            return Future\value(false);
+        }
+        if (isset($topics[$id]->request)) {
+            $topics[$id]->request->resolve($result);
+            unset($topics[$id]->request);
+            return Future\value(true);
+        }
+        else {
+            $detector = new Future();
+            $message = new stdClass();
+            $message->detector = $detector;
+            $message->result = $result;
+            $topics[$id]->messages->push($message);
+            $this->setTimer($topics, $topic, $id);
+            return $detector;
+        }
+    }
+    public function idlist($topic) {
+        return array_keys($this->getTopics($topic)->getArrayCopy());
+    }
+    public function exist($topic, $id) {
+        $topics = $this->getTopics($topic);
+        return isset($topics[$id]);
+    }
+    public function broadcast($topic, $result, $callback = null) {
+        $this->checkPushService();
+        $this->multicast($topic, $this->idlist($topic), $result, $callback);
+    }
+    public function multicast($topic, $ids, $result, $callback = null) {
+        $this->checkPushService();
+        if (!is_callable($callback)) {
+            foreach ($ids as $id) {
+                $this->internalPush($topic, $id, $result);
+            }
+            return;
+        }
+        $sent = array();
+        $unsent = array();
+        $n = count($ids);
+        $count = $n;
+        $check = function($id) use (&$sent, &$unsent, &$count, $callback) {
+            return function($success) use ($id, &$sent, &$unsent, &$count, $callback) {
+                if ($success) {
+                    $sent[] = $id;
+                }
+                else {
+                    $unsent[] = $id;
+                }
+                if (--$count === 0) {
+                    call_user_func($callback, $sent, $unsent);
+                }
+            };
+        };
+        for ($i = 0; $i < $n; ++$i) {
+            $id = $ids[$i];
+            if ($id !== null) {
+                $this->internalPush($topic, $id, $result)->then($check($id));
+            }
+            else {
+                --$count;
+            }
+        }
+    }
+    public function unicast($topic, $id, $result, $callback = null) {
+        $this->checkPushService();
+        $detector = $this->internalPush($topic, $id, $result);
+        if (is_callable($callback)) {
+            $detector->then($callback);
+        }
+    }
+    // push($topic, $result)
+    // push($topic, $ids, $result)
+    // push($topic, $id, $result)
+    public function push($topic) {
+        $this->checkPushService();
+        $args = func_get_args();
+        $argc = func_num_args();
+        $id = null;
+        $result = null;
+        if (($argc < 2) || ($argc > 3)) {
+            throw new Exception('Wrong number of arguments');
+        }
+        if ($argc === 2) {
+            $result = $args[1];
+        }
+        else {
+            $id = $args[1];
+            $result = $args[2];
+        }
+        if ($id === null) {
+            $topics = $this->getTopics($topic);
+            $iterator = $topics->getIterator();
+            while($iterator->valid()) {
+                $id = $iterator->key();
+                $this->internalPush($topic, $id, $result);
+                $iterator->next();
+            }
+        }
+        elseif (is_array($id)) {
+            $ids = $id;
+            foreach ($ids as $id) {
+                $this->internalPush($topic, $id, $result);
+            }
+        }
+        else {
+            $this->internalPush($topic, $id, $result);
+        }
     }
 }
