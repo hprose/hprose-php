@@ -167,19 +167,6 @@ abstract class Service extends HandlerManager {
         $this->filters = array_splice($this->filters, $i, 1);
         return true;
     }
-    private function setErrorHandler() {
-        $error = null;
-        set_error_handler(function($errno, $errstr, $errfile, $errline) use (&$error) {
-            $error = new \ErrorException($errstr, 0, $errno, $errfile, $errline);
-        }, $this->errorTypes);
-        ob_start();
-        ob_implicit_flush(0);
-        return $error;
-    }
-    private function restoreErrorHandler() {
-        @ob_end_clean();
-        restore_error_handler();
-    }
     protected function nextTick($callback) {
         $callback();
     }
@@ -524,12 +511,23 @@ abstract class Service extends HandlerManager {
         }
     }
     public function defaultHandle($request, stdClass $context) {
-        $this->setErrorHandler();
+        $error = null;
+        set_error_handler(function($errno, $errstr, $errfile, $errline) use (&$error) {
+            $error = new \ErrorException($errstr, 0, $errno, $errfile, $errline);
+        }, $this->errorTypes);
+        ob_start();
+        ob_implicit_flush(0);
         $context->clients = $this;
         $beforeFilterHandler = $this->beforeFilterHandler;
         $response = $beforeFilterHandler($request, $context);
-        $this->restoreErrorHandler();
-        return $response;
+        @ob_end_clean();
+        restore_error_handler();
+        return $response->then(function($result) use (&$error, $context) {
+            if ($error === null) {
+                return $result;
+            }
+            return $this->endError($error, $context);
+        });
     }
     private static function getDeclaredOnlyMethods($class) {
         $result = get_class_methods($class);
