@@ -520,9 +520,9 @@ abstract class Service extends HandlerManager {
         $context->clients = $this;
         $beforeFilterHandler = $this->beforeFilterHandler;
         $response = $beforeFilterHandler($request, $context);
-        @ob_end_clean();
-        restore_error_handler();
         return $response->then(function($result) use (&$error, $context) {
+            @ob_end_clean();
+            restore_error_handler();
             if ($error === null) {
                 return $result;
             }
