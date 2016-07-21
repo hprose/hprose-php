@@ -5,12 +5,11 @@ php:
   - 5.5
   - 5.6
   - 7.0
+  - 7.1
 
 sudo: required
 
 before_script:
-  - chmod +x install_ext.sh
-  - ./install_ext.sh
   - composer install
   - cd tests
 
