@@ -44,9 +44,11 @@ class Service extends \Hprose\Service {
     protected function readRequest($context) {
         return file_get_contents("php://input");
     }
-    protected function createContext($request = null, $response = null) {
+    protected function createContext($request, $response) {
         $context = new stdClass();
         $context->server = $this;
+        $context->request = $request;
+        $context->response = $response;
         $context->userdata = new stdClass();
         return $context;
     }
@@ -146,6 +148,6 @@ class Service extends \Hprose\Service {
         else {
             $self->writeResponse($result, $context);
        }
-       return $response;
+       return $context->response;
     }
 }
