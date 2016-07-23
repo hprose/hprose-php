@@ -363,7 +363,11 @@ function toPromise($obj) {
 }
 
 function arrayToPromise(array $array) {
-    return all(array_map("\\Hprose\\Future\\toPromise", $array));
+    $result = array();
+    foreach ($array as $key => $value) {
+        $result[$key] = toPromise($value);
+    }
+    return all($result);
 }
 
 function objectToPromise($obj) {
