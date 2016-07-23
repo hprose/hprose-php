@@ -14,7 +14,7 @@
  *                                                        *
  * some helper functions for php 5.3+                     *
  *                                                        *
- * LastModified: Jul 19, 2016                             *
+ * LastModified: Jul 23, 2016                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -273,7 +273,11 @@ function filter($array, $callback, $preserveKeys = false) {
 function map($array, $callback) {
     return all($array)->then(
         function($array) use ($callback) {
-            return array_map($callback, $array);
+            $result = array();
+            foreach ($array as $key => $value) {
+                $result[$key] = call_user_func($callback, $value, $key, $array);
+            }
+            return $result;
         }
     );
 }
