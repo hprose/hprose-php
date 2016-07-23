@@ -14,7 +14,7 @@
  *                                                        *
  * Promise for php 5.3+                                   *
  *                                                        *
- * LastModified: Jul 11, 2016                             *
+ * LastModified: Jul 23, 2016                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -25,7 +25,15 @@ class Promise extends Future {
     public function __construct($executor = null) {
         parent::__construct();
         if (is_callable($executor)) {
-            call_user_func($executor, array($this, "resolve"), array($this, "reject"));
+            $self = $this;
+            call_user_func($executor,
+                function($value) use ($self) {
+                    $self->resolve($value);
+                },
+                function($reason) use ($self) {
+                    $self->reject($reason);
+                }
+            );
         }
     }
 }
