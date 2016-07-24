@@ -372,6 +372,12 @@ abstract class Client extends HandlerManager {
                 $settings = array_pop($args);
                 return $this->invoke($name, $args, $settings);
             }
+            else if (($n > 1) && is_array($args[$n - 1]) &&
+                    ($args[$n - 2] instanceof Closure)) {
+                $settings = new InvokeSettings(array_pop($args));
+                $callback = array_pop($args);
+                return $this->invoke($name, $args, $callback, $settings);
+            }
         }
         return $this->invoke($name, $args);
     }
