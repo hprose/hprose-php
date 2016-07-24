@@ -4,8 +4,10 @@ require_once "../vendor/autoload.php";
 use \Hprose\Future;
 use \Hprose\Http\Client;
 
-$x = Future\wrap(function() {
-    $test = new Client("http://hprose.com/example/");
+$test = new Client("http://hprose.com/example/");
+
+$coroutine = Future\wrap(function($test) {
+    var_dump(1);
     var_dump((yield $test->hello("hprose")));
     $a = $test->sum(1, 2, 3);
     $b = $test->sum(4, 5, 6);
@@ -14,4 +16,5 @@ $x = Future\wrap(function() {
     var_dump((yield $test->hello("world")));
 });
 
-$x();
+$coroutine($test);
+$coroutine(Future\value($test));
