@@ -14,7 +14,7 @@
  *                                                        *
  * hprose for php 5.3+                                    *
  *                                                        *
- * LastModified: Jul 20, 2016                             *
+ * LastModified: Jul 24, 2016                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -27,7 +27,7 @@ require_once 'Hprose/functions.php';
 require_once 'functions.php';
 
 spl_autoload_register(function($className) {
-    if (strtolower(substr($className, 0, 6)) === "hprose") {
+    if ((strlen($className) > 6) && (strtolower(substr($className, 0, 6)) === "hprose")) {
         if ($className{6} === '\\') {
             include __DIR__ . DIRECTORY_SEPARATOR . str_replace("\\", DIRECTORY_SEPARATOR, $className) . ".php";
         }
