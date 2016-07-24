@@ -110,8 +110,8 @@ class Future {
             return;
         }
         if (($x !== NULL) and is_object($x) or is_string($x)) {
-            $then = array($x, "then");
-            if (is_callable($then)) {
+            if (method_exists($x, 'then')) {
+                $then = array($x, 'then');
                 $notrun = true;
                 try {
                     call_user_func($then,
