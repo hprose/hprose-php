@@ -14,7 +14,7 @@
  *                                                        *
  * hprose client class for php 5.3+                       *
  *                                                        *
- * LastModified: Jul 21, 2016                             *
+ * LastModified: Jul 24, 2016                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -70,7 +70,7 @@ abstract class Client extends HandlerManager {
 
     public static function create($uris, $async = true) {
         if (!self::$clientFactoriesInited) self::initClientFactories();
-        if (is_string($uris)) $uris = array($uris); 
+        if (is_string($uris)) $uris = array($uris);
         $scheme = strtolower(parse_url($uris[0], PHP_URL_SCHEME));
         $n = count($uris);
         for ($i = 1; $i < $n; ++$i) {
@@ -88,13 +88,13 @@ abstract class Client extends HandlerManager {
     public function __construct($uris = null, $async = true) {
         parent::__construct();
         if ($uris != null) {
-            if (is_string($uris)) $uris = array($uris); 
+            if (is_string($uris)) $uris = array($uris);
             if (is_array($uris)) {
                 $this->useService($uris);
             }
             if (is_bool($uris)) {
                 $async = $uris;
-            } 
+            }
         }
         $this->async = $async;
     }
@@ -359,13 +359,13 @@ abstract class Client extends HandlerManager {
     public function __call($name, array $args) {
         $n = count($args);
         if ($n > 0) {
-            if (is_callable($args[$n - 1])) {
+            if ($args[$n - 1] instanceof Closure) {
                 $callback = array_pop($args);
                 return $this->invoke($name, $args, $callback);
             }
             else if ($args[$n - 1] instanceof InvokeSettings) {
-                if (($n > 1) && is_callable($args[$n - 2])) {
-                    $settings = array_pop($args); 
+                if (($n > 1) && ($args[$n - 2] instanceof Closure)) {
+                    $settings = array_pop($args);
                     $callback = array_pop($args);
                     return $this->invoke($name, $args, $callback, $settings);
                 }

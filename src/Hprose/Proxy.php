@@ -14,12 +14,14 @@
  *                                                        *
  * hprose Proxy class for php 5.3+                        *
  *                                                        *
- * LastModified: Jul 11, 2016                             *
+ * LastModified: Jul 24, 2016                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
 
 namespace Hprose;
+
+use Closure;
 
 class Proxy {
     private $client;
@@ -32,13 +34,13 @@ class Proxy {
         $name = $this->namespace . $name;
         $n = count($args);
         if ($n > 0) {
-            if (is_callable($args[$n - 1])) {
+            if ($args[$n - 1] instanceof Closure) {
                 $callback = array_pop($args);
                 return $this->client->invoke($name, $args, $callback);
             }
             else if ($args[$n - 1] instanceof InvokeSettings) {
-                if (($n > 1) && is_callable($args[$n - 2])) {
-                    $settings = array_pop($args); 
+                if (($n > 1) && ($args[$n - 2] instanceof Closure)) {
+                    $settings = array_pop($args);
                     $callback = array_pop($args);
                     return $this->client->invoke($name, $args, $callback, $settings);
                 }
