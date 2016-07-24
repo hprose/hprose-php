@@ -14,7 +14,7 @@
  *                                                        *
  * hprose http client class for php 5.3+                  *
  *                                                        *
- * LastModified: Jul 11, 2016                             *
+ * LastModified: Jul 24, 2016                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -174,7 +174,7 @@ class Client extends \Hprose\Client {
         }
         return '';
     }
-    protected function setUrl($uri) {
+    protected function setUri($uri) {
         parent::setUri($uri);
         $url = parse_url($uri);
         $this->secure = (strtolower($url['scheme']) == 'https');
