@@ -128,7 +128,7 @@ function toPromise($obj) {
 }
 
 function arrayToPromise(array $array) {
-    return all(array_map("\\Hprose\\Future\\toPromise", $array));
+    return Future\arrayToPromise($array);
 }
 
 function objectToPromise($obj) {
