@@ -203,6 +203,24 @@ function run($handler/*, arg1, arg2, ... */) {
 }
 
 function wrap($handler) {
+    if (class_exists("\\Generator") && is_callable($handler)) {
+        if (is_array($handler)) {
+            $m = new ReflectionMethod($handler[0], $handler[1]);
+        }
+        else {
+            $m = new ReflectionFunction($handler);
+        }
+        if ($m->isGenerator()) {
+            return function() use ($handler) {
+                return all(func_get_args())->then(
+                    function($args) use ($handler) {
+                        array_splice($args, 0, 0, $handler);
+                        return call_user_func_array('\\Hprose\\Future\\co', $args);
+                    }
+                );
+            };
+        }
+    }
     if (is_object($handler)) {
         if (is_callable($handler)) {
             return new CallableWrapper($handler);
