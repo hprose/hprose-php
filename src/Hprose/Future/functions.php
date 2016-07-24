@@ -14,7 +14,7 @@
  *                                                        *
  * some helper functions for php 5.3+                     *
  *                                                        *
- * LastModified: Jul 24, 2016                             *
+ * LastModified: Jul 25, 2016                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -214,7 +214,7 @@ function wrap($handler) {
             return function() use ($handler) {
                 return all(func_get_args())->then(
                     function($args) use ($handler) {
-                        array_splice($args, 0, 0, $handler);
+                        array_splice($args, 0, 0, array($handler));
                         return call_user_func_array('\\Hprose\\Future\\co', $args);
                     }
                 );
