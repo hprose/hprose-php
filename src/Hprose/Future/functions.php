@@ -14,7 +14,7 @@
  *                                                        *
  * some helper functions for php 5.3+                     *
  *                                                        *
- * LastModified: Jul 23, 2016                             *
+ * LastModified: Jul 24, 2016                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -25,6 +25,8 @@ use Hprose\Future;
 use Exception;
 use Throwable;
 use RangeException;
+use ReflectionFunction;
+use ReflectionMethod;
 
 function isFuture($obj) {
     return $obj instanceof Future;
@@ -220,20 +222,51 @@ function wrap($handler) {
 }
 
 function each($array, $callback) {
+    if (is_array($callback)) {
+        $f = new ReflectionMethod($callback[0], $callback[1]);
+    }
+    else {
+        $f = new ReflectionFunction($callback);
+    }
+    $n = $f->getNumberOfParameters();
     return all($array)->then(
-        function($array) use ($callback) {
+        function($array) use ($n, $callback) {
             foreach ($array as $key => $value) {
-                call_user_func($callback, $value, $key, $array);
+                switch ($n) {
+                    case 1: call_user_func($callback, $value); break;
+                    case 2: call_user_func($callback, $value, $key); break;
+                    default: call_user_func($callback, $value, $key, $array); break;
+                }
             }
         }
     );
 }
 
 function every($array, $callback) {
+    if (is_array($callback)) {
+        $f = new ReflectionMethod($callback[0], $callback[1]);
+    }
+    else {
+        $f = new ReflectionFunction($callback);
+    }
+    $n = $f->getNumberOfParameters();
     return all($array)->then(
-        function($array) use ($callback) {
+        function($array) use ($n, $callback) {
             foreach ($array as $key => $value) {
-                if (!call_user_func($callback, $value, $key, $array)) return false;
+                switch ($n) {
+                    case 1: {
+                        if (!call_user_func($callback, $value)) return false;
+                        break;
+                    }
+                    case 2: {
+                        if (!call_user_func($callback, $value, $key)) return false;
+                        break;
+                    }
+                    default: {
+                        if (!call_user_func($callback, $value, $key, $array)) return false;
+                        break;
+                    }
+                }
             }
             return true;
         }
@@ -241,10 +274,30 @@ function every($array, $callback) {
 }
 
 function some($array, $callback) {
+    if (is_array($callback)) {
+        $f = new ReflectionMethod($callback[0], $callback[1]);
+    }
+    else {
+        $f = new ReflectionFunction($callback);
+    }
+    $n = $f->getNumberOfParameters();
     return all($array)->then(
-        function($array) use ($callback) {
+        function($array) use ($n, $callback) {
             foreach ($array as $key => $value) {
-                if (call_user_func($callback, $value, $key, $array)) return true;
+                switch ($n) {
+                    case 1: {
+                        if (call_user_func($callback, $value)) return true;
+                        break;
+                    }
+                    case 2: {
+                        if (call_user_func($callback, $value, $key)) return true;
+                        break;
+                    }
+                    default: {
+                        if (call_user_func($callback, $value, $key, $array)) return true;
+                        break;
+                    }
+                }
             }
             return false;
         }
@@ -252,16 +305,43 @@ function some($array, $callback) {
 }
 
 function filter($array, $callback, $preserveKeys = false) {
+    if (is_array($callback)) {
+        $f = new ReflectionMethod($callback[0], $callback[1]);
+    }
+    else {
+        $f = new ReflectionFunction($callback);
+    }
+    $n = $f->getNumberOfParameters();
     return all($array)->then(
-        function($array) use ($callback, $preserveKeys) {
+        function($array) use ($n, $callback, $preserveKeys) {
             $result = array();
+            $setResult = function($key, $value) use (&$result, $preserveKeys) {
+                if ($preserveKeys) {
+                    $result[$key] = $value;
+                }
+                else {
+                    $result[] = $value;
+                }
+            };
             foreach ($array as $key => $value) {
-                if (call_user_func($callback, $value, $key, $array)) {
-                    if ($preserveKeys) {
-                        $result[$key] = $value;
+                switch ($n) {
+                    case 1: {
+                        if (call_user_func($callback, $value)) {
+                            $setResult($key, $value);
+                        }
+                        break;
                     }
-                    else {
-                        $result[] = $value;
+                    case 2: {
+                        if (call_user_func($callback, $value, $key)) {
+                            $setResult($key, $value);
+                        }
+                        break;
+                    }
+                    default: {
+                        if (call_user_func($callback, $value, $key, $array)) {
+                            $setResult($key, $value);
+                        }
+                        break;
                     }
                 }
             }
@@ -271,13 +351,26 @@ function filter($array, $callback, $preserveKeys = false) {
 }
 
 function map($array, $callback) {
+    if (is_array($callback)) {
+        $f = new ReflectionMethod($callback[0], $callback[1]);
+    }
+    else {
+        $f = new ReflectionFunction($callback);
+    }
+    $n = $f->getNumberOfParameters();
     return all($array)->then(
-        function($array) use ($callback) {
-            $result = array();
-            foreach ($array as $key => $value) {
-                $result[$key] = call_user_func($callback, $value, $key, $array);
+        function($array) use ($n, $callback) {
+            switch ($n) {
+                case 1: return array_map($callback, $array);
+                case 2: return array_map($callback, $array, array_keys($array));
+                default: {
+                    $result = array();
+                    foreach ($array as $key => $value) {
+                        $result[$key] = call_user_func($callback, $value, $key, $array);
+                    }
+                    return $result;
+                }
             }
-            return $result;
         }
     );
 }
@@ -375,7 +468,7 @@ function objectToPromise($obj) {
     $values = array();
     foreach ($result as $key => $value) {
         $values[] = toPromise($value)->then(function($v) use ($result, $key) {
-            $result->$key = $v; 
+            $result->$key = $v;
         });
     }
     return all($values)->then(function() use ($result) {
