@@ -14,7 +14,7 @@
  *                                                        *
  * hprose client class for php 5.3+                       *
  *                                                        *
- * LastModified: Jul 24, 2016                             *
+ * LastModified: Jul 26, 2016                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -97,6 +97,10 @@ abstract class Client extends HandlerManager {
             }
         }
         $this->async = $async;
+    }
+
+    public function __destruct() {
+        $this->close();
     }
 
     public function close() {}
@@ -240,12 +244,15 @@ abstract class Client extends HandlerManager {
     }
 
     private function failswitch() {
-        $i = $this->index + 1;
-        if ($i >= count($this->uris)) {
-            $i = 0;
+        $n = count($this->uris);
+        if ($n > 1) {
+            $i = $this->index + mt_rand(1, $n - 1);
+            if ($i >= $n) {
+                $i %= $n;
+            }
+            $this->index = $i;
+            $this->setUri($this->uris[$i]);
         }
-        $this->index = $i;
-        $this->setUri($this->uris[$i]);
     }
 
     /*
