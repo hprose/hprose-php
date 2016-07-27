@@ -589,6 +589,12 @@ abstract class Client extends HandlerManager {
         $args = array();
         return Future\toFuture($this->invoke('#', $args, $settings));
     }
+    public function getId() {
+        if ($this->id == null) {
+            $this->id = $this->autoId();
+        }
+        return $this->id;
+    }
     /*
         This method is a private method.
         But PHP 5.3 can't call private method in closure,
