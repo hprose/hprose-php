@@ -1015,7 +1015,7 @@ abstract class Service extends HandlerManager {
                     $topics[$id]->count = 0;
                 }
                 $messages = $topics[$id]->messages;
-                if (!empty($messages)) {
+                if (!$messages->isEmpty()) {
                     $message = $messages->shift();
                     $message->detector->resolve(true);
                     $self->resetTimer($topics, $topic, $id);
