@@ -21,6 +21,8 @@
 
 namespace Hprose;
 
+use ArrayAccess;
+
 class InvokeSettings implements ArrayAccess {
     public $settings;
     public function __construct(array $settings = array()) {
