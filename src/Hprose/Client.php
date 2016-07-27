@@ -42,6 +42,7 @@ abstract class Client extends HandlerManager {
     public $byref = false;
     public $simple = false;
     public $onError = null;
+    private $methodCache = array();
 
     private static $clientFactories = array();
     private static $clientFactoriesInited = false;
@@ -364,6 +365,10 @@ abstract class Client extends HandlerManager {
     }
 
     public function __call($name, array $args) {
+        if (isset($this->methodCache[$name])) {
+            $method = $this->methodCache[$name];
+            return call_user_func_array($method, $args);
+        }
         $n = count($args);
         if ($n > 0) {
             if ($args[$n - 1] instanceof Closure) {
@@ -390,7 +395,12 @@ abstract class Client extends HandlerManager {
     }
 
     public function __get($name) {
-        return new Proxy($this, $name . '_');
+        if (isset($this->methodCache[$name])) {
+            return $this->methodCache[$name];
+        }
+        $method = new Proxy($this, $name . '_');
+        $this->methodCache[$name] = $method;
+        return $method;
     }
 
     protected function getNextInvokeHandler(Closure $next, /*callable*/ $handler) {
