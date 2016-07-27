@@ -43,8 +43,6 @@ abstract class Client extends HandlerManager {
     public $simple = false;
     public $onError = null;
     private $methodCache = array();
-    private $lock = false;
-    private $tasks = array();
 
     private static $clientFactories = array();
     private static $clientFactoriesInited = false;
@@ -357,7 +355,6 @@ abstract class Client extends HandlerManager {
         $context->userdata = isset($settings->userdata) ? (object)($settings->userdata) : new stdClass();
         $context->mode = isset($settings->mode) ? $settings->mode : ResultMode::Normal;
         $context->oneway = isset($settings->oneway) ? $settings->oneway : false;
-        $context->sync = isset($settings->sync) ? $settings->sync : false;
         $context->byref = isset($settings->byref) ? $settings->byref : $this->byref;
         $context->simple = isset($settings->simple) ? $settings->simple : $this->simple;
         $context->failswitch = isset($settings->failswitch) ? $settings->failswitch : $this->failswitch;
@@ -524,7 +521,7 @@ abstract class Client extends HandlerManager {
         return $this->sendAndReceive($request, $context);
     }
 
-    private function call($name, array &$args = array(), $callback = null, InvokeSettings $settings = null) {
+    public function invoke($name, array &$args = array(), $callback = null, InvokeSettings $settings = null) {
         if ($callback instanceof InvokeSettings) {
             $settings = $callback;
             $callback = null;
@@ -571,52 +568,13 @@ abstract class Client extends HandlerManager {
         }
         else {
             if ($this->async) {
-                if ($context->sync) {
-                    $this->lock = true;
-                }
                 $args = Future\all($args);
-                $result = $args->then(function($args) use ($invokeHandler, $name, $context) {
+                return $args->then(function($args) use ($invokeHandler, $name, $context) {
                     return $invokeHandler($name, $args, $context);
                 });
-                if ($context->sync) {
-                    $result->whenComplete($this->unlock());
-                }
-                return $result;
             }
             return $invokeHandler($name, $args, $context);
         }
-    }
-
-    private function unlock() {
-        $self = $this;
-        $lock = &$this->lock;
-        $tasks = &$this->tasks;
-        return function() use ($self, &$lock, &$tasks) {
-            $lock = false;
-            $oldtasks = $tasks;
-            $tasks = array();
-            foreach ($oldtasks as $task) {
-                $self->invoke($task['name'], $task['args'], $task['callback'], $task['settings'])
-                     ->then($task['resolve'], $task['reject']);
-            }
-        };
-    }
-
-    public function invoke($name, array &$args = array(), $callback = null, InvokeSettings $settings = null) {
-        if ($this->lock) {
-            $tasks = &$this->tasks;
-            return Future\promise(function($resolve, $reject) use ($name, $args, $callback, $settings, &$tasks) {
-                $tasks[] = array(
-                    'name' => $name,
-                    'args' => &$args,
-                    'callback' => $callback,
-                    '$settings' => $settings,
-                    'resolve' => $resolve,
-                    'reject' => $reject
-                );
-            });
-        }
-        return $this->call($name, $args, $callback, $settings);
     }
 
     protected abstract function sendAndReceive($request, stdClass $context);
@@ -626,8 +584,7 @@ abstract class Client extends HandlerManager {
     private function autoId() {
         $settings = new InvokeSettings(array(
             'idempotent' => true,
-            'failswitch' => true,
-            'sync' => true
+            'failswitch' => true
         ));
         $args = array();
         return Future\toFuture($this->invoke('#', $args, $settings));
