@@ -22,8 +22,9 @@
 namespace Hprose;
 
 use Closure;
+use ArrayAccess;
 
-class Proxy {
+class Proxy implements ArrayAccess {
     private $client;
     private $namespace;
     private $methodCache = array();
