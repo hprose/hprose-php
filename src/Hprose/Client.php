@@ -586,7 +586,8 @@ abstract class Client extends HandlerManager {
             'idempotent' => true,
             'failswitch' => true
         ));
-        return Future\toFuture($this->invoke('#', array(), $settings));
+        $args = array();
+        return Future\toFuture($this->invoke('#', $args, $settings));
     }
     /*
         This method is a private method.
