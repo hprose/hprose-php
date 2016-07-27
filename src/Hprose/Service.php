@@ -1036,9 +1036,6 @@ abstract class Service extends HandlerManager {
                     call_user_func($onSubscribe, $topic, $id, $self);
                 }
             }
-            if (isset($topics[$id]->request)) {
-                $topics[$id]->request->resolve(null);
-            }
             $request = new Future();
             $request->complete(function() use ($topics, $id) {
                 $topics[$id]->count--;
