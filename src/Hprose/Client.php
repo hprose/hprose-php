@@ -640,7 +640,8 @@ abstract class Client extends HandlerManager {
                 'timeout' => $timeout
             ));
             $cb = function() use ($self, &$cb, $topic, $name, $id, $settings) {
-                $self->invoke($name, array($id), $settings)
+                $args = array($id);
+                $self->invoke($name, $args, $settings)
                      ->then($topic->handler, $cb);
             };
             $topic->handler = function($result) use ($self, $name, $id, $cb) {
