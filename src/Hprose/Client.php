@@ -610,7 +610,7 @@ abstract class Client extends HandlerManager {
                     'name' => $name,
                     'args' => &$args,
                     'callback' => $callback,
-                    'settings' => $settings,
+                    '$settings' => $settings,
                     'resolve' => $resolve,
                     'reject' => $reject
                 );
