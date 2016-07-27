@@ -14,7 +14,7 @@
  *                                                        *
  * hprose http service class for php 5.3+                 *
  *                                                        *
- * LastModified: Jul 22, 2016                             *
+ * LastModified: Jul 27, 2016                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -56,10 +56,10 @@ class Service extends \Hprose\Service {
         echo $data;
     }
     public function isGet($context) {
-        return @$_SERVER['REQUEST_METHOD'] === 'GET';
+        return isset($_SERVER['REQUEST_METHOD']) && ($_SERVER['REQUEST_METHOD'] === 'GET');
     }
     public function isPost($context) {
-        return @$_SERVER['REQUEST_METHOD'] === 'POST';
+        return isset($_SERVER['REQUEST_METHOD']) && ($_SERVER['REQUEST_METHOD'] === 'POST');
     }
 
     private function sendHeader($context) {

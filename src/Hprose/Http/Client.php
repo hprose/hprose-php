@@ -14,7 +14,7 @@
  *                                                        *
  * hprose http client class for php 5.3+                  *
  *                                                        *
- * LastModified: Jul 24, 2016                             *
+ * LastModified: Jul 27, 2016                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -114,7 +114,9 @@ class Client extends \Hprose\Client {
     }
     private function setCookie(array $headers) {
         foreach ($headers as $header) {
-            @list($name, $value) = explode(':', $header, 2);
+            $pair = explode(':', $header, 2);
+            $name = $pair[0];
+            $value = (count($pair) > 1) ? $pair[1] : '';
             if (strtolower($name) == 'set-cookie' ||
                 strtolower($name) == 'set-cookie2') {
                 $cookies = explode(';', trim($value));

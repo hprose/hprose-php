@@ -14,7 +14,7 @@
  *                                                        *
  * hprose socket Transporter class for php 5.3+           *
  *                                                        *
- * LastModified: Jul 12, 2016                             *
+ * LastModified: Jul 27, 2016                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -68,7 +68,7 @@ abstract class Transporter {
     protected function readHeader($stream, $n) {
         $header = '';
         do {
-            $buffer = @fread($stream, $n - strlen($header));
+            $buffer = fread($stream, $n - strlen($header));
             $header .= $buffer;
         } while (($buffer !== false) && (strlen($header) < $n));
         if ($buffer === false) {
@@ -93,7 +93,7 @@ abstract class Transporter {
                 return;
             }
         }
-        $sent = @fwrite($stream, $request->buffer, $request->length);
+        $sent = fwrite($stream, $request->buffer, $request->length);
         if ($sent === false) {
             $o->results[$request->index]->reject($this->getLastError('request write error'));
         }
@@ -118,7 +118,7 @@ abstract class Transporter {
             return;
         }
         $remaining = $response->length - strlen($response->buffer);
-        $buffer = @fread($stream, $remaining);
+        $buffer = fread($stream, $remaining);
         if ($buffer === false) {
             $this->asyncReadError($o, $stream, $response->index);
             return;
@@ -153,7 +153,7 @@ abstract class Transporter {
                 $stream = fsockopen('unix://' . parse_url($client->uri, PHP_URL_PATH));
             }
             else {
-                $stream = @stream_socket_client(
+                $stream = stream_socket_client(
                     $client->uri . '/' . $i,
                     $errno,
                     $errstr,
@@ -163,9 +163,9 @@ abstract class Transporter {
                 );
             }
             if (($stream !== false) &&
-                (@stream_set_blocking($stream, false) !== false)) {
-                @stream_set_read_buffer($stream, $client->readBuffer);
-                @stream_set_write_buffer($stream, $client->writeBuffer);
+                (stream_set_blocking($stream, false) !== false)) {
+                stream_set_read_buffer($stream, $client->readBuffer);
+                stream_set_write_buffer($stream, $client->writeBuffer);
                 $pool[] = $stream;
             }
         }
@@ -229,7 +229,7 @@ abstract class Transporter {
         $buffer = $this->appendHeader($request);
         $length = strlen($buffer);
         while (true) {
-            $sent = @fwrite($stream, $buffer, $length);
+            $sent = fwrite($stream, $buffer, $length);
             if ($sent === false) {
                 return false;
             }
@@ -247,7 +247,7 @@ abstract class Transporter {
         if ($length === false) return false;
         $response = '';
         while (($remaining = $length - strlen($response)) > 0) {
-            $buffer = @fread($stream, $remaining);
+            $buffer = fread($stream, $remaining);
             if ($buffer === false) {
                 return false;
             }
@@ -265,7 +265,7 @@ abstract class Transporter {
         $errstr = '';
         while ($trycount <= 1) {
             if ($this->stream === null) {
-                $this->stream = @stream_socket_client(
+                $this->stream = stream_socket_client(
                     $this->client->uri,
                     $errno,
                     $errstr,
@@ -277,9 +277,9 @@ abstract class Transporter {
                 }
             }
             $stream = $this->stream;
-            @stream_set_read_buffer($stream, $client->readBuffer);
-            @stream_set_write_buffer($stream, $client->writeBuffer);
-            if (@stream_set_timeout($stream, $sec, $usec) == false) {
+            stream_set_read_buffer($stream, $client->readBuffer);
+            stream_set_write_buffer($stream, $client->writeBuffer);
+            if (stream_set_timeout($stream, $sec, $usec) == false) {
                 if ($trycount > 0) {
                     throw $this->getLastError("unknown error");
                 }

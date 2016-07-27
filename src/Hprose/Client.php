@@ -670,8 +670,8 @@ abstract class Client extends HandlerManager {
     private function delTopic(&$topics, $id, $callback) {
         if ($topics !== null) {
             if (is_callable($callback)) {
-                $topic = @$topics[$id];
-                if ($topic !== null) {
+                if (isset($topics[$id])) {
+                    $topic = $topics[$id];
                     $callbacks = array_diff($topic->callbacks, array($callback));
                     if (count($callbacks) > 0) {
                         $topic->callbacks = $callbacks;

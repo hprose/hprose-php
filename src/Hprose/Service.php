@@ -14,7 +14,7 @@
  *                                                        *
  * hprose service class for php 5.3+                      *
  *                                                        *
- * LastModified: Jul 21, 2016                             *
+ * LastModified: Jul 27, 2016                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -208,7 +208,7 @@ abstract class Service extends HandlerManager {
         }
         return $data;
     }
-    
+
     /*
         This method is a private method.
         But PHP 5.3 can't call private method in closure,
@@ -563,10 +563,10 @@ abstract class Service extends HandlerManager {
         $call = new stdClass();
         $call->method = $func;
         $call->mode = isset($options['mode']) ? $options['mode'] : ResultMode::Normal;
-        $call->simple = @$options['simple'];
-        $call->oneway = !!@$options['oneway'];
-        $call->async = !!@$options['async'];
-        $call->passContext = @$options['passContext'];
+        $call->simple = isset($options['simple']) ? $options['simple'] : null;
+        $call->oneway = isset($options['oneway']) ? $options['oneway'] : false;
+        $call->async = isset($options['async']) ? $options['async'] : false;
+        $call->passContext = isset($options['passContext']) ? $options['passContext']: null;
         $this->calls[$name] = $call;
     }
     public function addAsyncFunction($func,
@@ -930,7 +930,7 @@ abstract class Service extends HandlerManager {
         }
         return $this->topics[$topic];
     }
-    
+
     public function delTimer(ArrayObject $topics, $id) {
         $t = $topics[$id];
         if (isset($t->timer)) {
