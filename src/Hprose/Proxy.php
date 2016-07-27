@@ -90,9 +90,6 @@ class Proxy {
         return $this->client->invoke($name, $args);
     }
     public function __get($name) {
-        if (isset($this->settings[$name])) {
-            return $this->settings[$name];
-        }
         if (isset($this->methodCache[$name])) {
             return $this->methodCache[$name];
         }
@@ -100,15 +97,16 @@ class Proxy {
         $this->methodCache[$name] = $method;
         return $method;
     }
-    public function __set($name, $value) {
-        if (!isset($this->methodCache[$name])) {
-            $this->settings[$name] = $value;
-        }
+    public function offsetSet($name, $value) {
+        $this->settings[$name] = $value;
     }
-    public function __isset($name) {
+    public function offsetGet($name) {
+        return isset($this->settings[$name]) ? $this->settings[$name] : null;
+    }
+    public function offsetExists($name) {
         return isset($this->settings[$name]);
     }
-    public function __unset($name) {
+    public function offsetUnset($name) {
         unset($this->settings[$name]);
     }
 }
