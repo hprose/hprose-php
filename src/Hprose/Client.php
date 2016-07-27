@@ -14,7 +14,7 @@
  *                                                        *
  * hprose client class for php 5.3+                       *
  *                                                        *
- * LastModified: Jul 26, 2016                             *
+ * LastModified: Jul 27, 2016                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -511,7 +511,7 @@ abstract class Client extends HandlerManager {
         return $this->sendAndReceive($request, $context);
     }
 
-    public function invoke($name, array $args = array(), $callback = null, InvokeSettings $settings = null) {
+    public function invoke($name, array &$args = array(), $callback = null, InvokeSettings $settings = null) {
         if ($callback instanceof InvokeSettings) {
             $settings = $callback;
             $callback = null;
