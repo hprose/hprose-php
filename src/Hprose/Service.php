@@ -1039,8 +1039,8 @@ abstract class Service extends HandlerManager {
                     call_user_func($onSubscribe, $topic, $id, $self);
                 }
             }
-            if (isset($topic[$id]->request)) {
-                $topic[$id]->request->reject(new InvalidRequestException());
+            if (isset($topics[$id]->request)) {
+                $topics[$id]->request->reject(new InvalidRequestException());
             }
             $request = new Future();
             $request->complete(function() use ($topics, $id) {
