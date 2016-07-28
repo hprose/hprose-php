@@ -14,7 +14,7 @@
  *                                                        *
  * hprose client class for php 5.3+                       *
  *                                                        *
- * LastModified: Jul 27, 2016                             *
+ * LastModified: Jul 28, 2016                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -37,7 +37,7 @@ abstract class Client extends HandlerManager {
     public $filters = array();
     public $timeout = 30000;
     public $retry = 10;
-    public $idempontent = false;
+    public $idempotent = false;
     public $failswitch = false;
     public $byref = false;
     public $simple = false;
@@ -123,12 +123,12 @@ abstract class Client extends HandlerManager {
         $this->retry = $retry;
     }
 
-    public final function isIdempontent() {
-        return $this->idempontent;
+    public final function isIdempotent() {
+        return $this->idempotent;
     }
 
-    public final function setIdempontent($idempontent) {
-        $this->idempontent = $idempontent;
+    public final function setIdempotent($idempotent) {
+        $this->idempotent = $idempotent;
     }
 
     public final function isFailswitch() {
@@ -265,7 +265,7 @@ abstract class Client extends HandlerManager {
         if ($context->failswitch) {
             $this->failswitch();
         }
-        if ($context->idempontent) {
+        if ($context->idempotent) {
             $n = $context->retry;
             if ($n > 0) {
                 $context->retry = $n - 1;
@@ -358,7 +358,7 @@ abstract class Client extends HandlerManager {
         $context->byref = isset($settings->byref) ? $settings->byref : $this->byref;
         $context->simple = isset($settings->simple) ? $settings->simple : $this->simple;
         $context->failswitch = isset($settings->failswitch) ? $settings->failswitch : $this->failswitch;
-        $context->idempontent = isset($settings->idempontent) ? $settings->idempontent : $this->idempontent;
+        $context->idempotent = isset($settings->idempotent) ? $settings->idempotent : $this->idempotent;
         $context->retry = isset($settings->retry) ? $settings->retry : $this->retry;
         $context->timeout = isset($settings->timeout) ? $settings->timeout : $this->timeout;
         return $context;
