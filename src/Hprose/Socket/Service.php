@@ -234,8 +234,8 @@ class Service extends \Hprose\Service {
             catch (Throwable $e) { $this->error($server, $socket, $e); }
         }
         $this->readableSockets[] = $socket;
-        $this->onReceives[(int)$socket] = $this->getOnReceive($server, $socket);
         $this->onSends[(int)$socket] = $this->getOnSend($server, $socket);
+        $this->onReceives[(int)$socket] = $this->getOnReceive($server, $socket);
     }
     private function read($socket) {
         $onReceive = $this->onReceives[(int)$socket];
