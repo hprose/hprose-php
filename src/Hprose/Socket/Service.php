@@ -180,7 +180,12 @@ class Service extends \Hprose\Service {
                 return;
             }
             elseif ($data === '') {
-                $self->error($server, $socket, "$socket closed");
+                if ($bytes == '') {
+                    $self->error($server, $socket, null);
+                }
+                else {
+                    $self->error($server, $socket, "$socket closed");
+                }
                 return;
             }
             $bytes .= $data;
@@ -263,22 +268,24 @@ class Service extends \Hprose\Service {
     }
     public function error($server, $socket, $ex) {
         $context = $this->createContext($server, $socket);
-        $onError = $this->onError;
-        if (is_callable($onError)) {
-            if (!($ex instanceof Exception || $ex instanceof Throwable)) {
-                $e = error_get_last();
-                if ($e === null) {
-                    $ex = new Exception($ex);
+        if ($ex !== null) {
+            $onError = $this->onError;
+            if (is_callable($onError)) {
+                if (!($ex instanceof Exception || $ex instanceof Throwable)) {
+                    $e = error_get_last();
+                    if ($e === null) {
+                        $ex = new Exception($ex);
+                    }
+                    else {
+                        $ex = new ErrorException($e['message'], 0, $e['type'], $e['file'], $e['line']);
+                    }
                 }
-                else {
-                    $ex = new ErrorException($e['message'], 0, $e['type'], $e['file'], $e['line']);
+                try {
+                    call_user_func($onError, $ex, $context);
                 }
+                catch (Exception $e) {}
+                catch (Throwable $e) {}
             }
-            try {
-                call_user_func($onError, $ex, $context);
-            }
-            catch (Exception $e) {}
-            catch (Throwable $e) {}
         }
         $this->close($socket, $context);
     }
