@@ -30,7 +30,6 @@ use Hprose\TimeoutException;
 abstract class Transporter {
     private $client;
     private $requests = array();
-    private $timeouts = array();
     private $deadlines = array();
     private $results = array();
     private $stream = null;
@@ -108,7 +107,6 @@ abstract class Transporter {
     }
     private function free($o, $index) {
         unset($o->results[$index]);
-        unset($o->timeouts[$index]);
         unset($o->deadlines[$index]);
         unset($o->buffers[$index]);
     }
@@ -158,7 +156,7 @@ abstract class Transporter {
                     $client->uri . '/' . $i,
                     $errno,
                     $errstr,
-                    $o->timeouts[$i],
+                    max(0, $o->deadlines[$i] - microtime(true)),
                     STREAM_CLIENT_CONNECT | STREAM_CLIENT_PERSISTENT,
                     $context
                 );
@@ -194,11 +192,9 @@ abstract class Transporter {
             $o->readpool = array();
             $o->writepool = $pool;
             $o->buffers = $this->buffers;
-            $o->timeouts = $this->timeouts;
             $o->deadlines = $this->deadlines;
             $o->results = $this->results;
             $this->buffers = array();
-            $this->timeouts = array();
             $this->deadlines = array();
             $this->results = array();
             while (count($o->results) > 0) {
@@ -225,11 +221,9 @@ abstract class Transporter {
         }
     }
     public function asyncSendAndReceive($buffer, stdClass $context) {
-        $timeout = ($context->timeout / 1000);
-        $deadline = microtime(true) + $timeout;
+        $deadline = ($context->timeout / 1000) + microtime(true);
         $result = new Future();
         $this->buffers[] = $buffer;
-        $this->timeouts[] = $timeout;
         $this->deadlines[] = $deadline;
         $this->results[] = $result;
         return $result;
