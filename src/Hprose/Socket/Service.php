@@ -141,7 +141,7 @@ class Service extends \Hprose\Service {
                 $self->removeSocket($sockets, $socket);
             }
             else {
-                $sent = @fwrite($socket, $bytes, strlen($bytes));
+                $sent = @fwrite($socket, $bytes, $len);
                 if ($sent === false) {
                     $self->error($server, $socket, 'Unknown write error');
                 }
@@ -150,6 +150,7 @@ class Service extends \Hprose\Service {
                     $self->addSocket($sockets, $socket);
                 }
                 else {
+                    $bytes = '';
                     $self->removeSocket($sockets, $socket);
                 }
             }
@@ -179,7 +180,7 @@ class Service extends \Hprose\Service {
                 return;
             }
             elseif ($data === '') {
-                $self->error($server, $socket, 'Client $socket closed');
+                $self->error($server, $socket, "$socket closed");
                 return;
             }
             $bytes .= $data;
@@ -300,7 +301,10 @@ class Service extends \Hprose\Service {
             $write = array_values($writeableSockets);
             $except = NULL;
             $n = @stream_select($read, $write, $except, $sec, $usec);
-            if ($n === false) break;
+            if ($n === false) {
+                $this->error($server, $server, 'Unknown select error');
+                break;
+            }
             if ($n > 0) {
                 foreach ($read as $socket) {
                     if ($socket === $server) {
