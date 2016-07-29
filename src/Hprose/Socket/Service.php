@@ -296,10 +296,10 @@ class Service extends \Hprose\Service {
         }
         return max(0, min($deadlines) - microtime(true));
     }
-    public function handle($server) {
+    public function handle($servers) {
         $readableSockets = &$this->readableSockets;
         $writeableSockets = &$this->writeableSockets;
-        $readableSockets[] = $server;
+        array_splice($readableSockets, 0, 0, $servers);
         while (!empty($readableSockets)) {
             $timeout = $this->timeout();
             $sec = floor($timeout);
@@ -309,13 +309,15 @@ class Service extends \Hprose\Service {
             $except = NULL;
             $n = @stream_select($read, $write, $except, $sec, $usec);
             if ($n === false) {
-                $this->error($server, $server, 'Unknown select error');
+                foreach ($servers as $server) {
+                    $this->error($server, $server, 'Unknown select error');
+                }
                 break;
             }
             if ($n > 0) {
                 foreach ($read as $socket) {
-                    if ($socket === $server) {
-                        $this->accept($server);
+                    if (array_search($socket, $servers, true) !== false) {
+                        $this->accept($socket);
                     }
                     else {
                         $this->read($socket);

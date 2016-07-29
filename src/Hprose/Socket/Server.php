@@ -25,13 +25,12 @@ use Exception;
 
 class Server extends Service {
     public $settings = array();
-    public $server;
     public $noDelay = true;
     public $keepAlive = true;
-    public $uri;
+    public $uris = array();
     public function __construct($uri) {
         parent::__construct();
-        $this->uri = $uri;
+        $this->uris[] = $uri;
     }
     public function setNoDelay($value) {
         $this->noDelay = $value;
@@ -48,8 +47,10 @@ class Server extends Service {
     public function set($settings) {
         $this->settings = array_replace($this->settings, $settings);
     }
-    private function createSocketServer() {
-        $uri = $this->uri;
+    public function addListener($uri) {
+        $this->uris[] = $uri;
+    }
+    private function createSocketServer($uri) {
         $scheme = parse_url($uri, PHP_URL_SCHEME);
         if ($scheme == 'unix') {
             $uri = 'unix://' . parse_url($uri, PHP_URL_PATH);
@@ -70,7 +71,10 @@ class Server extends Service {
         return $server;
     }
     public function start() {
-        $this->server = $this->createSocketServer();
-        $this->handle($this->server);
+        $servers = array();
+        foreach ($this->uris as $uri) {
+            $servers[] = $this->createSocketServer($uri);
+        }
+        $this->handle($servers);
     }
 }
