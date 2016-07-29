@@ -14,7 +14,7 @@
  *                                                        *
  * hprose service class for php 5.3+                      *
  *                                                        *
- * LastModified: Jul 28, 2016                             *
+ * LastModified: Jul 29, 2016                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -520,13 +520,14 @@ abstract class Service extends HandlerManager {
         $context->clients = $this;
         $beforeFilterHandler = $this->beforeFilterHandler;
         $response = $beforeFilterHandler($request, $context);
-        return $response->then(function($result) use (&$error, $context) {
+        $self = $this;
+        return $response->then(function($result) use ($self, &$error, $context) {
             @ob_end_clean();
             restore_error_handler();
             if ($error === null) {
                 return $result;
             }
-            return $this->endError($error, $context);
+            return $self->endError($error, $context);
         });
     }
     private static function getDeclaredOnlyMethods($class) {
