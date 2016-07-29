@@ -26,10 +26,24 @@ use Exception;
 class Server extends Service {
     public $settings = array();
     public $server;
+    public $noDelay = true;
+    public $keepAlive = true;
     public $uri;
     public function __construct($uri) {
         parent::__construct();
         $this->uri = $uri;
+    }
+    public function setNoDelay($value) {
+        $this->noDelay = $value;
+    }
+    public function isNoDelay() {
+        return $this->noDelay;
+    }
+    public function setKeepAlive($value) {
+        $this->keepAlive = $value;
+    }
+    public function getKeepAlive() {
+        return $this->keepAlive;
     }
     public function set($settings) {
         $this->settings = array_replace($this->settings, $settings);
@@ -45,6 +59,11 @@ class Server extends Service {
         $context = @stream_context_create($this->settings);
         $server = @stream_socket_server($uri, $errno, $errstr,
                 STREAM_SERVER_BIND | STREAM_SERVER_LISTEN, $context);
+        $socket = socket_import_stream($server);
+        socket_set_option($socket, SOL_SOCKET, SO_KEEPALIVE, (int)$this->keepAlive);
+        if ($scheme !== 'unix') {
+            socket_set_option($socket, SOL_TCP, TCP_NODELAY, (int)$this->noDelay);
+        }
         if ($server === false) {
             throw new Exception($errstr, $errno);
         }
