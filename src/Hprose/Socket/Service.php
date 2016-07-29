@@ -88,7 +88,7 @@ class Service extends \Hprose\Service {
         $id = $this->delayId;
         $this->deadlines[$id] = ($delay / 1000) + microtime(true);
         $deadlines = &$this->deadlines;
-        $this->delayTasks[$id] = array(function() use ($id, $deadlines, $delay, $callback) {
+        $this->delayTasks[$id] = array(function() use ($id, &$deadlines, $delay, $callback) {
             $deadlines[$id] = ($delay / 1000) + microtime(true);
             call_user_func($callback);
         }, false);
@@ -101,7 +101,7 @@ class Service extends \Hprose\Service {
     }
     private function runDelayTasks() {
         foreach ($this->deadlines as $id => $deadline) {
-            if (microtime(true) <= $deadline) {
+            if (microtime(true) >= $deadline) {
                 list($task, $once) = $this->delayTasks[$id];
                 call_user_func($task);
                 if ($once) {
