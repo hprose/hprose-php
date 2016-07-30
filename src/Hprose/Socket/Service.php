@@ -256,7 +256,7 @@ class Service extends \Hprose\Service {
         $this->removeSocket($this->readableSockets, $socket);
         unset($this->onReceives[(int)$socket]);
         unset($this->onSends[(int)$socket]);
-        @fclose($socket);
+        @stream_socket_shutdown($socket, STREAM_SHUT_RDWR);
         $onClose = $this->onClose;
         if (is_callable($onClose)) {
             try {
