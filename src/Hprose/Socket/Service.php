@@ -14,7 +14,7 @@
  *                                                        *
  * hprose socket Service library for php 5.3+             *
  *                                                        *
- * LastModified: Jul 30, 2016                             *
+ * LastModified: Jul 31, 2016                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -172,8 +172,9 @@ class Service extends \Hprose\Service {
                 $onSend(pack("NN", $dataLength | 0x80000000, $id) . $data);
             }
         };
+        $userFatalErrorHandler = &$this->userFatalErrorHandler;
         return function()
-                use ($self, $server, $socket, &$bytes, &$headerLength, &$dataLength, &$id, $send) {
+                use ($self, $server, $socket, &$bytes, &$headerLength, &$dataLength, &$id, &$userFatalErrorHandler, $send) {
             $data = @fread($socket, $self->readBuffer);
             if ($data === false) {
                 $self->error($server, $socket, 'Unknown read error');
@@ -204,7 +205,7 @@ class Service extends \Hprose\Service {
                 if (($dataLength >= 0) && (($length - $headerLength) >= $dataLength)) {
                     $context = $self->createContext($server, $socket);
                     $data = substr($bytes, $headerLength, $dataLength);
-                    $self->userFatalErrorHandler = function($error) use ($self, $send, $context) {
+                    $userFatalErrorHandler = function($error) use ($self, $send, $context) {
                         $send($self->endError($error, $context));
                     };
                     $self->defaultHandle($data, $context)->then(function($data) use ($send) {
