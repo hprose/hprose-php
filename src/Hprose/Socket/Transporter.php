@@ -181,7 +181,6 @@ abstract class Transporter {
     public function loop() {
         $client = $this->client;
         while (count($this->results) > 0) {
-            $this->checkTimeout($this);
             $pool = $this->createPool($client, $this);
             if ($pool === false) continue;
             $o = new stdClass();
