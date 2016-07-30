@@ -14,7 +14,7 @@
  *                                                        *
  * hprose socket Transporter class for php 5.3+           *
  *                                                        *
- * LastModified: Jul 30, 2016                             *
+ * LastModified: Jul 31, 2016                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -165,6 +165,15 @@ abstract class Transporter {
                 (@stream_set_blocking($stream, false) !== false)) {
                 @stream_set_read_buffer($stream, $client->readBuffer);
                 @stream_set_write_buffer($stream, $client->writeBuffer);
+                if (function_exists('socket_import_stream')) {
+                    if (($scheme === 'tcp') || ($scheme === 'unix')) {
+                        $socket = socket_import_stream($stream);
+                        socket_set_option($socket, SOL_SOCKET, SO_KEEPALIVE, (int)$client->keepAlive);
+                        if ($scheme === 'tcp') {
+                            socket_set_option($socket, SOL_TCP, TCP_NODELAY, (int)$client->noDelay);
+                        }
+                    }
+                }
                 $pool[] = $stream;
             }
         }

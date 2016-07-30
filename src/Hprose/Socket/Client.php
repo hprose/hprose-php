@@ -14,7 +14,7 @@
  *                                                        *
  * hprose socket client class for php 5.3+                *
  *                                                        *
- * LastModified: Jul 12, 2016                             *
+ * LastModified: Jul 31, 2016                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -31,6 +31,8 @@ class Client extends \Hprose\Client {
     public $readBuffer = 8192;
     public $writeBuffer = 8192;
     public $maxPoolSize = 10;
+    public $noDelay = true;
+    public $keepAlive = true;
     public $options = null;
     public function __construct($uris = null, $async = true) {
         parent::__construct($uris, $async);
@@ -68,6 +70,18 @@ class Client extends \Hprose\Client {
     public function setMaxPoolSize($maxPoolSize) {
         if ($maxPoolSize < 1) throw new Exception("maxPoolSize must be great than 0");
         $this->maxPoolSize = $maxPoolSize;
+    }
+    public function setNoDelay($value) {
+        $this->noDelay = $value;
+    }
+    public function isNoDelay() {
+        return $this->noDelay;
+    }
+    public function setKeepAlive($value) {
+        $this->keepAlive = $value;
+    }
+    public function getKeepAlive() {
+        return $this->keepAlive;
     }
     protected function sendAndReceive($request, stdClass $context) {
         if ($this->fullDuplex) {
