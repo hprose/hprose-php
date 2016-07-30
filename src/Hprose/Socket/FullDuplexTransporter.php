@@ -14,7 +14,7 @@
  *                                                        *
  * hprose socket FullDuplexTransporter class for php 5.3+ *
  *                                                        *
- * LastModified: Jul 12, 2016                             *
+ * LastModified: Jul 30, 2016                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -56,7 +56,7 @@ class FullDuplexTransporter extends Transporter {
         }
         unset($o->queue[$stream_id]);
         unset($o->responses[$stream_id]);
-        fclose($stream);
+        @fclose($stream);
         $this->removeStream($stream, $o->readpool);
         $this->removeStream($stream, $o->writepool);
     }
