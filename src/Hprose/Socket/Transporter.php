@@ -14,7 +14,7 @@
  *                                                        *
  * hprose socket Transporter class for php 5.3+           *
  *                                                        *
- * LastModified: Jul 28, 2016                             *
+ * LastModified: Jul 30, 2016                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -198,7 +198,6 @@ abstract class Transporter {
             $this->deadlines = array();
             $this->results = array();
             while (count($o->results) > 0) {
-                $this->checkTimeout($o);
                 $read = array_values($o->readpool);
                 $write = array_values($o->writepool);
                 $except = null;
@@ -217,6 +216,7 @@ abstract class Transporter {
                     foreach ($write as $stream) $this->asyncWrite($stream, $o);
                     foreach ($read as $stream) $this->asyncRead($stream, $o);
                 }
+                $this->checkTimeout($o);
             }
         }
     }
