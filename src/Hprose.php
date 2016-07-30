@@ -14,7 +14,7 @@
  *                                                        *
  * hprose for php 5.3+                                    *
  *                                                        *
- * LastModified: Jul 24, 2016                             *
+ * LastModified: Jul 30, 2016                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -89,6 +89,12 @@ spl_autoload_register(function($className) {
                     break;
                 case 'hprosesocketclient':
                     class_alias('Hprose\\Socket\\Client', 'HproseSocketClient');
+                    break;
+                case 'hprosesocketservice':
+                    class_alias('Hprose\\Socket\\Service', 'HproseSocketService');
+                    break;
+                case 'hprosesocketserver':
+                    class_alias('Hprose\\Socket\\Server', 'HproseSocketServer');
                     break;
                 case 'hprosejsonrpcclientfilter':
                     class_alias('Hprose\\Filter\\JSONRPC\\ClientFilter', 'HproseJSONRPCClientFilter');
