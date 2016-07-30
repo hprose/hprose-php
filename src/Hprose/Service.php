@@ -14,7 +14,7 @@
  *                                                        *
  * hprose service class for php 5.3+                      *
  *                                                        *
- * LastModified: Jul 29, 2016                             *
+ * LastModified: Jul 30, 2016                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -27,7 +27,8 @@ use Exception;
 use Throwable;
 use ArrayObject;
 use SplQueue;
-use Hprose\TimeoutException;
+use ReflectionMethod;
+use ReflectionFunction;
 
 abstract class Service extends HandlerManager {
     private static $magicMethods = array(
@@ -538,6 +539,40 @@ abstract class Service extends HandlerManager {
         }
         return array_diff($result, self::$magicMethods);
     }
+    private static function getDeclaredOnlyInstanceMethods($class) {
+        $methods = getDeclaredOnlyMethods($class);
+        $instanceMethods = array();
+        foreach ($methods as $name) {
+            $method = new ReflectionMethod($class, $name);
+            if ($method->isPublic() &&
+                !$method->isStatic() &&
+                !$method->isConstructor() &&
+                !$method->isDestructor() &&
+                !$method->isAbstract()) {
+                $instanceMethods[] = $name;
+            }
+        }
+        if (empty($instanceMethods)) {
+            throw new Exception('There is no pubic instance method in class $class.');
+        }
+        return $instanceMethods;
+    }
+    private static function getDeclaredOnlyStaticMethods($class) {
+        $methods = getDeclaredOnlyMethods($class);
+        $instanceMethods = array();
+        foreach ($methods as $name) {
+            $method = new ReflectionMethod($class, $name);
+            if ($method->isPublic() &&
+                $method->isStatic() &&
+                !$method->isAbstract()) {
+                $instanceMethods[] = $name;
+            }
+        }
+        if (empty($instanceMethods)) {
+            throw new Exception('There is no pubic static method in class $class.');
+        }
+        return $instanceMethods;
+    }
     public function addFunction($func, $alias = '', array $options = array()) {
         if (!is_callable($func)) {
             throw new Exception('Argument func must be callable.');
@@ -560,6 +595,17 @@ abstract class Service extends HandlerManager {
         $name = strtolower($alias);
         if (!array_key_exists($name, $this->calls)) {
             $this->names[] = $alias;
+        }
+        if (class_exists("\\Generator")) {
+            if (is_array($func)) {
+                $f = new ReflectionMethod($func[0], $func[1]);
+            }
+            else {
+                $f = new ReflectionFunction($func);
+            }
+            if ($f->isGenerator()) {
+                $func = Future\wrap($func);
+            }
         }
         $call = new stdClass();
         $call->method = $func;
@@ -707,7 +753,7 @@ abstract class Service extends HandlerManager {
         if ($class == '') {
             $class = get_class($object);
         }
-        $this->addMethods(self::getDeclaredOnlyMethods($class),
+        $this->addMethods(self::getDeclaredOnlyInstanceMethods($class),
                           $object, $aliasPrefix, $options);
     }
     public function addAsyncInstanceMethods($object,
@@ -717,7 +763,7 @@ abstract class Service extends HandlerManager {
         if ($class == '') {
             $class = get_class($object);
         }
-        $this->addAsyncMethods(self::getDeclaredOnlyMethods($class),
+        $this->addAsyncMethods(self::getDeclaredOnlyInstanceMethods($class),
                           $object, $aliasPrefix, $options);
     }
     public function addClassMethods($class,
@@ -727,7 +773,7 @@ abstract class Service extends HandlerManager {
         if ($scope == '') {
             $scope = $class;
         }
-        $this->addMethods(self::getDeclaredOnlyMethods($class),
+        $this->addMethods(self::getDeclaredOnlyStaticMethods($class),
                           $scope, $aliasPrefix, $options);
     }
     public function addAsyncClassMethods($class,
@@ -737,7 +783,7 @@ abstract class Service extends HandlerManager {
         if ($scope == '') {
             $scope = $class;
         }
-        $this->addAsyncMethods(self::getDeclaredOnlyMethods($class),
+        $this->addAsyncMethods(self::getDeclaredOnlyStaticMethods($class),
                                $scope, $aliasPrefix, $options);
     }
     public function add() {
@@ -925,21 +971,35 @@ abstract class Service extends HandlerManager {
             throw new Exception(get_class($this) . " can't support push service.");
         }
     }
-    public function getTopics($topic) {
+    /*
+        This method is a private method.
+        But PHP 5.3 can't call private method in closure,
+        so we comment the private keyword.
+    */
+    /*private*/ function getTopics($topic) {
         if (empty($this->topics[$topic])) {
             throw new Exception('topic "' + $topic + '" is not published.');
         }
         return $this->topics[$topic];
     }
-
-    public function delTimer(ArrayObject $topics, $id) {
+    /*
+        This method is a private method.
+        But PHP 5.3 can't call private method in closure,
+        so we comment the private keyword.
+    */
+    /*private*/ function delTimer(ArrayObject $topics, $id) {
         $t = $topics[$id];
         if (isset($t->timer)) {
             $this->timer->clearTimeout($t->timer);
             unset($t->timer);
         }
     }
-    public function offline(ArrayObject $topics, $topic, $id) {
+    /*
+        This method is a private method.
+        But PHP 5.3 can't call private method in closure,
+        so we comment the private keyword.
+    */
+    /*private*/ function offline(ArrayObject $topics, $topic, $id) {
         $this->delTimer($topics, $id);
         $messages = $topics[$id]->messages;
         unset($topics[$id]);
@@ -951,7 +1011,7 @@ abstract class Service extends HandlerManager {
             call_user_func($onUnsubscribe, $topic, $id, $this);
         }
     }
-    public function setTimer(ArrayObject $topics, $topic, $id) {
+    private function setTimer(ArrayObject $topics, $topic, $id) {
         $t = $topics[$id];
         if (!isset($t->timer)) {
             $self = $this;
@@ -961,11 +1021,21 @@ abstract class Service extends HandlerManager {
             }, $t->heartbeat);
         }
     }
-    public function resetTimer(ArrayObject $topics, $topic, $id) {
+    /*
+        This method is a private method.
+        But PHP 5.3 can't call private method in closure,
+        so we comment the private keyword.
+    */
+    /*private*/ function resetTimer(ArrayObject $topics, $topic, $id) {
         $this->delTimer($topics, $id);
         $this->setTimer($topics, $topic, $id);
     }
-    public function setRequestTimer($topic, $id, $request, $timeout) {
+    /*
+        This method is a private method.
+        But PHP 5.3 can't call private method in closure,
+        so we comment the private keyword.
+    */
+    /*private*/ function setRequestTimer($topic, $id, $request, $timeout) {
         if ($timeout > 0) {
             $self = $this;
             $topics = $this->getTopics($topic);
