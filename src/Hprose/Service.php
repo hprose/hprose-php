@@ -14,7 +14,7 @@
  *                                                        *
  * hprose service class for php 5.3+                      *
  *                                                        *
- * LastModified: Jul 30, 2016                             *
+ * LastModified: Aug 1, 2016                              *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -514,7 +514,7 @@ abstract class Service extends HandlerManager {
     public function defaultHandle($request, stdClass $context) {
         $error = null;
         set_error_handler(function($errno, $errstr, $errfile, $errline) use (&$error) {
-            $error = new \ErrorException($errstr, 0, $errno, $errfile, $errline);
+            $error = new ErrorException($errstr, 0, $errno, $errfile, $errline);
         }, $this->errorTypes);
         ob_start();
         ob_implicit_flush(0);
@@ -540,7 +540,7 @@ abstract class Service extends HandlerManager {
         return array_diff($result, self::$magicMethods);
     }
     private static function getDeclaredOnlyInstanceMethods($class) {
-        $methods = getDeclaredOnlyMethods($class);
+        $methods = self::getDeclaredOnlyMethods($class);
         $instanceMethods = array();
         foreach ($methods as $name) {
             $method = new ReflectionMethod($class, $name);
@@ -558,7 +558,7 @@ abstract class Service extends HandlerManager {
         return $instanceMethods;
     }
     private static function getDeclaredOnlyStaticMethods($class) {
-        $methods = getDeclaredOnlyMethods($class);
+        $methods = self::getDeclaredOnlyMethods($class);
         $instanceMethods = array();
         foreach ($methods as $name) {
             $method = new ReflectionMethod($class, $name);
