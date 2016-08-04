@@ -14,7 +14,7 @@
  *                                                        *
  * some helper functions for php 5.3+                     *
  *                                                        *
- * LastModified: Jul 25, 2016                             *
+ * LastModified: Aug 4, 2016                              *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -482,16 +482,20 @@ function arrayToPromise(array $array) {
 }
 
 function objectToPromise($obj) {
-    $result = clone $obj;
-    $values = array();
-    foreach ($result as $key => $value) {
-        $values[] = toPromise($value)->then(function($v) use ($result, $key) {
-            $result->$key = $v;
+    $r = new ReflectionObject($obj);
+    if ($r->isCloneable()) {
+        $result = clone $obj;
+        $values = array();
+        foreach ($result as $key => $value) {
+            $values[] = toPromise($value)->then(function($v) use ($result, $key) {
+                $result->$key = $v;
+            });
+        }
+        return all($values)->then(function() use ($result) {
+            return $result;
         });
     }
-    return all($values)->then(function() use ($result) {
-        return $result;
-    });
+    return $obj;
 }
 
 if (class_exists("\\Generator")) {
