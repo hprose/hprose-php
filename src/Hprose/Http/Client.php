@@ -14,7 +14,7 @@
  *                                                        *
  * hprose http client class for php 5.3+                  *
  *                                                        *
- * LastModified: Jul 27, 2016                             *
+ * LastModified: Aug 6, 2016                              *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -103,7 +103,7 @@ class Client extends \Hprose\Client {
     public function setKeepAlive($keepAlive = true) {
         $this->keepAlive = $keepAlive;
     }
-    public function getKeepAlive() {
+    public function isKeepAlive() {
         return $this->keepAlive;
     }
     public function setKeepAliveTimeout($timeout) {

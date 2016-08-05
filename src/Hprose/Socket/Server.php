@@ -14,7 +14,7 @@
  *                                                        *
  * hprose socket server library for php 5.3+              *
  *                                                        *
- * LastModified: Jul 31, 2016                             *
+ * LastModified: Aug 6, 2016                              *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -41,7 +41,7 @@ class Server extends Service {
     public function setKeepAlive($value) {
         $this->keepAlive = $value;
     }
-    public function getKeepAlive() {
+    public function isKeepAlive() {
         return $this->keepAlive;
     }
     public function set($settings) {
