@@ -14,7 +14,7 @@
  *                                                        *
  * hprose service class for php 5.3+                      *
  *                                                        *
- * LastModified: Aug 1, 2016                              *
+ * LastModified: Aug 5, 2016                              *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -397,7 +397,7 @@ abstract class Service extends HandlerManager {
                 $cc->$key = $value;
             }
             $call = isset($this->calls[$alias]) ?
-                    $this->calls[$alias] : $this->call['*'];
+                    $this->calls[$alias] : $this->calls['*'];
             if ($call) {
                 foreach ($call as $key => $value) {
                     $cc->$key = $value;
