@@ -14,7 +14,7 @@
  *                                                        *
  * hprose http service class for php 5.3+                 *
  *                                                        *
- * LastModified: Jul 27, 2016                             *
+ * LastModified: Aug 6, 2016                              *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -131,8 +131,10 @@ class Service extends \Hprose\Service {
         $this->sendHeader($context);
 
         $result = '';
-        if ($this->isGet($context) && $this->get) {
-            $result = $this->doFunctionList();
+        if ($this->isGet($context)) {
+            if ($this->get) {
+                $result = $this->doFunctionList();
+            }
         }
         elseif ($this->isPost($context)) {
             $result = $this->defaultHandle($this->readRequest($context), $context);
