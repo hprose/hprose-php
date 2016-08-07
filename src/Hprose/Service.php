@@ -14,7 +14,7 @@
  *                                                        *
  * hprose service class for php 5.3+                      *
  *                                                        *
- * LastModified: Aug 5, 2016                              *
+ * LastModified: Aug 8, 2016                              *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -156,6 +156,7 @@ abstract class Service extends HandlerManager {
                 $this->filters[] = $filter;
             }
         }
+        return $this;
     }
     public final function removeFilter(Filter $filter) {
         if (empty($this->filters)) {

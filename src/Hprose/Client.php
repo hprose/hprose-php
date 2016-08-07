@@ -14,7 +14,7 @@
  *                                                        *
  * hprose client class for php 5.3+                       *
  *                                                        *
- * LastModified: Jul 28, 2016                             *
+ * LastModified: Aug 8, 2016                              *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -177,6 +177,7 @@ abstract class Client extends HandlerManager {
                 $this->filters[] = $filter;
             }
         }
+        return $this;
     }
 
     public final function removeFilter(Filter $filter) {
