@@ -69,7 +69,8 @@ abstract class HandlerManager {
     /*protected*/ abstract function afterFilterHandler(/*string*/ $request, stdClass $context);
     protected function getNextInvokeHandler(Closure $next, /*callable*/ $handler) {
         return Future\wrap(function(/*string*/ $name, array &$args, stdClass $context) use ($next, $handler) {
-            return call_user_func($handler, $name, $args, $context, $next);
+            $array = array($name, &$args, $context, $next);
+            return call_user_func_array($handler, $array);
         });
     }
     protected function getNextFilterHandler(Closure $next, /*callable*/ $handler) {
