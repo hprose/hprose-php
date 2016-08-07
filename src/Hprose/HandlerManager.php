@@ -71,7 +71,13 @@ abstract class HandlerManager {
         return function(/*string*/ $name, array &$args, stdClass $context) use ($next, $handler) {
             try {
                 $array = array($name, &$args, $context, $next);
-                return Future\toFuture(call_user_func_array($handler, $array));
+                $result = call_user_func_array($handler, $array);
+                if (class_exists("\\Generator")) {
+                    return Future\co($result);
+                }
+                else {
+                    return Future\toFuture($result);
+                }
             }
             catch (Exception $e) {
                 return Future\error($e);
@@ -84,7 +90,13 @@ abstract class HandlerManager {
     protected function getNextFilterHandler(Closure $next, /*callable*/ $handler) {
         return function(/*string*/ $request, stdClass $context) use ($next, $handler) {
             try {
-                return Future\toFuture(call_user_func($handler, $request, $context, $next));
+                $result = call_user_func($handler, $request, $context, $next);
+                if (class_exists("\\Generator")) {
+                    return Future\co($result);
+                }
+                else {
+                    return Future\toFuture($result);
+                }
             }
             catch (Exception $e) {
                 return Future\error($e);
