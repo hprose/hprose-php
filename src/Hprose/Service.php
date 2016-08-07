@@ -616,6 +616,7 @@ abstract class Service extends HandlerManager {
         $call->async = isset($options['async']) ? $options['async'] : false;
         $call->passContext = isset($options['passContext']) ? $options['passContext']: null;
         $this->calls[$name] = $call;
+        return $this;
     }
     public function addAsyncFunction($func,
                                      $alias = '',
@@ -625,13 +626,13 @@ abstract class Service extends HandlerManager {
             $alias = '';
         }
         $options['async'] = true;
-        $this->addFunction($func, $alias, $options);
+        return $this->addFunction($func, $alias, $options);
     }
     public function addMissingFunction($func, array $options = array()) {
-        $this->addFunction($func, '*', $options);
+        return $this->addFunction($func, '*', $options);
     }
     public function addAsyncMissingFunction($func, array $options = array()) {
-        $this->addAsyncFunction($func, '*', $options);
+        return $this->addAsyncFunction($func, '*', $options);
     }
     public function addFunctions(array $funcs,
                                  array $aliases = array(),
@@ -654,6 +655,7 @@ abstract class Service extends HandlerManager {
         else {
             throw new Exception('The count of functions is not matched with aliases');
         }
+        return $this;
     }
     public function addAsyncFunctions(array $funcs,
                                       array $aliases = array(),
@@ -663,27 +665,27 @@ abstract class Service extends HandlerManager {
             $aliases = array();
         }
         $options['async'] = true;
-        $this->addFunctions($funcs, $aliases, $options);
+        return $this->addFunctions($funcs, $aliases, $options);
     }
     public function addMethod($method,
                               $scope,
                               $alias = '',
                               array $options = array()) {
         $func = array($scope, $method);
-        $this->addFunction($func, $alias, $options);
+        return $this->addFunction($func, $alias, $options);
     }
     public function addAsyncMethod($method,
                                    $scope,
                                    $alias = '',
                                    array $options = array()) {
         $func = array($scope, $method);
-        $this->addAsyncFunction($func, $alias, $options);
+        return $this->addAsyncFunction($func, $alias, $options);
     }
     public function addMissingMethod($method, $scope, array $options = array()) {
-        $this->addMethod($method, $scope, '*', $options);
+        return $this->addMethod($method, $scope, '*', $options);
     }
     public function addAsyncMissingMethod($method, $scope, array $options = array()) {
-        $this->addAsyncMethod($method, $scope, '*', $options);
+        return $this->addAsyncMethod($method, $scope, '*', $options);
     }
     public function addMethods($methods,
                                $scope,
@@ -715,6 +717,7 @@ abstract class Service extends HandlerManager {
                 $this->addFunction($func, $aliases[$k], $options);
             }
         }
+        return $this;
     }
     public function addAsyncMethods($methods,
                                     $scope,
@@ -746,6 +749,7 @@ abstract class Service extends HandlerManager {
                 $this->addAsyncFunction($func, $aliases[$k], $options);
             }
         }
+        return $this;
     }
     public function addInstanceMethods($object,
                                        $class = '',
@@ -754,8 +758,8 @@ abstract class Service extends HandlerManager {
         if ($class == '') {
             $class = get_class($object);
         }
-        $this->addMethods(self::getDeclaredOnlyInstanceMethods($class),
-                          $object, $aliasPrefix, $options);
+        return $this->addMethods(self::getDeclaredOnlyInstanceMethods($class),
+                                 $object, $aliasPrefix, $options);
     }
     public function addAsyncInstanceMethods($object,
                                             $class = '',
@@ -764,8 +768,8 @@ abstract class Service extends HandlerManager {
         if ($class == '') {
             $class = get_class($object);
         }
-        $this->addAsyncMethods(self::getDeclaredOnlyInstanceMethods($class),
-                          $object, $aliasPrefix, $options);
+        return $this->addAsyncMethods(self::getDeclaredOnlyInstanceMethods($class),
+                                      $object, $aliasPrefix, $options);
     }
     public function addClassMethods($class,
                                     $scope = '',
@@ -774,8 +778,8 @@ abstract class Service extends HandlerManager {
         if ($scope == '') {
             $scope = $class;
         }
-        $this->addMethods(self::getDeclaredOnlyStaticMethods($class),
-                          $scope, $aliasPrefix, $options);
+        return $this->addMethods(self::getDeclaredOnlyStaticMethods($class),
+                                 $scope, $aliasPrefix, $options);
     }
     public function addAsyncClassMethods($class,
                                          $scope = '',
@@ -784,8 +788,8 @@ abstract class Service extends HandlerManager {
         if ($scope == '') {
             $scope = $class;
         }
-        $this->addAsyncMethods(self::getDeclaredOnlyStaticMethods($class),
-                               $scope, $aliasPrefix, $options);
+        return $this->addAsyncMethods(self::getDeclaredOnlyStaticMethods($class),
+                                      $scope, $aliasPrefix, $options);
     }
     public function add() {
         $args_num = func_num_args();
@@ -793,83 +797,61 @@ abstract class Service extends HandlerManager {
         switch ($args_num) {
             case 1: {
                 if (is_callable($args[0])) {
-                    $this->addFunction($args[0]);
-                    return;
+                    return $this->addFunction($args[0]);
                 }
                 elseif (is_array($args[0])) {
-                    $this->addFunctions($args[0]);
-                    return;
+                    return $this->addFunctions($args[0]);
                 }
                 elseif (is_object($args[0])) {
-                    $this->addInstanceMethods($args[0]);
-                    return;
+                    return $this->addInstanceMethods($args[0]);
                 }
                 elseif (is_string($args[0])) {
-                    $this->addClassMethods($args[0]);
-                    return;
+                    return $this->addClassMethods($args[0]);
                 }
                 break;
             }
             case 2: {
                 if (is_callable($args[0]) && is_string($args[1])) {
-                    $this->addFunction($args[0], $args[1]);
-                    return;
+                    return $this->addFunction($args[0], $args[1]);
                 }
                 elseif (is_string($args[0])) {
                     if (is_string($args[1]) && !is_callable(array($args[1], $args[0]))) {
                         if (class_exists($args[1])) {
-                            $this->addClassMethods($args[0], $args[1]);
+                            return $this->addClassMethods($args[0], $args[1]);
                         }
-                        else {
-                            $this->addClassMethods($args[0], '', $args[1]);
-                        }
+                        return $this->addClassMethods($args[0], '', $args[1]);
                     }
-                    else {
-                        $this->addMethod($args[0], $args[1]);
-                    }
-                    return;
+                    return $this->addMethod($args[0], $args[1]);
                 }
                 elseif (is_array($args[0])) {
                     if (is_array($args[1])) {
-                        $this->addFunctions($args[0], $args[1]);
+                        return $this->addFunctions($args[0], $args[1]);
                     }
-                    else {
-                        $this->addMethods($args[0], $args[1]);
-                    }
-                    return;
+                    return $this->addMethods($args[0], $args[1]);
                 }
                 elseif (is_object($args[0])) {
-                    $this->addInstanceMethods($args[0], $args[1]);
-                    return;
+                    return $this->addInstanceMethods($args[0], $args[1]);
                 }
                 break;
             }
             case 3: {
                 if (is_callable($args[0]) && $args[1] == '' && is_string($args[2])) {
-                    $this->addFunction($args[0], $args[2]);
-                    return;
+                    return $this->addFunction($args[0], $args[2]);
                 }
                 elseif (is_string($args[0]) && is_string($args[2])) {
                     if (is_string($args[1]) && !is_callable(array($args[1], $args[0]))) {
-                        $this->addClassMethods($args[0], $args[1], $args[2]);
+                        return $this->addClassMethods($args[0], $args[1], $args[2]);
                     }
-                    else {
-                        $this->addMethod($args[0], $args[1], $args[2]);
-                    }
-                    return;
+                    return $this->addMethod($args[0], $args[1], $args[2]);
                 }
                 elseif (is_array($args[0])) {
                     if ($args[1] == '' && is_array($args[2])) {
-                        $this->addFunctions($args[0], $args[2]);
+                        return $this->addFunctions($args[0], $args[2]);
                     }
-                    else {
-                        $this->addMethods($args[0], $args[1], $args[2]);
-                    }
-                    return;
+                    return $this->addMethods($args[0], $args[1], $args[2]);
                 }
                 elseif (is_object($args[0])) {
-                    $this->addInstanceMethods($args[0], $args[1], $args[2]);
-                    return;
+                    return $this->addInstanceMethods($args[0], $args[1], $args[2]);
                 }
                 break;
             }
@@ -882,83 +864,61 @@ abstract class Service extends HandlerManager {
         switch ($args_num) {
             case 1: {
                 if (is_callable($args[0])) {
-                    $this->addAsyncFunction($args[0]);
-                    return;
+                    return $this->addAsyncFunction($args[0]);
                 }
                 elseif (is_array($args[0])) {
-                    $this->addAsyncFunctions($args[0]);
-                    return;
+                    return $this->addAsyncFunctions($args[0]);
                 }
                 elseif (is_object($args[0])) {
-                    $this->addAsyncInstanceMethods($args[0]);
-                    return;
+                    return $this->addAsyncInstanceMethods($args[0]);
                 }
                 elseif (is_string($args[0])) {
-                    $this->addAsyncClassMethods($args[0]);
-                    return;
+                    return $this->addAsyncClassMethods($args[0]);
                 }
                 break;
             }
             case 2: {
                 if (is_callable($args[0]) && is_string($args[1])) {
-                    $this->addAsyncFunction($args[0], $args[1]);
-                    return;
+                    return $this->addAsyncFunction($args[0], $args[1]);
                 }
                 elseif (is_string($args[0])) {
                     if (is_string($args[1]) && !is_callable(array($args[1], $args[0]))) {
                         if (class_exists($args[1])) {
-                            $this->addAsyncClassMethods($args[0], $args[1]);
+                            return $this->addAsyncClassMethods($args[0], $args[1]);
                         }
-                        else {
-                            $this->addAsyncClassMethods($args[0], '', $args[1]);
-                        }
+                        return $this->addAsyncClassMethods($args[0], '', $args[1]);
                     }
-                    else {
-                        $this->addAsyncMethod($args[0], $args[1]);
-                    }
-                    return;
+                    return $this->addAsyncMethod($args[0], $args[1]);
                 }
                 elseif (is_array($args[0])) {
                     if (is_array($args[1])) {
-                        $this->addAsyncFunctions($args[0], $args[1]);
+                        return $this->addAsyncFunctions($args[0], $args[1]);
                     }
-                    else {
-                        $this->addAsyncMethods($args[0], $args[1]);
-                    }
-                    return;
+                    return $this->addAsyncMethods($args[0], $args[1]);
                 }
                 elseif (is_object($args[0])) {
-                    $this->addAsyncInstanceMethods($args[0], $args[1]);
-                    return;
+                    return $this->addAsyncInstanceMethods($args[0], $args[1]);
                 }
                 break;
             }
             case 3: {
                 if (is_callable($args[0]) && $args[1] == '' && is_string($args[2])) {
-                    $this->addAsyncFunction($args[0], $args[2]);
-                    return;
+                    return $this->addAsyncFunction($args[0], $args[2]);
                 }
                 elseif (is_string($args[0]) && is_string($args[2])) {
                     if (is_string($args[1]) && !is_callable(array($args[1], $args[0]))) {
-                        $this->addAsyncClassMethods($args[0], $args[1], $args[2]);
+                        return $this->addAsyncClassMethods($args[0], $args[1], $args[2]);
                     }
-                    else {
-                        $this->addAsyncMethod($args[0], $args[1], $args[2]);
-                    }
-                    return;
+                    return $this->addAsyncMethod($args[0], $args[1], $args[2]);
                 }
                 elseif (is_array($args[0])) {
                     if ($args[1] == '' && is_array($args[2])) {
-                        $this->addAsyncFunctions($args[0], $args[2]);
+                        return $this->addAsyncFunctions($args[0], $args[2]);
                     }
-                    else {
-                        $this->addAsyncMethods($args[0], $args[1], $args[2]);
-                    }
-                    return;
+                    return $this->addAsyncMethods($args[0], $args[1], $args[2]);
                 }
                 elseif (is_object($args[0])) {
-                    $this->addAsyncInstanceMethods($args[0], $args[1], $args[2]);
-                    return;
+                    return $this->addAsyncInstanceMethods($args[0], $args[1], $args[2]);
                 }
                 break;
             }
@@ -1077,13 +1037,13 @@ abstract class Service extends HandlerManager {
             foreach ($topic as $t) {
                 $this->publish($t, $options);
             }
-            return;
+            return $this;
         }
         $self = $this;
         $timeout = isset($options['timeout']) ? $options['timeout'] : $this->timeout;
         $heartbeat = isset($options['heartbeat']) ? $options['heartbeat'] : $this->heartbeat;
         $this->topics[$topic] = new ArrayObject();
-        $this->addFunction(function($id) use ($self, $topic, $timeout, $heartbeat) {
+        return $this->addFunction(function($id) use ($self, $topic, $timeout, $heartbeat) {
             $topics = $self->getTopics($topic);
             if (isset($topics[$id])) {
                 if ($topics[$id]->count < 0) {
