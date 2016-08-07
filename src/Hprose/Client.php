@@ -406,7 +406,8 @@ abstract class Client extends HandlerManager {
     protected function getNextInvokeHandler(Closure $next, /*callable*/ $handler) {
         if ($this->async) return parent::getNextInvokeHandler($next, $handler);
         return function($name, array &$args, stdClass $context) use ($next, $handler) {
-            return call_user_func($handler, $name, $args, $context, $next);
+            $array = array($name, &$args, $context, $next);
+            return call_user_func_array($handler, $array);
         };
     }
     protected function getNextFilterHandler(Closure $next, /*callable*/ $handler) {
