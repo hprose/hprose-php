@@ -68,15 +68,31 @@ abstract class HandlerManager {
     */
     /*protected*/ abstract function afterFilterHandler(/*string*/ $request, stdClass $context);
     protected function getNextInvokeHandler(Closure $next, /*callable*/ $handler) {
-        return Future\wrap(function(/*string*/ $name, array &$args, stdClass $context) use ($next, $handler) {
-            $array = array($name, &$args, $context, $next);
-            return call_user_func_array($handler, $array);
-        });
+        return function(/*string*/ $name, array &$args, stdClass $context) use ($next, $handler) {
+            try {
+                $array = array($name, &$args, $context, $next);
+                return Future\toFuture(call_user_func_array($handler, $array));
+            }
+            catch (Exception $e) {
+                return Future\error($e);
+            }
+            catch (Throwable $e) {
+                return Future\error($e);
+            }
+        };
     }
     protected function getNextFilterHandler(Closure $next, /*callable*/ $handler) {
-        return Future\wrap(function(/*string*/ $request, stdClass $context) use ($next, $handler) {
-            return call_user_func($handler, $request, $context, $next);
-        });
+        return function(/*string*/ $request, stdClass $context) use ($next, $handler) {
+            try {
+                return Future\toFuture(call_user_func($handler, $request, $context, $next));
+            }
+            catch (Exception $e) {
+                return Future\error($e);
+            }
+            catch (Throwable $e) {
+                return Future\error($e);
+            }
+        };
     }
     public function addInvokeHandler(/*callable*/ $handler) {
         if ($handler == null) return;
