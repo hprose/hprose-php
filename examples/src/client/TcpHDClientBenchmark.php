@@ -15,7 +15,7 @@ Future\co(function() {
         for ($i = 0; $i < $m; $i++) {
             $results[] = ($test->hello("$j-$i"));
         }
-        (yield $results);
+        (yield Future\all($results));
     }
     $total = microtime(true) - $start;
     $average = $total / $n / $m;
