@@ -14,7 +14,7 @@
  *                                                        *
  * hprose socket Service library for php 5.3+             *
  *                                                        *
- * LastModified: Jul 31, 2016                             *
+ * LastModified: Aug 8, 2016                              *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -110,6 +110,9 @@ class Service extends \Hprose\Service {
                 }
             }
         }
+    }
+    protected function nextTick($callback) {
+        $this->defer($callback);
     }
     public function createContext($server, $socket) {
         $context = new stdClass();

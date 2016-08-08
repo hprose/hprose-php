@@ -1,19 +1,19 @@
 <?php
 
-class StatHandler {
+class StatHandler2 {
     private $message;
     public function __construct($message) {
         $this->message = $message;
     }
-    public function asynchandle($name, array &$args, stdClass $context, Closure $next) {
+    public function asynchandle($request, stdClass $context, Closure $next) {
         $start = microtime(true);
-        yield $next($name, $args, $context);
+        yield $next($request, $context);
         $end = microtime(true);
         error_log($this->message . ': It takes ' . ($end - $start) . 'ms.');
     }
-    public function synchandle($name, array &$args, stdClass $context, Closure $next) {
+    public function synchandle($request, stdClass $context, Closure $next) {
         $start = microtime(true);
-        $response = $next($name, $args, $context);
+        $response = $next($request, $context);
         $end = microtime(true);
         error_log($this->message . ': It takes ' . ($end - $start) . 'ms.');
         return $response;

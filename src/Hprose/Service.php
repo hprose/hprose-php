@@ -304,7 +304,7 @@ abstract class Service extends HandlerManager {
         }
         else {
             if ($passContext) $args[] = $context;
-            return Future\toPromise($this->callService($args, $context));
+            return Future\toFuture($this->callService($args, $context));
         }
     }
     /*
