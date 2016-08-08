@@ -11,7 +11,7 @@ function hello($n, $test) {
     for ($i = 0; $i < 5; $i++) {
         $result[] = $test->hello("$n-$i");
     }
-    yield $result;
+    yield Future\all($result);
 }
 
 Future\co(function() use ($test) {
@@ -20,7 +20,7 @@ Future\co(function() use ($test) {
         for ($i = 0; $i < 3; $i++) {
              $result[] = Future\co('hello', $i, $test);
         }
-        yield $result;
+        yield Future\all($result);
     }, $test));
 
     var_dump($result);
