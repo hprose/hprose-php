@@ -505,11 +505,11 @@ if (class_exists("\\Generator")) {
             $generator = call_user_func_array($generator, $args);
         }
         if (!($generator instanceof \Generator)) {
-            return value($generator);
+            return toFuture($generator);
         }
         $next = function($yield) use ($generator, &$next) {
             if ($generator->valid()) {
-                return toPromise($yield)->then(function($value) use ($generator, &$next) {
+                return co($yield)->then(function($value) use ($generator, &$next) {
                     $yield = $generator->send($value);
                     if ($generator->valid()) {
                         return $next($yield);
