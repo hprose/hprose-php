@@ -9,13 +9,13 @@ class StatHandler2 {
         $start = microtime(true);
         yield $next($request, $context);
         $end = microtime(true);
-        error_log($this->message . ': It takes ' . ($end - $start) . 'ms.');
+        error_log($this->message . ': It takes ' . ($end - $start) . ' s.');
     }
     public function synchandle($request, stdClass $context, Closure $next) {
         $start = microtime(true);
         $response = $next($request, $context);
         $end = microtime(true);
-        error_log($this->message . ': It takes ' . ($end - $start) . 'ms.');
+        error_log($this->message . ': It takes ' . ($end - $start) . ' s.');
         return $response;
     }
 }
