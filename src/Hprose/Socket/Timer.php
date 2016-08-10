@@ -14,7 +14,7 @@
  *                                                        *
  * hprose socket Timer class for php 5.3+                 *
  *                                                        *
- * LastModified: Jul 29, 2016                             *
+ * LastModified: Aug 10, 2016                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -31,5 +31,8 @@ class Timer {
     }
     public function clearTimeout($timerid) {
         return $this->server->clear($timerid);
+    }
+    public function setImmediate($callback) {
+        $this->server->defer($callback);
     }
 }
