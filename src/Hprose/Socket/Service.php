@@ -14,7 +14,7 @@
  *                                                        *
  * hprose socket Service library for php 5.3+             *
  *                                                        *
- * LastModified: Aug 8, 2016                              *
+ * LastModified: Aug 10, 2016                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -294,11 +294,14 @@ class Service extends \Hprose\Service {
         $this->close($socket, $context);
     }
     private function timeout() {
-        $deadlines = $this->deadlines;
-        if (empty($deadlines)) {
-            return 3600;
+        if (empty($this->deferTasks)) {
+            $deadlines = $this->deadlines;
+            if (empty($deadlines)) {
+                return 3600;
+            }
+            return max(0, min($deadlines) - microtime(true));
         }
-        return max(0, min($deadlines) - microtime(true));
+        return 0;
     }
     public function handle($servers) {
         $readableSockets = &$this->readableSockets;
