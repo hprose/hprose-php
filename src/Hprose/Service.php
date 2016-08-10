@@ -14,7 +14,7 @@
  *                                                        *
  * hprose service class for php 5.3+                      *
  *                                                        *
- * LastModified: Aug 8, 2016                              *
+ * LastModified: Aug 10, 2016                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -1066,10 +1066,12 @@ abstract class Service extends HandlerManager {
                 $topics[$id]->messages = new SplQueue();
                 $topics[$id]->count = 1;
                 $topics[$id]->heartbeat = $heartbeat;
-                $onSubscribe = $self->onSubscribe;
-                if (is_callable($onSubscribe)) {
-                    call_user_func($onSubscribe, $topic, $id, $self);
-                }
+                $this->timer->setImmediate(function() use ($self, $topic, $id) {
+                    $onSubscribe = $self->onSubscribe;
+                    if (is_callable($onSubscribe)) {
+                        call_user_func($onSubscribe, $topic, $id, $self);
+                    }
+                });
             }
             if (isset($topics[$id]->request)) {
                 $topics[$id]->request->reject(new InvalidRequestException());
