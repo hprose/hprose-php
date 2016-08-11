@@ -14,7 +14,7 @@
  *                                                        *
  * hprose socket Transporter class for php 5.3+           *
  *                                                        *
- * LastModified: Jul 31, 2016                             *
+ * LastModified: Aug 11, 2016                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -69,11 +69,16 @@ abstract class Transporter {
         do {
             $buffer = @fread($stream, $n - strlen($header));
             $header .= $buffer;
-        } while (($buffer !== false) && (strlen($header) < $n));
-        if ($buffer === false) {
+        } while (!empty($buffer) && (strlen($header) < $n));
+        if (strlen($header) < $n) {
             return false;
         }
         return $header;
+    }
+    protected function free($o, $index) {
+        unset($o->results[$index]);
+        unset($o->deadlines[$index]);
+        unset($o->buffers[$index]);
     }
     protected function asyncWrite($stream, $o) {
         $stream_id = (integer)$stream;
@@ -105,20 +110,19 @@ abstract class Transporter {
             $this->afterWrite($request, $stream, $o);
         }
     }
-    private function free($o, $index) {
-        unset($o->results[$index]);
-        unset($o->deadlines[$index]);
-        unset($o->buffers[$index]);
-    }
     private function asyncRead($stream, $o) {
         $response = $this->getResponse($stream, $o);
         if ($response === false) {
+            $this->asyncReadError($o, $stream, -1);
+            return;
+        }
+        else if ($response->length === false) {
             $this->asyncReadError($o, $stream, $response->index);
             return;
         }
         $remaining = $response->length - strlen($response->buffer);
         $buffer = @fread($stream, $remaining);
-        if ($buffer === false) {
+        if (empty($buffer)) {
             $this->asyncReadError($o, $stream, $response->index);
             return;
         }

@@ -14,7 +14,7 @@
  *                                                        *
  * hprose socket FullDuplexTransporter class for php 5.3+ *
  *                                                        *
- * LastModified: Jul 30, 2016                             *
+ * LastModified: Aug 11, 2016                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -47,7 +47,7 @@ class FullDuplexTransporter extends Transporter {
         }
         $o->queue[$stream_id][$request->id] = $response;
     }
-    protected function asyncReadError($o, $stream, $index) {
+    protected function asyncReadError($o, $stream, $index = -1) {
         $stream_id = (integer)$stream;
         foreach ($o->queue[$stream_id] as $response) {
             $index = $response->index;
