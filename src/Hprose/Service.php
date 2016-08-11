@@ -14,7 +14,7 @@
  *                                                        *
  * hprose service class for php 5.3+                      *
  *                                                        *
- * LastModified: Aug 10, 2016                             *
+ * LastModified: Aug 11, 2016                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -74,7 +74,10 @@ abstract class Service extends HandlerManager {
         $this->addMethod('getNextId', $this, '#', array('simple' => true));
     }
     public function getNextId() {
-        return ($this->nextid < 0x7FFFFFFF) ? $this->nextid++ : $this->nextid = 0;
+        if (function_exists('com_create_guid')) {
+            return trim(com_create_guid(), '{}');
+        }
+        return md5(uniqid(dechex(mt_rand()), true) . dechex(mt_rand()));
     }
     public function fatalErrorHandler() {
         if (!is_callable($this->userFatalErrorHandler)) return;
