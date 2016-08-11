@@ -14,7 +14,7 @@
  *                                                        *
  * some helper functions for php 5.3+                     *
  *                                                        *
- * LastModified: Aug 4, 2016                              *
+ * LastModified: Aug 11, 2016                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -27,6 +27,7 @@ use Throwable;
 use RangeException;
 use ReflectionFunction;
 use ReflectionMethod;
+use ReflectionObject;
 
 function isFuture($obj) {
     return $obj instanceof Future;
