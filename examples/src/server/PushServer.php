@@ -11,5 +11,11 @@ function hello($name, $context) {
 
 $server = new Server("tcp://0.0.0.0:1980");
 $server->publish('news');
+$server->onSubscribe = function($topic, $id, $service) {
+    error_log("client $id subscribe $topic on " . microtime(true));
+};
+$server->onUnsubscribe = function($topic, $id, $service) {
+    error_log("client $id unsubscribe $topic on " . microtime(true));
+};
 $server->addFunction('hello', array('passContext' => true));
 $server->start();
