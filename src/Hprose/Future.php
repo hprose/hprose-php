@@ -14,7 +14,7 @@
  *                                                        *
  * hprose future class for php 5.3+                       *
  *                                                        *
- * LastModified: Jul 11, 2016                             *
+ * LastModified: Aug 12, 2016                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -53,12 +53,7 @@ class Future {
         }
     }
 
-    /*
-        This method is a private method.
-        But PHP 5.3 can't call private method in closure,
-        so we comment the private keyword.
-    */
-    /*private*/ function privateCall($callback, $next, $x) {
+    private function privateCall($callback, $next, $x) {
         try {
             $r = call_user_func($callback, $x);
             $next->resolve($r);
@@ -74,12 +69,16 @@ class Future {
         }
     }
 
-    /*
-        This method is a private method.
-        But PHP 5.3 can't call private method in closure,
-        so we comment the private keyword.
-    */
-    /*private*/ function privateReject($onreject, $next, $e) {
+    private function privateResolve($onfulfill, $next, $x) {
+        if (is_callable($onfulfill)) {
+            $this->privateCall($onfulfill, $next, $x);
+        }
+        else {
+            $next->resolve($x);
+        }
+    }
+
+    private function privateReject($onreject, $next, $e) {
         if (is_callable($onreject)) {
             $this->privateCall($onreject, $next, $e);
         }
@@ -88,43 +87,32 @@ class Future {
         }
     }
 
-    /*
-        This method is a private method.
-        But PHP 5.3 can't call private method in closure,
-        so we comment the private keyword.
-    */
-    /*private*/ function privateResolve($onfulfill, $onreject, $next, $x) {
-        $self = $this;
-        $resolvePromise = function($y) use ($onfulfill, $onreject, $self, $next) {
-            $self->privateResolve($onfulfill, $onreject, $next, $y);
-        };
-        $rejectPromise = function($r) use ($onreject, $self, $next) {
-            $self->privateReject($onreject, $next, $r);
-        };
-        if (Future\isFuture($x)) {
-            if ($x === $this) {
-                $rejectPromise(new TypeError('Self resolution'));
-                return;
-            }
-            $x->then($resolvePromise, $rejectPromise);
+    public function resolve($value) {
+        if ($value === $this) {
+            $this->reject(new TypeError('Self resolution'));
             return;
         }
-        if (($x !== NULL) and is_object($x) or is_string($x)) {
-            if (method_exists($x, 'then')) {
-                $then = array($x, 'then');
+        if (Future\isFuture($value)) {
+            $value->fill($this);
+            return;
+        }
+        if (($value !== NULL) and is_object($value) or is_string($value)) {
+            if (method_exists($value, 'then')) {
+                $then = array($value, 'then');
                 $notrun = true;
+                $self = $this;
                 try {
                     call_user_func($then,
-                        function($y) use (&$notrun, $resolvePromise) {
+                        function($y) use (&$notrun, $self) {
                             if ($notrun) {
                                 $notrun = false;
-                                $resolvePromise($y);
+                                $self->resolve($y);
                             }
                         },
-                        function($r) use (&$notrun, $rejectPromise) {
+                        function($r) use (&$notrun, $self) {
                             if ($notrun) {
                                 $notrun = false;
-                                $rejectPromise($r);
+                                $self->reject($r);
                             }
                         }
                     );
@@ -135,36 +123,27 @@ class Future {
                 catch (Exception $e) {
                     if ($notrun) {
                         $notrun = false;
-                        $rejectPromise($e);
+                        $this->reject($e);
                     }
                 }
                 catch (Throwable $e) {
                     if ($notrun) {
                         $notrun = false;
-                        $rejectPromise($e);
+                        $this->reject($e);
                     }
                 }
                 return;
             }
         }
-        if ($onfulfill) {
-            $this->privateCall($onfulfill, $next, $x);
-        }
-        else {
-            $next->resolve($x);
-        }
-    }
-
-    public function resolve($value) {
         if ($this->state === self::PENDING) {
             $this->state = self::FULFILLED;
             $this->value = $value;
             while (count($this->subscribers) > 0) {
                 $subscriber = array_shift($this->subscribers);
-                $this->privateResolve($subscriber['onfulfill'],
-                                $subscriber['onreject'],
-                                $subscriber['next'],
-                                $value);
+                $this->privateResolve(
+                    $subscriber['onfulfill'],
+                    $subscriber['next'],
+                    $value);
             }
         }
     }
@@ -175,14 +154,10 @@ class Future {
             $this->reason = $reason;
             while (count($this->subscribers) > 0) {
                 $subscriber = array_shift($this->subscribers);
-                if (is_callable($subscriber['onreject'])) {
-                    $this->privateCall($subscriber['onreject'],
-                                 $subscriber['next'],
-                                 $reason);
-                }
-                else {
-                    $subscriber['next']->reject($reason);
-                }
+                $this->privateReject(
+                    $subscriber['onreject'],
+                    $subscriber['next'],
+                    $reason);
             }
         }
     }
@@ -190,29 +165,21 @@ class Future {
     public function then($onfulfill, $onreject = NULL) {
         if (!is_callable($onfulfill)) { $onfulfill = NULL; }
         if (!is_callable($onreject)) { $onreject = NULL; }
-        if (($onfulfill !== NULL) or ($onreject !== NULL)) {
-            $next = new Future();
-            if ($this->state === self::FULFILLED) {
-                $this->privateResolve($onfulfill, $onreject, $next, $this->value);
-            }
-            elseif ($this->state === self::REJECTED) {
-                if ($onreject !== NULL) {
-                    $this->privateCall($onreject, $next, $this->reason);
-                }
-                else {
-                    $next->reject($this->reason);
-                }
-            }
-            else {
-                array_push($this->subscribers, array(
-                    'onfulfill' => $onfulfill,
-                    'onreject' => $onreject,
-                    'next' => $next
-                ));
-            }
-            return $next;
+        $next = new Future();
+        if ($this->state === self::FULFILLED) {
+            $this->privateResolve($onfulfill, $next, $this->value);
         }
-        return $this;
+        elseif ($this->state === self::REJECTED) {
+            $this->privateReject($onreject, $next, $this->reason);
+        }
+        else {
+            array_push($this->subscribers, array(
+                'onfulfill' => $onfulfill,
+                'onreject' => $onreject,
+                'next' => $next
+            ));
+        }
+        return $next;
     }
 
     public function done($onfulfill, $onreject = NULL) {
