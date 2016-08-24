@@ -14,7 +14,7 @@
  *                                                        *
  * hprose client class for php 5.3+                       *
  *                                                        *
- * LastModified: Aug 8, 2016                              *
+ * LastModified: Aug 24, 2016                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -614,9 +614,9 @@ abstract class Client extends HandlerManager {
             $this->topics[$name] = array();
         }
     }
-    // subscribe($name, $callback, $timeout)
-    // subscribe($name, $id, $callback, $timeout)
-    public function subscribe($name, $id = null, $callback = null, $timeout = null) {
+    // subscribe($name, $callback, $timeout, $failswitch)
+    // subscribe($name, $id, $callback, $timeout, $failswitch)
+    public function subscribe($name, $id = null, $callback = null, $timeout = null, $failswitch = false) {
         $self = $this;
         if (!is_string($name)) {
             throw new TypeError('topic name must be a string');
@@ -633,8 +633,8 @@ abstract class Client extends HandlerManager {
             if ($this->id == null) {
                 $this->id = $this->autoId();
             }
-            $this->id->then(function($id) use ($self, $name, $callback, $timeout) {
-                $self->subscribe($name, $id, $callback, $timeout);
+            $this->id->then(function($id) use ($self, $name, $callback, $timeout, $failswitch) {
+                $self->subscribe($name, $id, $callback, $timeout, $failswitch);
             });
             return;
         }
@@ -644,7 +644,7 @@ abstract class Client extends HandlerManager {
             $topic = new stdClass();
             $settings = new InvokeSettings(array(
                 'idempotent' => true,
-                'failswitch' => false,
+                'failswitch' => $failswitch,
                 'timeout' => $timeout
             ));
             $cb = function() use ($self, &$cb, $topic, $name, $id, $settings) {
