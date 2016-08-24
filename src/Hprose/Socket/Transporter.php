@@ -14,7 +14,7 @@
  *                                                        *
  * hprose socket Transporter class for php 5.3+           *
  *                                                        *
- * LastModified: Aug 11, 2016                             *
+ * LastModified: Aug 24, 2016                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -183,10 +183,11 @@ abstract class Transporter {
         }
         if (empty($pool)) {
             $e = new Exception($errstr, $errno);
-            foreach ($o->results as $result) {
+            $results = $o->results;
+            $o->results = array();
+            foreach ($results as $result) {
                 $result->reject($e);
             }
-            $o->results = array();
             return false;
         }
         return $pool;
