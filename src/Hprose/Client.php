@@ -271,7 +271,7 @@ abstract class Client extends HandlerManager {
             if ($context->retried < $context->retry) {
                 $interval = ++$context->retried * 0.5;
                 if ($context->failswitch) {
-                    $interval -= (count($this->uris) + 1) * 0.5;
+                    $interval -= (count($this->uris) - 1) * 0.5;
                 }
                 if ($interval > 5) $interval = 5;
                 $self = $this;
