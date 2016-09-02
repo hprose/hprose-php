@@ -205,7 +205,8 @@ abstract class Client extends HandlerManager {
             }
             else {
                 $this->uris = $uris;
-                $this->index = mt_rand(0, count($uris) - 1);
+                shuffle($this->uris);
+                $this->index = 0;
                 $this->setUri($uris[$this->index]);
             }
         }
@@ -246,15 +247,12 @@ abstract class Client extends HandlerManager {
     }
 
     private function failswitch() {
-        $n = count($this->uris);
-        if ($n > 1) {
-            $i = $this->index + mt_rand(1, $n - 1);
-            if ($i >= $n) {
-                $i %= $n;
-            }
-            $this->index = $i;
-            $this->setUri($this->uris[$i]);
+        $i = $this->index + 1;
+        if ($i >= count($this->uris)) {
+            $i = 0;
         }
+        $this->index = $i;
+        $this->setUri($this->uris[$i]);
     }
 
     /*
@@ -267,14 +265,19 @@ abstract class Client extends HandlerManager {
             $this->failswitch();
         }
         if ($context->idempotent) {
-            $n = $context->retry;
-            if ($n > 0) {
-                $context->retry = $n - 1;
-                $interval = ($n >= 10) ? 0.5 : (10 - $n) * 0.5;
+            if ($context->retried < $context->retry) {
+                $interval = $context->retried * 0.5;
+                if ($interval > 5) $interval = 5;
+                $context->retried++;
                 $self = $this;
-                return $this->wait($interval, function() use ($self, $request, $context) {
-                    return $self->sendRequest($request, $context);
-                });
+                if ($interval > 0) {
+                    return $this->wait($interval, function() use ($self, $request, $context) {
+                        return $self->sendRequest($request, $context);
+                    });
+                }
+                else {
+                    return $this->sendRequest($request, $context);
+                }
             }
         }
         return null;
@@ -361,6 +364,7 @@ abstract class Client extends HandlerManager {
         $context->failswitch = isset($settings->failswitch) ? $settings->failswitch : $this->failswitch;
         $context->idempotent = isset($settings->idempotent) ? $settings->idempotent : $this->idempotent;
         $context->retry = isset($settings->retry) ? $settings->retry : $this->retry;
+        $context->retried = 0;
         $context->timeout = isset($settings->timeout) ? $settings->timeout : $this->timeout;
         return $context;
     }
