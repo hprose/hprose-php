@@ -14,7 +14,7 @@
  *                                                        *
  * hprose socket Transporter class for php 5.3+           *
  *                                                        *
- * LastModified: Aug 24, 2016                             *
+ * LastModified: Sep 2, 2016                              *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -289,6 +289,7 @@ abstract class Transporter {
                     STREAM_CLIENT_CONNECT,
                     stream_context_create($client->options));
                 if ($this->stream === false) {
+                    $this->stream = null;
                     throw new Exception($errstr, $errno);
                 }
             }
