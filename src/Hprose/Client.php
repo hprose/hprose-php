@@ -14,7 +14,7 @@
  *                                                        *
  * hprose client class for php 5.3+                       *
  *                                                        *
- * LastModified: Aug 24, 2016                             *
+ * LastModified: Sep 2, 2016                              *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -247,12 +247,15 @@ abstract class Client extends HandlerManager {
     }
 
     private function failswitch() {
-        $i = $this->index + 1;
-        if ($i >= count($this->uris)) {
-            $i = 0;
+        $n = count($this->uris);
+        if ($n > 1) {
+            $i = $this->index + 1;
+            if ($i >= $n) {
+                $i = 0;
+            }
+            $this->index = $i;
+            $this->setUri($this->uris[$i]);
         }
-        $this->index = $i;
-        $this->setUri($this->uris[$i]);
     }
 
     /*
@@ -266,9 +269,11 @@ abstract class Client extends HandlerManager {
         }
         if ($context->idempotent) {
             if ($context->retried < $context->retry) {
-                $interval = $context->retried * 0.5;
+                $interval = ++$context->retried * 0.5;
+                if ($context->failswitch) {
+                    $interval -= (count($this->uris) + 1) * 0.5;
+                }
                 if ($interval > 5) $interval = 5;
-                $context->retried++;
                 $self = $this;
                 if ($interval > 0) {
                     return $this->wait($interval, function() use ($self, $request, $context) {
