@@ -184,6 +184,8 @@ abstract class Transporter {
         if (empty($pool)) {
             $e = new Exception($errstr, $errno);
             $results = $o->results;
+            $o->buffers = array();
+            $o->deadlines = array();
             $o->results = array();
             foreach ($results as $result) {
                 $result->reject($e);
