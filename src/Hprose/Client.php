@@ -39,9 +39,11 @@ abstract class Client extends HandlerManager {
     public $retry = 10;
     public $idempotent = false;
     public $failswitch = false;
+    public $failround = 0;
     public $byref = false;
     public $simple = false;
     public $onError = null;
+    public $onFailSwitch = null;
     private $methodCache = array();
 
     private static $clientFactories = array();
@@ -139,6 +141,10 @@ abstract class Client extends HandlerManager {
         $this->failswitch = $failswitch;
     }
 
+    public final function getFailRound() {
+        return $this->failround;
+    }
+
     public final function isByref() {
         return $this->byref;
     }
@@ -199,16 +205,15 @@ abstract class Client extends HandlerManager {
     public function useService($uris = array(), $namespace = '') {
         if (!empty($uris)) {
             if (is_string($uris)) {
-                $this->uris = array($uris);
-                $this->index = 0;
-                $this->setUri($uris);
+                $uris = array($uris);
             }
             else {
-                $this->uris = $uris;
-                shuffle($this->uris);
-                $this->index = 0;
-                $this->setUri($uris[$this->index]);
+                shuffle($uris);
             }
+            $this->index = 0;
+            $this->failround = 0;
+            $this->uris = $uris;
+            $this->setUri($uris[$this->index]);
         }
         if ($namespace) {
             $namespace .= "_";
@@ -252,9 +257,17 @@ abstract class Client extends HandlerManager {
             $i = $this->index + 1;
             if ($i >= $n) {
                 $i = 0;
+                $this->failround++;
             }
             $this->index = $i;
             $this->setUri($this->uris[$i]);
+        }
+        else {
+            $this->failround++;
+        }
+        $onFailSwitch = $this->onFailSwitch;
+        if (is_callable($onFailSwitch)) {
+            call_user_func($onFailSwitch, $this);
         }
     }
 
