@@ -43,7 +43,7 @@ abstract class Client extends HandlerManager {
     public $byref = false;
     public $simple = false;
     public $onError = null;
-    public $onFailSwitch = null;
+    public $onFailswitch = null;
     private $methodCache = array();
 
     private static $clientFactories = array();
@@ -141,7 +141,7 @@ abstract class Client extends HandlerManager {
         $this->failswitch = $failswitch;
     }
 
-    public final function getFailRound() {
+    public final function getFailround() {
         return $this->failround;
     }
 
@@ -265,9 +265,9 @@ abstract class Client extends HandlerManager {
         else {
             $this->failround++;
         }
-        $onFailSwitch = $this->onFailSwitch;
-        if (is_callable($onFailSwitch)) {
-            call_user_func($onFailSwitch, $this);
+        $onFailswitch = $this->onFailswitch;
+        if (is_callable($onFailswitch)) {
+            call_user_func($onFailswitch, $this);
         }
     }
 
