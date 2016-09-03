@@ -14,7 +14,7 @@
  *                                                        *
  * hprose service class for php 5.3+                      *
  *                                                        *
- * LastModified: Aug 11, 2016                             *
+ * LastModified: Sep 3, 2016                              *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -927,6 +927,14 @@ abstract class Service extends HandlerManager {
             }
         }
         throw new Exception('Wrong arguments');
+    }
+
+    public function remove($alias) {
+        $index = array_search($alias, $this->names, true);
+        if ($index !== false) {
+            array_splice($this->names, $index, 1);
+            unset($this->calls[strtolower($alias)]);
+        }
     }
 
 // for push service
