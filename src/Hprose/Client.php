@@ -14,7 +14,7 @@
  *                                                        *
  * hprose client class for php 5.3+                       *
  *                                                        *
- * LastModified: Sep 2, 2016                              *
+ * LastModified: Sep 4, 2016                              *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -280,22 +280,20 @@ abstract class Client extends HandlerManager {
         if ($context->failswitch) {
             $this->failswitch();
         }
-        if ($context->idempotent) {
-            if ($context->retried < $context->retry) {
-                $interval = ++$context->retried * 0.5;
-                if ($context->failswitch) {
-                    $interval -= (count($this->uris) - 1) * 0.5;
-                }
-                if ($interval > 5) $interval = 5;
-                $self = $this;
-                if ($interval > 0) {
-                    return $this->wait($interval, function() use ($self, $request, $context) {
-                        return $self->sendRequest($request, $context);
-                    });
-                }
-                else {
-                    return $this->sendRequest($request, $context);
-                }
+        if ($context->idempotent && ($context->retried < $context->retry)) {
+            $interval = ++$context->retried * 0.5;
+            if ($context->failswitch) {
+                $interval -= (count($this->uris) - 1) * 0.5;
+            }
+            if ($interval > 5) $interval = 5;
+            $self = $this;
+            if ($interval > 0) {
+                return $this->wait($interval, function() use ($self, $request, $context) {
+                    return $self->sendRequest($request, $context);
+                });
+            }
+            else {
+                return $this->sendRequest($request, $context);
             }
         }
         return null;
