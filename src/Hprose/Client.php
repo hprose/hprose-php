@@ -14,7 +14,7 @@
  *                                                        *
  * hprose client class for php 5.3+                       *
  *                                                        *
- * LastModified: Sep 4, 2016                              *
+ * LastModified: Sep 5, 2016                              *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -31,9 +31,9 @@ use ReflectionFunction;
 
 abstract class Client extends HandlerManager {
     private $index = -1;
+    private $uriList = null;
     protected $async = true;
     public $uri = null;
-    public $uris = null;
     public $filters = array();
     public $timeout = 30000;
     public $retry = 10;
@@ -71,13 +71,13 @@ abstract class Client extends HandlerManager {
         self::$clientFactoriesInited = true;
     }
 
-    public static function create($uris, $async = true) {
+    public static function create($uriList, $async = true) {
         if (!self::$clientFactoriesInited) self::initClientFactories();
-        if (is_string($uris)) $uris = array($uris);
-        $scheme = strtolower(parse_url($uris[0], PHP_URL_SCHEME));
-        $n = count($uris);
+        if (is_string($uriList)) $uriList = array($uriList);
+        $scheme = strtolower(parse_url($uriList[0], PHP_URL_SCHEME));
+        $n = count($uriList);
         for ($i = 1; $i < $n; ++$i) {
-            if (strtolower(parse_url($uris[$i], PHP_URL_SCHEME)) != $scheme) {
+            if (strtolower(parse_url($uriList[$i], PHP_URL_SCHEME)) != $scheme) {
                 throw new Exception("Not support multiple protocol.");
             }
         }
@@ -85,18 +85,15 @@ abstract class Client extends HandlerManager {
         if (empty($clientFactory)) {
             throw new Exception("This client doesn't support $scheme scheme.");
         }
-        return new $clientFactory($uris, $async);
+        return new $clientFactory($uriList, $async);
     }
 
-    public function __construct($uris = null, $async = true) {
+    public function __construct($uriList = null, $async = true) {
         parent::__construct();
-        if ($uris != null) {
-            if (is_string($uris)) $uris = array($uris);
-            if (is_array($uris)) {
-                $this->useService($uris);
-            }
-            if (is_bool($uris)) {
-                $async = $uris;
+        if ($uriList != null) {
+            $this->setUriList($uriList);
+            if (is_bool($uriList)) {
+                $async = $uriList;
             }
         }
         $this->async = $async;
@@ -202,18 +199,29 @@ abstract class Client extends HandlerManager {
         $this->uri = $uri;
     }
 
-    public function useService($uris = array(), $namespace = '') {
-        if (!empty($uris)) {
-            if (is_string($uris)) {
-                $uris = array($uris);
-            }
-            else {
-                shuffle($uris);
-            }
-            $this->index = 0;
-            $this->failround = 0;
-            $this->uris = $uris;
-            $this->setUri($uris[$this->index]);
+    public function getUriList() {
+        return $this->uriList;
+    }
+
+    public function setUriList($uriList) {
+        if (is_string($uriList)) {
+            $uriList = array($uriList);
+        }
+        else if (is_array($uriList)) {
+            shuffle($uriList);
+        }
+        else {
+            return;
+        }
+        $this->index = 0;
+        $this->failround = 0;
+        $this->uriList = $uriList;
+        $this->setUri($uriList[$this->index]);
+    }
+
+    public function useService($uriList = array(), $namespace = '') {
+        if (!empty($uriList)) {
+            $this->setUriList($uriList);
         }
         if ($namespace) {
             $namespace .= "_";
@@ -252,7 +260,7 @@ abstract class Client extends HandlerManager {
     }
 
     private function failswitch() {
-        $n = count($this->uris);
+        $n = count($this->uriList);
         if ($n > 1) {
             $i = $this->index + 1;
             if ($i >= $n) {
@@ -260,7 +268,7 @@ abstract class Client extends HandlerManager {
                 $this->failround++;
             }
             $this->index = $i;
-            $this->setUri($this->uris[$i]);
+            $this->setUri($this->uriList[$i]);
         }
         else {
             $this->failround++;
@@ -283,7 +291,7 @@ abstract class Client extends HandlerManager {
         if ($context->idempotent && ($context->retried < $context->retry)) {
             $interval = ++$context->retried * 0.5;
             if ($context->failswitch) {
-                $interval -= (count($this->uris) - 1) * 0.5;
+                $interval -= (count($this->uriList) - 1) * 0.5;
             }
             if ($interval > 5) $interval = 5;
             $self = $this;
