@@ -14,7 +14,7 @@
  *                                                        *
  * hprose http service class for php 5.3+                 *
  *                                                        *
- * LastModified: Aug 9, 2016                              *
+ * LastModified: Sep 9, 2016                              *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -144,13 +144,13 @@ class Service extends \Hprose\Service {
         }
         if (Future\isFuture($result)) {
             $result->then(function($result) use ($self, $context) {
-                $this->header('Content-Length', strlen($result), $context);
+                $self->header('Content-Length', strlen($result), $context);
                 $self->writeResponse($result, $context);
             });
         }
         else {
             $this->header('Content-Length', strlen($result), $context);
-            $self->writeResponse($result, $context);
+            $this->writeResponse($result, $context);
        }
        return $context->response;
     }
