@@ -14,7 +14,7 @@
  *                                                        *
  * hprose service class for php 5.3+                      *
  *                                                        *
- * LastModified: Sep 3, 2016                              *
+ * LastModified: Sep 17, 2016                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -1033,9 +1033,6 @@ abstract class Service extends HandlerManager {
                     $checkoffline();
                 }
                 else {
-                    if ($e instanceof InvalidRequestException) {
-                        return new Future();
-                    }
                     --$t->count;
                 }
             });
