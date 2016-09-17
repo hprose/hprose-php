@@ -14,7 +14,7 @@
  *                                                        *
  * hprose socket Transporter class for php 5.3+           *
  *                                                        *
- * LastModified: Sep 2, 2016                              *
+ * LastModified: Sep 17, 2016                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -101,6 +101,9 @@ abstract class Transporter {
         if ($sent === false) {
             $o->results[$request->index]->reject($this->getLastError('request write error'));
             $this->free($o, $request->index);
+            @fclose($stream);
+            $this->removeStream($stream, $o->writepool);
+            return;
         }
         if ($sent < $request->length) {
             $request->buffer = substr($request->buffer, $sent);
@@ -116,7 +119,7 @@ abstract class Transporter {
             $this->asyncReadError($o, $stream, -1);
             return;
         }
-        else if ($response->length === false) {
+        if ($response->length === false) {
             $this->asyncReadError($o, $stream, $response->index);
             return;
         }
@@ -128,19 +131,52 @@ abstract class Transporter {
         }
         $response->buffer .= $buffer;
         if (strlen($response->buffer) === $response->length) {
-            $result = $o->results[$response->index];
-            $this->free($o, $response->index);
+            if (isset($o->results[$response->index])) {
+                $result = $o->results[$response->index];
+                $this->free($o, $response->index);
+            }
             $stream_id = (integer)$stream;
             unset($o->responses[$stream_id]);
             $this->afterRead($stream, $o, $response);
-            $result->resolve($response->buffer);
+            if (isset($result)) {
+                $result->resolve($response->buffer);
+            }
+        }
+    }
+    private function removeStreamById($stream_id, &$pool) {
+        foreach ($pool as $index => $stream) {
+            if ((integer)$stream == $stream_id) {
+                @fclose($stream);
+                unset($pool[$index]);
+                return;
+            }
+        }
+    }
+    private function closeTimeoutStream($o, $index) {
+        foreach ($o->requests as $stream_id => $request) {
+            if ($request->index == $index) {
+                unset($o->requests[$stream_id]);
+                if (!$this->client->fullDuplex) {
+                    $this->removeStreamById($stream_id, $o->writepool);
+                }
+            }
+        }
+        foreach ($o->responses as $stream_id => $response) {
+            if ($response->index == $index) {
+                unset($o->responses[$stream_id]);
+                if (!$this->client->fullDuplex) {
+                    $this->removeStreamById($stream_id, $o->readpool);
+                }
+            }
         }
     }
     private function checkTimeout($o) {
         foreach ($o->deadlines as $index => $deadline) {
             if (microtime(true) > $deadline) {
-                $o->results[$index]->reject(new TimeoutException("timeout"));
+                $result = $o->results[$index];
                 $this->free($o, $index);
+                $this->closeTimeoutStream($o, $index);
+                $result->reject(new TimeoutException("timeout"));
             }
         }
     }
@@ -232,7 +268,13 @@ abstract class Transporter {
                     foreach ($read as $stream) $this->asyncRead($stream, $o);
                 }
                 $this->checkTimeout($o);
+                if (count($o->results) > 0 &&
+                    count($o->readpool) + count($o->writepool) === 0) {
+                    $o->writepool = $this->createPool($client, $o);
+                }
             }
+            foreach ($o->writepool as $stream) @fclose($stream);
+            foreach ($o->readpool as $stream) @fclose($stream);
         }
     }
     public function asyncSendAndReceive($buffer, stdClass $context) {

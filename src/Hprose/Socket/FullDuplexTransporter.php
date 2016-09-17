@@ -14,7 +14,7 @@
  *                                                        *
  * hprose socket FullDuplexTransporter class for php 5.3+ *
  *                                                        *
- * LastModified: Aug 11, 2016                             *
+ * LastModified: Sep 17, 2016                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -81,7 +81,12 @@ class FullDuplexTransporter extends Transporter {
             $headerInfo = $this->getHeaderInfo($stream);
             if ($headerInfo === false) return false;
             $id = $headerInfo[1];
-            $response = $o->queue[$stream_id][$id];
+            if (isset($o->queue[$stream_id][$id])) {
+                $response = $o->queue[$stream_id][$id];
+            }
+            else {
+                $response = new DataBuffer(-1, '', 0, $id);
+            }
             $response->length = $headerInfo[0];
             $o->responses[$stream_id] = $response;
         }
@@ -89,7 +94,9 @@ class FullDuplexTransporter extends Transporter {
     }
     protected function afterRead($stream, $o, $response) {
         $stream_id = (integer)$stream;
-        unset($o->queue[$stream_id][$response->id]);
+        if (isset($o->queue[$stream_id][$response->id])) {
+            unset($o->queue[$stream_id][$response->id]);
+        }
         if (empty($o->queue[$stream_id])) {
             $this->removeStream($stream, $o->readpool);
         }

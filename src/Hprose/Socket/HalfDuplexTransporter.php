@@ -14,7 +14,7 @@
  *                                                        *
  * hprose socket HalfDuplexTransporter class for php 5.3+ *
  *                                                        *
- * LastModified: Aug 11, 2016                             *
+ * LastModified: Sep 17, 2016                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -37,8 +37,11 @@ class HalfDuplexTransporter extends Transporter {
         $this->removeStream($stream, $o->writepool);
     }
     protected function asyncReadError($o, $stream, $index) {
-        $o->results[$index]->reject($this->getLastError('response read error'));
-        $this->free($o, $index);
+        if (isset($o->results[$index])) {
+            $o->results[$index]
+              ->reject($this->getLastError('response read error'));
+            $this->free($o, $index);
+        }
         unset($o->responses[(integer)$stream]);
         @fclose($stream);
         $this->removeStream($stream, $o->readpool);

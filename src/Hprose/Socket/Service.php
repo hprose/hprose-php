@@ -14,7 +14,7 @@
  *                                                        *
  * hprose socket Service library for php 5.3+             *
  *                                                        *
- * LastModified: Aug 10, 2016                             *
+ * LastModified: Sep 17, 2016                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -166,7 +166,7 @@ class Service extends \Hprose\Service {
         $dataLength = -1;
         $id = null;
         $onSend = $this->onSends[(int)$socket];
-        $send = function($data) use ($onSend, &$id) {
+        $send = function($data, $id) use ($onSend) {
             $dataLength = strlen($data);
             if ($id === null) {
                 $onSend(pack("N", $dataLength) . $data);
@@ -208,11 +208,11 @@ class Service extends \Hprose\Service {
                 if (($dataLength >= 0) && (($length - $headerLength) >= $dataLength)) {
                     $context = $self->createContext($server, $socket);
                     $data = substr($bytes, $headerLength, $dataLength);
-                    $userFatalErrorHandler = function($error) use ($self, $send, $context) {
-                        $send($self->endError($error, $context));
+                    $userFatalErrorHandler = function($error) use ($self, $send, $context, $id) {
+                        $send($self->endError($error, $context), $id);
                     };
-                    $self->defaultHandle($data, $context)->then(function($data) use ($send) {
-                        $send($data);
+                    $self->defaultHandle($data, $context)->then(function($data) use ($send, $id) {
+                        $send($data, $id);
                     });
                     $bytes = substr($bytes, $headerLength + $dataLength);
                     $id = null;
