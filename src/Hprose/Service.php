@@ -14,7 +14,7 @@
  *                                                        *
  * hprose service class for php 5.3+                      *
  *                                                        *
- * LastModified: Sep 17, 2016                             *
+ * LastModified: Sep 22, 2016                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -1019,8 +1019,8 @@ abstract class Service extends HandlerManager {
                 $self->timer->clearTimeout($timer);
             })->fill($future);
             return $future->catchError(function($e) use ($self, $topics, $topic, $id) {
-                $t = $topics[$id];
                 if ($e instanceof TimeoutException) {
+                    $t = $topics[$id];
                     $checkoffline = function() use ($self, $t, &$checkoffline, $topics, $topic, $id) {
                         $t->timer = $self->timer->setTimeout($checkoffline, $t->heartbeat);
                         if ($t->count < 0) {
@@ -1031,9 +1031,6 @@ abstract class Service extends HandlerManager {
                         }
                     };
                     $checkoffline();
-                }
-                else {
-                    --$t->count;
                 }
             });
         }
@@ -1082,7 +1079,7 @@ abstract class Service extends HandlerManager {
                 });
             }
             if (isset($topics[$id]->request)) {
-                $topics[$id]->request->reject(new InvalidRequestException());
+                $topics[$id]->request->resolve(null);
             }
             $request = new Future();
             $request->complete(function() use ($topics, $id) {
