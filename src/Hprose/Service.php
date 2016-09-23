@@ -14,7 +14,7 @@
  *                                                        *
  * hprose service class for php 5.3+                      *
  *                                                        *
- * LastModified: Sep 22, 2016                             *
+ * LastModified: Sep 23, 2016                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -1020,8 +1020,8 @@ abstract class Service extends HandlerManager {
             })->fill($future);
             return $future->catchError(function($e) use ($self, $topics, $topic, $id) {
                 if ($e instanceof TimeoutException) {
-                    $t = $topics[$id];
-                    $checkoffline = function() use ($self, $t, &$checkoffline, $topics, $topic, $id) {
+                    $checkoffline = function() use ($self, &$checkoffline, $topics, $topic, $id) {
+                        $t = $topics[$id];
                         $t->timer = $self->timer->setTimeout($checkoffline, $t->heartbeat);
                         if ($t->count < 0) {
                             $self->offline($topics, $topic, $id);
