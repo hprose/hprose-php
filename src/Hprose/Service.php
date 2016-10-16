@@ -14,7 +14,7 @@
  *                                                        *
  * hprose service class for php 5.3+                      *
  *                                                        *
- * LastModified: Sep 23, 2016                             *
+ * LastModified: Oct 16, 2016                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -1089,7 +1089,18 @@ abstract class Service extends HandlerManager {
             return $self->setRequestTimer($topic, $id, $request, $timeout);
         }, $topic);
     }
-    private function internalPush($topic, $id, $result) {
+    /*
+        This method is a private method.
+        But PHP 5.3 can't call private method in closure,
+        so we comment the private keyword.
+    */
+    /*private*/ function internalPush($topic, $id, $result) {
+        if (Future\isFuture($result)) {
+            $self = $this;
+            return $result->complete(function($value) use ($self, $topic, $id) {
+                return $self->internalPush($topic, $id, $value);
+            });
+        }
         $topics = $this->getTopics($topic);
         if (!isset($topics[$id])) {
             return Future\value(false);
