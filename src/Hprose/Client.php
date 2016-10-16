@@ -14,7 +14,7 @@
  *                                                        *
  * hprose client class for php 5.3+                       *
  *                                                        *
- * LastModified: Sep 5, 2016                              *
+ * LastModified: Oct 16, 2016                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -630,17 +630,14 @@ abstract class Client extends HandlerManager {
         But PHP 5.3 can't call private method in closure,
         so we comment the private keyword.
     */
-    /*private*/ function getTopic($name, $id, $create) {
+    /*private*/ function getTopic($name, $id) {
         if (isset($this->topics[$name])) {
             $topics = $this->topics[$name];
             if (isset($topics[$id])) {
                 return $topics[$id];
             }
-            return null;
         }
-        if ($create) {
-            $this->topics[$name] = array();
-        }
+        return null;
     }
     // subscribe($name, $callback, $timeout, $failswitch)
     // subscribe($name, $id, $callback, $timeout, $failswitch)
@@ -657,6 +654,9 @@ abstract class Client extends HandlerManager {
         if (!is_callable($callback)) {
             throw new TypeError('callback must be a function.');
         }
+        if (!isset($this->topics[$name])) {
+            $this->topics[$name] = array();
+        }
         if ($id === null) {
             if ($this->id == null) {
                 $this->id = $this->autoId();
@@ -667,7 +667,7 @@ abstract class Client extends HandlerManager {
             return;
         }
         if (!is_int($timeout)) $timeout = $this->timeout;
-        $topic = $this->getTopic($name, $id, true);
+        $topic = $this->getTopic($name, $id);
         if ($topic === null) {
             $topic = new stdClass();
             $settings = new InvokeSettings(array(
@@ -681,7 +681,7 @@ abstract class Client extends HandlerManager {
                      ->then($topic->handler, $cb);
             };
             $topic->handler = function($result) use ($self, $name, $id, $cb) {
-                $topic = $self->getTopic($name, $id, false);
+                $topic = $self->getTopic($name, $id);
                 if ($topic !== null) {
                     if ($result !== null) {
                         $callbacks = $topic->callbacks;
@@ -693,7 +693,7 @@ abstract class Client extends HandlerManager {
                             catch (Throwable $ex) {}
                         }
                     }
-                    if ($self->getTopic($name, $id, false) !== null) $cb();
+                    if ($self->getTopic($name, $id) !== null) $cb();
                 }
             };
             $topic->callbacks = array($callback);
@@ -764,5 +764,16 @@ abstract class Client extends HandlerManager {
         else {
             $this->delTopic($this->topics[$name], $id, $callback);
         }
+        if (isset($this->topics[$name]) && count($this->topics[$name]) === 0) {
+            unset($this->topics[$name]);
+        }
+    }
+
+    public function isSubscribed($name) {
+        return isset($this->topics[$name]);
+    }
+
+    public function subscribedList() {
+        return array_keys($this->topics);
     }
 }
