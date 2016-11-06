@@ -14,7 +14,7 @@
  *                                                        *
  * hprose service class for php 5.3+                      *
  *                                                        *
- * LastModified: Oct 16, 2016                             *
+ * LastModified: Nov 6, 2016                              *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -282,8 +282,7 @@ abstract class Service extends HandlerManager {
         so we comment the protected keyword.
     */
     /*protected*/ function invokeHandler($name, array &$args, stdClass $context) {
-        if (array_key_exists('*', $this->calls) &&
-                ($context->method === $this->calls['*']->method)) {
+        if ($context->isMissingMethod) {
             $args = array($name, $args);
         }
         $passContext = $context->passContext;
@@ -397,11 +396,17 @@ abstract class Service extends HandlerManager {
             $name = $reader->readString();
             $alias = strtolower($name);
             $cc = new stdClass();
+            $cc->isMissingMethod = false;
             foreach ($context as $key => $value) {
                 $cc->$key = $value;
             }
-            $call = isset($this->calls[$alias]) ?
-                    $this->calls[$alias] : $this->calls['*'];
+            if (isset($this->calls[$alias])) {
+                $call = $this->calls[$alias];
+            }
+            else if (isset($this->calls['*'])) {
+                $call = $this->calls['*'];
+                $cc->isMissingMethod = true;
+            }
             if ($call) {
                 foreach ($call as $key => $value) {
                     $cc->$key = $value;
@@ -523,6 +528,7 @@ abstract class Service extends HandlerManager {
         ob_start();
         ob_implicit_flush(0);
         $context->clients = $this;
+        $context->methods = $this->calls;
         $beforeFilterHandler = $this->beforeFilterHandler;
         $response = $beforeFilterHandler($request, $context);
         $self = $this;
