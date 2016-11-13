@@ -14,7 +14,7 @@
  *                                                        *
  * hprose client class for php 5.3+                       *
  *                                                        *
- * LastModified: Oct 16, 2016                             *
+ * LastModified: Nov 14, 2016                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -297,11 +297,11 @@ abstract class Client extends HandlerManager {
             $self = $this;
             if ($interval > 0) {
                 return $this->wait($interval, function() use ($self, $request, $context) {
-                    return $self->sendRequest($request, $context);
+                    return $self->afterFilterHandler($request, $context);
                 });
             }
             else {
-                return $this->sendRequest($request, $context);
+                return $this->afterFilterHandler($request, $context);
             }
         }
         return null;
@@ -446,39 +446,6 @@ abstract class Client extends HandlerManager {
         };
     }
 
-    /*
-        This method is a private method.
-        But PHP 5.3 can't call private method in closure,
-        so we comment the private keyword.
-    */
-    /*private*/ function sendRequest($request, stdClass $context) {
-        $beforeFilterHandler = $this->beforeFilterHandler;
-        if ($this->async) {
-            $self = $this;
-            return $beforeFilterHandler($request, $context)->catchError(function($e) use ($self, $request, $context) {
-                $response = $self->retry($request, $context);
-                if ($response !== null) {
-                    return $response;
-                }
-                throw $e;
-            });
-        }
-        $error = null;
-        try {
-            $response = $beforeFilterHandler($request, $context);
-        }
-        catch (Exception $e) { $error = $e; }
-        catch (Throwable $e) { $error = $e; }
-        if ($error !== null) {
-            $response = $this->retry($request, $context);
-            if ($response !== null) {
-                return $response;
-            }
-            throw $error;
-        }
-        return $response;
-    }
-
     private function asyncInvokeHandler($name, array &$args, stdClass $context) {
         try {
             $request = $this->encode($name, $args, $context);
@@ -490,14 +457,16 @@ abstract class Client extends HandlerManager {
             return Future\error($e);
         }
         $self = $this;
-        return $this->sendRequest($request, $context)->then(function($response) use ($self, &$args, $context) {
+        $beforeFilterHandler = $this->beforeFilterHandler;
+        return $beforeFilterHandler($request, $context)->then(function($response) use ($self, &$args, $context) {
             return $self->decode($response, $args, $context);
         });
     }
 
     private function syncInvokeHandler($name, array &$args, stdClass $context) {
         $request = $this->encode($name, $args, $context);
-        $response = $this->sendRequest($request, $context);
+        $beforeFilterHandler = $this->beforeFilterHandler;
+        $response = $beforeFilterHandler($request, $context);
         return $this->decode($response, $args, $context);
     }
 
@@ -548,7 +517,30 @@ abstract class Client extends HandlerManager {
         so we comment the protected keyword.
     */
     /*protected*/ function afterFilterHandler($request, stdClass $context) {
-        return $this->sendAndReceive($request, $context);
+        if ($this->async) {
+            $self = $this;
+            return $this->sendAndReceive($request, $context)->catchError(function($e) use ($self, $request, $context) {
+                $response = $self->retry($request, $context);
+                if ($response !== null) {
+                    return $response;
+                }
+                throw $e;
+            });
+        }
+        $error = null;
+        try {
+            $response = $this->sendAndReceive($request, $context);
+        }
+        catch (Exception $e) { $error = $e; }
+        catch (Throwable $e) { $error = $e; }
+        if ($error !== null) {
+            $response = $this->retry($request, $context);
+            if ($response !== null) {
+                return $response;
+            }
+            throw $error;
+        }
+        return $response;
     }
 
     public function invoke($name, array &$args = array(), $callback = null, InvokeSettings $settings = null) {
