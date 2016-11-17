@@ -14,7 +14,7 @@
  *                                                        *
  * hprose socket Transporter class for php 5.3+           *
  *                                                        *
- * LastModified: Sep 17, 2016                             *
+ * LastModified: Nov 17, 2016                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -189,7 +189,7 @@ abstract class Transporter {
         for ($i = 0; $i < $n; $i++) {
             $scheme = parse_url($client->uri, PHP_URL_SCHEME);
             if ($scheme == 'unix') {
-                $stream = @fsockopen('unix://' . parse_url($client->uri, PHP_URL_PATH));
+                $stream = @pfsockopen('unix://' . parse_url($client->uri, PHP_URL_PATH));
             }
             else {
                 $stream = @stream_socket_client(
@@ -325,13 +325,20 @@ abstract class Transporter {
         $errstr = '';
         while ($trycount <= 1) {
             if ($this->stream === null) {
-                $this->stream = @stream_socket_client(
-                    $this->client->uri,
-                    $errno,
-                    $errstr,
-                    $timeout,
-                    STREAM_CLIENT_CONNECT,
-                    stream_context_create($client->options));
+                $scheme = parse_url($client->uri, PHP_URL_SCHEME);
+                if ($scheme == 'unix') {
+                    $this->stream = @pfsockopen('unix://' . parse_url($client->uri, PHP_URL_PATH));
+                }
+                else {
+                    $this->stream = @stream_socket_client(
+                        $client->uri,
+                        $errno,
+                        $errstr,
+                        $timeout,
+                        STREAM_CLIENT_CONNECT | STREAM_CLIENT_PERSISTENT,
+                        stream_context_create($client->options)
+                    );
+                }
                 if ($this->stream === false) {
                     $this->stream = null;
                     throw new Exception($errstr, $errno);
@@ -340,6 +347,15 @@ abstract class Transporter {
             $stream = $this->stream;
             @stream_set_read_buffer($stream, $client->readBuffer);
             @stream_set_write_buffer($stream, $client->writeBuffer);
+            if (function_exists('socket_import_stream')) {
+                if (($scheme === 'tcp') || ($scheme === 'unix')) {
+                    $socket = socket_import_stream($stream);
+                    socket_set_option($socket, SOL_SOCKET, SO_KEEPALIVE, (int)$client->keepAlive);
+                    if ($scheme === 'tcp') {
+                        socket_set_option($socket, SOL_TCP, TCP_NODELAY, (int)$client->noDelay);
+                    }
+                }
+            }
             if (@stream_set_timeout($stream, $sec, $usec) == false) {
                 if ($trycount > 0) {
                     throw $this->getLastError("unknown error");
