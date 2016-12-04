@@ -14,7 +14,7 @@
  *                                                        *
  * hprose http client class for php 5.3+                  *
  *                                                        *
- * LastModified: Aug 6, 2016                              *
+ * LastModified: Dec 5, 2016                              *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -60,9 +60,6 @@ class Client extends \Hprose\Client {
             CURLOPT_POST => true,
             CURLOPT_NOSIGNAL => 1
         );
-        if (!$async) {
-            $this->curl = curl_init();
-        }
         $curl_version = curl_version();
         $this->curlVersionLittleThan720 = (1 == version_compare('7.20.0', $curl_version['version']));
     }
@@ -73,9 +70,6 @@ class Client extends \Hprose\Client {
             }
             catch (Exception $e) {
             }
-        }
-        else {
-            curl_close($this->curl);
         }
     }
     public function setHeader($name, $value) {
@@ -247,14 +241,16 @@ class Client extends \Hprose\Client {
         return $response;
     }
     private function syncSendAndReceive($request, stdClass $context) {
-        $curl = $this->curl;
+        $curl = curl_init();
         $this->initCurl($curl, $request, $context->timeout);
         $data = curl_exec($curl);
         $errno = curl_errno($curl);
         if ($errno) {
             throw new Exception($errno . ": " . curl_error($curl));
         }
-        return $this->getContents($data);
+        $data = $this->getContents($data);
+        curl_close($curl);
+        return $data;
     }
     private function asyncSendAndReceive($request, stdClass $context) {
         $result = new Future();
