@@ -14,7 +14,7 @@
  *                                                        *
  * Promise for php 5.3+                                   *
  *                                                        *
- * LastModified: Jul 23, 2016                             *
+ * LastModified: Dec 5, 2016                              *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -27,7 +27,7 @@ class Promise extends Future {
         if (is_callable($executor)) {
             $self = $this;
             call_user_func($executor,
-                function($value) use ($self) {
+                function($value = NULL) use ($self) {
                     $self->resolve($value);
                 },
                 function($reason) use ($self) {

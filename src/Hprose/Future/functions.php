@@ -29,10 +29,6 @@ use ReflectionFunction;
 use ReflectionMethod;
 use ReflectionObject;
 
-if (Future::$nextTick === null) {
-    Future::$nextTick = function(\Closure $fn) { $fn(); };
-}
-
 function isFuture($obj) {
     return $obj instanceof Future;
 }

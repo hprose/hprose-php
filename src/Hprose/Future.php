@@ -36,46 +36,38 @@ class Future {
     public $value;
     public $reason;
     private $subscribers = array();
-    public static $nextTick = null;
 
     public function __construct($computation = NULL) {
         if (is_callable($computation)) {
-            $self = $this;
-            $nextTick = self::$nextTick;
-            $nextTick(function() use ($self, $computation) {
-                try {
-                    $self->resolve(call_user_func($computation));
-                }
-                catch (UncatchableException $e) {
-                    throw $e->getPrevious();
-                }
-                catch (Exception $e) {
-                    $self->reject($e);
-                }
-                catch (Throwable $e) {
-                    $self->reject($e);
-                }
-            });
-        }
-    }
-
-    private function privateCall($callback, $next, $x) {
-        $nextTick = self::$nextTick;
-        $nextTick(function() use ($callback, $next, $x) {
             try {
-                $r = call_user_func($callback, $x);
-                $next->resolve($r);
+                $this->resolve(call_user_func($computation));
             }
             catch (UncatchableException $e) {
                 throw $e->getPrevious();
             }
             catch (Exception $e) {
-                $next->reject($e);
+                $this->reject($e);
             }
             catch (Throwable $e) {
-                $next->reject($e);
+                $this->reject($e);
             }
-        });
+        }
+    }
+
+    private function privateCall($callback, $next, $x) {
+        try {
+            $r = call_user_func($callback, $x);
+            $next->resolve($r);
+        }
+        catch (UncatchableException $e) {
+            throw $e->getPrevious();
+        }
+        catch (Exception $e) {
+            $next->reject($e);
+        }
+        catch (Throwable $e) {
+            $next->reject($e);
+        }
     }
 
     private function privateResolve($onfulfill, $next, $x) {
@@ -96,7 +88,7 @@ class Future {
         }
     }
 
-    public function resolve($value) {
+    public function resolve($value = NULL) {
         if ($value === $this) {
             $this->reject(new TypeError('Self resolution'));
             return;
@@ -193,10 +185,7 @@ class Future {
 
     public function done($onfulfill, $onreject = NULL) {
         $this->then($onfulfill, $onreject)->then(NULL, function($error) {
-            $nextTick = self::$nextTick;
-            $nextTick(function() use ($error) {
-                throw new UncatchableException("", 0, $error);
-            });
+            throw new UncatchableException("", 0, $error);
         });
     }
 
@@ -242,7 +231,8 @@ class Future {
         );
     }
 
-    public function complete($oncomplete) {
+    public function complete($oncomplete = false) {
+        $oncomplete = $oncomplete ?: function($v) { return $v; };
         return $this->then($oncomplete, $oncomplete);
     }
 

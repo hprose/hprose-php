@@ -6,7 +6,7 @@ use Hprose\Promise;
 function wait() {
     return new Promise(function($reslove, $reject) {
         swoole_timer_after(1, function() use (&$reslove) {
-            $reslove(null);
+            $reslove();
         });
     });
 }
@@ -18,7 +18,7 @@ Promise\co(function() {
         yield wait();
         if ($i % 10000 === 0) {
             gc_collect_cycles();
-            var_dump(memory_get_usage(true));
+            var_dump(memory_get_usage(true), time());
         }
     }
 })->then(function() {
