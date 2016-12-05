@@ -466,6 +466,30 @@ function udiff(/*$array1, $array2, $...*/) {
     );
 }
 
+function promisify($fn) {
+    return function() use ($fn) {
+        $args = func_get_args();
+        $future = new Future();
+        $args[] = function() use ($future) {
+            switch (func_num_args()) {
+                case 0: $future->resolve(NULL); break;
+                case 1: $future->resolve(func_get_arg(0)); break;
+                default: $future->resolve(func_get_args()); break;
+            }
+        };
+        try {
+            call_user_func_array($fn, $args);
+        }
+        catch (\Exception $e) {
+            $future->reject($e);
+        }
+        catch (\Throwable $e) {
+            $future->reject($e);
+        }
+        return $future;
+    };
+}
+
 if (class_exists("\\Generator")) {
     function toPromise($obj) {
         if (isFuture($obj)) {
