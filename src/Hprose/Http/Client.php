@@ -179,7 +179,8 @@ class Client extends \Hprose\Client {
         $this->keepAlive = true;
         $this->keepAliveTimeout = 300;
     }
-    private function initCurl($curl, $request, $timeout) {
+    private function initCurl($curl, $request, $context) {
+        $timeout = $context->timeout;
         foreach ($this->options as $name => $value) {
             curl_setopt($curl, $name, $value);
         }
@@ -201,6 +202,13 @@ class Client extends \Hprose\Client {
         }
         foreach ($this->header as $name => $value) {
             $headers_array[] = $name . ": " . $value;
+        }
+        if (isset($context->httpHeader)) {
+            $header = $context->httpHeader;
+            foreach ($header as $name => $value) {
+                $headers_array[] = $name . ": " .
+                    (is_array($value) ? join(", ", $value) : $value);
+            }
         }
         curl_setopt($curl, CURLOPT_HTTPHEADER, $headers_array);
         if ($this->proxy) {
@@ -242,7 +250,7 @@ class Client extends \Hprose\Client {
     }
     private function syncSendAndReceive($request, stdClass $context) {
         $curl = curl_init();
-        $this->initCurl($curl, $request, $context->timeout);
+        $this->initCurl($curl, $request, $context);
         $data = curl_exec($curl);
         $errno = curl_errno($curl);
         if ($errno) {
@@ -255,7 +263,7 @@ class Client extends \Hprose\Client {
     private function asyncSendAndReceive($request, stdClass $context) {
         $result = new Future();
         $curl = curl_init();
-        $this->initCurl($curl, $request, $context->timeout);
+        $this->initCurl($curl, $request, $context);
         $this->curls[] = $curl;
         $this->results[] = $result;
         return $result;
