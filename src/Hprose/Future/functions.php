@@ -14,7 +14,7 @@
  *                                                        *
  * some helper functions for php 5.3+                     *
  *                                                        *
- * LastModified: Aug 11, 2016                             *
+ * LastModified: Dec 5, 2016                              *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -28,6 +28,10 @@ use RangeException;
 use ReflectionFunction;
 use ReflectionMethod;
 use ReflectionObject;
+
+if (Future::$nextTick === null) {
+    Future::$nextTick = function(\Closure $fn) { $fn(); };
+}
 
 function isFuture($obj) {
     return $obj instanceof Future;
@@ -466,40 +470,17 @@ function udiff(/*$array1, $array2, $...*/) {
     );
 }
 
-function toPromise($obj) {
-    if (isFuture($obj)) return $obj;
-    if (class_exists("\\Generator") && ($obj instanceof \Generator)) return co($obj);
-    if (is_array($obj)) return arrayToPromise($obj);
-    if (is_object($obj)) return objectToPromise($obj);
-    return value($obj);
-}
-
-function arrayToPromise(array $array) {
-    $result = array();
-    foreach ($array as $key => $value) {
-        $result[$key] = toPromise($value);
-    }
-    return all($result);
-}
-
-function objectToPromise($obj) {
-    $r = new ReflectionObject($obj);
-    if ($r->isCloneable()) {
-        $result = clone $obj;
-        $values = array();
-        foreach ($result as $key => $value) {
-            $values[] = toPromise($value)->then(function($v) use ($result, $key) {
-                $result->$key = $v;
-            });
-        }
-        return all($values)->then(function() use ($result) {
-            return $result;
-        });
-    }
-    return $obj;
-}
-
 if (class_exists("\\Generator")) {
+    function toPromise($obj) {
+        if (isFuture($obj)) {
+            return $obj;
+        }
+        if ($obj instanceof \Generator) {
+            return co($obj);
+        }
+        return value($obj);
+    }
+
     function co($generator/*, arg1, arg2...*/) {
         if (is_callable($generator)) {
             $args = array_slice(func_get_args(), 1);
@@ -508,32 +489,47 @@ if (class_exists("\\Generator")) {
         if (!($generator instanceof \Generator)) {
             return toFuture($generator);
         }
-        $next = function($yield) use ($generator, &$next) {
-            if ($generator->valid()) {
-                return co($yield)->then(function($value) use ($generator, &$next) {
-                    $yield = $generator->send($value);
-                    if ($generator->valid()) {
-                        return $next($yield);
-                    }
-                    if (method_exists($generator, "getReturn")) {
-                        $result = $generator->getReturn();
-                        return ($result === null) ? $value : $result;
-                    }
-                    return $value;
-                },
-                function($e) use ($generator, &$next) {
-                    return $next($generator->throw($e));
-                });
-            }
-            else {
-                if (method_exists($generator, "getReturn")) {
-                    return value($generator->getReturn());
+        $future = new Future();
+        $onfulfilled = function($value) use (&$onfulfilled, &$onrejected, $generator, $future) {
+            try {
+                $next = $generator->send($value);
+                if ($generator->valid()) {
+                    toPromise($next)->then($onfulfilled, $onrejected);
                 }
                 else {
-                    return value(null);
+                    if (method_exists($generator, "getReturn")) {
+                        $ret = $generator->getReturn();
+                        $future->resolve(($ret === null) ? $value : $ret);
+                    }
+                    else {
+                        $future->resolve($value);
+                    }
                 }
             }
+            catch(\Exception $e) {
+                $future->reject($e);
+            }
+            catch(\Throwable $e) {
+                $future->reject($e);
+            }
         };
-        return $next($generator->current());
+        $onrejected = function($err) use (&$onfulfilled, $generator, $future) {
+            try {
+                $onfulfilled($generator->throw($err));
+            }
+            catch(\Exception $e) {
+                $future->reject($e);
+            }
+            catch(\Throwable $e) {
+                $future->reject($e);
+            }
+        };
+        toPromise($generator->current())->then($onfulfilled, $onrejected);
+        return $future;
+    }
+}
+else {
+    function toPromise($obj) {
+        return toFuture($obj);
     }
 }

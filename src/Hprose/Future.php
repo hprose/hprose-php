@@ -14,7 +14,7 @@
  *                                                        *
  * hprose future class for php 5.3+                       *
  *                                                        *
- * LastModified: Aug 12, 2016                             *
+ * LastModified: Dec 5, 2016                              *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -27,6 +27,7 @@ use TypeError;
 use Hprose\Future\UncatchableException;
 
 class Future {
+
     const PENDING = 0;
     const FULFILLED = 1;
     const REJECTED = 2;
@@ -35,38 +36,46 @@ class Future {
     public $value;
     public $reason;
     private $subscribers = array();
+    public static $nextTick = null;
 
     public function __construct($computation = NULL) {
         if (is_callable($computation)) {
+            $self = $this;
+            $nextTick = self::$nextTick;
+            $nextTick(function() use ($self, $computation) {
+                try {
+                    $self->resolve(call_user_func($computation));
+                }
+                catch (UncatchableException $e) {
+                    throw $e->getPrevious();
+                }
+                catch (Exception $e) {
+                    $self->reject($e);
+                }
+                catch (Throwable $e) {
+                    $self->reject($e);
+                }
+            });
+        }
+    }
+
+    private function privateCall($callback, $next, $x) {
+        $nextTick = self::$nextTick;
+        $nextTick(function() use ($callback, $next, $x) {
             try {
-                $this->resolve(call_user_func($computation));
+                $r = call_user_func($callback, $x);
+                $next->resolve($r);
             }
             catch (UncatchableException $e) {
                 throw $e->getPrevious();
             }
             catch (Exception $e) {
-                $this->reject($e);
+                $next->reject($e);
             }
             catch (Throwable $e) {
-                $this->reject($e);
+                $next->reject($e);
             }
-        }
-    }
-
-    private function privateCall($callback, $next, $x) {
-        try {
-            $r = call_user_func($callback, $x);
-            $next->resolve($r);
-        }
-        catch (UncatchableException $e) {
-            throw $e->getPrevious();
-        }
-        catch (Exception $e) {
-            $next->reject($e);
-        }
-        catch (Throwable $e) {
-            $next->reject($e);
-        }
+        });
     }
 
     private function privateResolve($onfulfill, $next, $x) {
@@ -184,7 +193,10 @@ class Future {
 
     public function done($onfulfill, $onreject = NULL) {
         $this->then($onfulfill, $onreject)->then(NULL, function($error) {
-            throw new UncatchableException("", 0, $error);
+            $nextTick = self::$nextTick;
+            $nextTick(function() use ($error) {
+                throw new UncatchableException("", 0, $error);
+            });
         });
     }
 
@@ -313,5 +325,4 @@ class Future {
     public function includes($searchElement, $strict = false) {
         return Future\includes($this, $searchElement, $strict);
     }
-
 }
