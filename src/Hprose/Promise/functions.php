@@ -128,7 +128,7 @@ function toPromise($obj) {
 }
 
 function promisify($fn) {
-    return Future\promisify($obj);
+    return Future\promisify($fn);
 }
 
 if (class_exists("\\Generator")) {
