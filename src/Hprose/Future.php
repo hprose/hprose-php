@@ -14,7 +14,7 @@
  *                                                        *
  * hprose future class for php 5.3+                       *
  *                                                        *
- * LastModified: Dec 5, 2016                              *
+ * LastModified: Dec 7, 2016                              *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -32,9 +32,9 @@ class Future {
     const FULFILLED = 1;
     const REJECTED = 2;
 
-    public $state = Future::PENDING;
-    public $value;
-    public $reason;
+    private $state = Future::PENDING;
+    private $value;
+    private $reason;
     private $subscribers = array();
 
     public function __construct($computation = NULL) {
