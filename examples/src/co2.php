@@ -15,13 +15,13 @@ function hello($n, $test) {
 }
 
 Future\co(function() use ($test) {
-    $result = (yield (function($test) {
+    $allhello = function($test) {
         $result = array();
         for ($i = 0; $i < 3; $i++) {
              $result[] = Future\co(hello($i, $test));
         }
         yield Future\all($result);
-    })($test));
-
+    };
+    $result = (yield $allhello($test));
     var_dump($result);
 });
