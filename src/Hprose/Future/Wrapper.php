@@ -14,7 +14,7 @@
  *                                                        *
  * Future Wrapper for php 5.3+                            *
  *                                                        *
- * LastModified: Jul 25, 2016                             *
+ * LastModified: Dec 9, 2016                              *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -34,8 +34,7 @@ class Wrapper {
             if (class_exists("\\Generator")) {
                 $m = new ReflectionMethod($this->obj, $name);
                 if ($m->isGenerator()) {
-                    array_splice($args, 0, 0, array($method));
-                    return call_user_func_array('\\Hprose\\Future\\co', $args);
+                    return co(call_user_func_array($method, $args));
                 }
             }
             return call_user_func_array($method, $args);

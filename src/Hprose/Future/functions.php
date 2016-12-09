@@ -14,7 +14,7 @@
  *                                                        *
  * some helper functions for php 5.3+                     *
  *                                                        *
- * LastModified: Dec 5, 2016                              *
+ * LastModified: Dec 9, 2016                              *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -94,21 +94,24 @@ function all($array) {
                 return value($result);
             }
             $future = new Future();
-            $onfulfilled = function($index) use ($future, &$result, &$n, $keys) {
-                return function($value) use ($index, $future, &$result, &$n, $keys) {
-                    $result[$index] = $value;
-                    if (--$n === 0) {
-                        $array = array();
-                        foreach($keys as $key) {
-                            $array[$key] = $result[$key];
-                        }
-                        $future->resolve($array);
-                    }
-                };
+            $resolve = function() use ($future, &$result, $keys) {
+                $array = array();
+                foreach($keys as $key) {
+                    $array[$key] = $result[$key];
+                }
+                $future->resolve($array);
             };
-            $onrejected = array($future, "reject");
+            $reject = array($future, "reject");
             foreach ($array as $index => $element) {
-                toFuture($element)->then($onfulfilled($index), $onrejected);
+                toFuture($element)->then(
+                    function($value) use ($index, &$n, &$result, $resolve) {
+                        $result[$index] = $value;
+                        if (--$n === 0) {
+                            $resolve();
+                        }
+                    },
+                    $reject
+                );
             }
             return $future;
         }
@@ -141,22 +144,24 @@ function any($array) {
             }
             $reasons = array();
             $future = new Future();
-            $onfulfilled = array($future, "resolve");
-            $onrejected = function($index) use ($future, &$reasons, &$n, $keys) {
-                return function($reason) use ($index, $future, &$reasons, &$n, $keys) {
-                    $reasons[$index] = $reason;
-                    if (--$n === 0) {
-                        $array = array();
-                        foreach($keys as $key) {
-                            $array[$key] = $reasons[$key];
-                        }
-                        $future->reject($array);
-                    }
-                };
+            $resolve = array($future, "resolve");
+            $reject = function() use ($future, &$reasons, $keys) {
+                $array = array();
+                foreach($keys as $key) {
+                    $array[$key] = $reasons[$key];
+                }
+                $future->reject($array);
             };
             foreach ($array as $index => $element) {
-                $f = toFuture($element);
-                $f->then($onfulfilled, $onrejected($index));
+                toFuture($element)->then(
+                    $resolve,
+                    function($reason) use ($index, &$reasons, &$n, $reject) {
+                        $reasons[$index] = $reason;
+                        if (--$n === 0) {
+                            $reject（）;
+                        }
+                    }
+                );
             }
             return $future;
         }
@@ -173,21 +178,23 @@ function settle($array) {
                 return value($result);
             }
             $future = new Future();
-            $oncomplete = function($index, $f) use ($future, &$result, &$n, $keys) {
-                return function() use ($index, $f, $future, &$result, &$n, $keys) {
-                    $result[$index] = $f->inspect();
-                    if (--$n === 0) {
-                        $array = array();
-                        foreach($keys as $key) {
-                            $array[$key] = $result[$key];
-                        }
-                        $future->resolve($array);
-                    }
-                };
+            $resolve = function() use ($future, &$result, $keys) {
+                $array = array();
+                foreach($keys as $key) {
+                    $array[$key] = $result[$key];
+                }
+                $future->resolve($array);
             };
             foreach ($array as $index => $element) {
                 $f = toFuture($element);
-                $f->whenComplete($oncomplete($index, $f));
+                $f->whenComplete(
+                    function() use ($index, $f, &$result, &$n, $resolve) {
+                        $result[$index] = $f->inspect();
+                        if (--$n === 0) {
+                            $resolve();
+                        }
+                    }
+                );
             }
             return $future;
         }
@@ -215,8 +222,7 @@ function wrap($handler) {
             return function() use ($handler) {
                 return all(func_get_args())->then(
                     function($args) use ($handler) {
-                        array_splice($args, 0, 0, array($handler));
-                        return call_user_func_array('\\Hprose\\Future\\co', $args);
+                        return co(call_user_func_array($handler, $args));
                     }
                 );
             };
