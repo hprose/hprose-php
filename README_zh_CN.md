@@ -1,3 +1,10 @@
+<p align="center"><img src="http://hprose.com/banner.@2x.png" alt="Hprose" title="Hprose" width="650" height="200" /></p>
+
+<a href="https://promisesaplus.com/">
+    <img src="https://promisesaplus.com/assets/logo-small.png" alt="Promises/A+ logo"
+         title="Promises/A+ 1.1 compliant" align="right" />
+</a>
+
 # Hprose for PHP
 
 [![Build Status](https://travis-ci.org/hprose/hprose-php.svg?branch=master)](https://travis-ci.org/hprose/hprose-php)
