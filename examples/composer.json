@@ -9,7 +9,6 @@
     ],
     "require": {
         "php": ">=5.3.0",
-        "hprose/hprose": "dev-master",
-        "hprose/hprose-swoole": "dev-master"
+        "hprose/hprose": "dev-master"
     }
 }
