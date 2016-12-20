@@ -14,7 +14,7 @@
  *                                                        *
  * hprose socket Transporter class for php 5.3+           *
  *                                                        *
- * LastModified: Nov 17, 2016                             *
+ * LastModified: Dec 20, 2016                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -324,8 +324,8 @@ abstract class Transporter {
         $errno = 0;
         $errstr = '';
         while ($trycount <= 1) {
+            $scheme = parse_url($client->uri, PHP_URL_SCHEME);
             if ($this->stream === null) {
-                $scheme = parse_url($client->uri, PHP_URL_SCHEME);
                 if ($scheme == 'unix') {
                     $this->stream = @pfsockopen('unix://' . parse_url($client->uri, PHP_URL_PATH));
                 }
