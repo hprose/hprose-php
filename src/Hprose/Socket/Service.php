@@ -14,7 +14,7 @@
  *                                                        *
  * hprose socket Service library for php 5.3+             *
  *                                                        *
- * LastModified: Sep 17, 2016                             *
+ * LastModified: Dec 21, 2016                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -248,12 +248,16 @@ class Service extends \Hprose\Service {
         $this->onReceives[(int)$socket] = $this->getOnReceive($server, $socket);
     }
     private function read($socket) {
-        $onReceive = $this->onReceives[(int)$socket];
-        $onReceive();
+        if (isset($this->onReceives[(int)$socket])) {
+            $onReceive = $this->onReceives[(int)$socket];
+            $onReceive();
+        }
     }
     private function write($socket) {
-        $onSend = $this->onSends[(int)$socket];
-        $onSend();
+        if (isset($this->onSends[(int)$socket])) {
+            $onSend = $this->onSends[(int)$socket];
+            $onSend();
+        }
     }
     private function close($socket, $context) {
         $this->removeSocket($this->writeableSockets, $socket);
