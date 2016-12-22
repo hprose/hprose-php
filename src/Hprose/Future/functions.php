@@ -14,7 +14,7 @@
  *                                                        *
  * some helper functions for php 5.3+                     *
  *                                                        *
- * LastModified: Dec 9, 2016                              *
+ * LastModified: Dec 22, 2016                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -158,7 +158,7 @@ function any($array) {
                     function($reason) use ($index, &$reasons, &$n, $reject) {
                         $reasons[$index] = $reason;
                         if (--$n === 0) {
-                            $reject（）;
+                            $reject();
                         }
                     }
                 );
