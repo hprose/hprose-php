@@ -14,7 +14,7 @@
  *                                                        *
  * hprose HandlerManager class for php 5.3+               *
  *                                                        *
- * LastModified: Jul 11, 2016                             *
+ * LastModified: Aug 7, 2016                              *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -23,8 +23,6 @@ namespace Hprose;
 
 use stdClass;
 use Closure;
-use Exception;
-use Throwable;
 
 abstract class HandlerManager {
     private $invokeHandlers = array();
@@ -70,22 +68,35 @@ abstract class HandlerManager {
     */
     /*protected*/ abstract function afterFilterHandler(/*string*/ $request, stdClass $context);
     protected function getNextInvokeHandler(Closure $next, /*callable*/ $handler) {
-        return function(/*string*/ $name, array $args, stdClass $context) use ($next, $handler) {
-                try {
-                    return Future\toPromise(call_user_func($handler, $name, $args, $context, $next));
+        return function(/*string*/ $name, array &$args, stdClass $context) use ($next, $handler) {
+            try {
+                $array = array($name, &$args, $context, $next);
+                $result = call_user_func_array($handler, $array);
+                if (class_exists("\\Generator")) {
+                    return Future\co($result);
                 }
-                catch (Exception $e) {
-                    return Future\error($e);
+                else {
+                    return Future\toFuture($result);
                 }
-                catch (Throwable $e) {
-                    return Future\error($e);
-                }
+            }
+            catch (Exception $e) {
+                return Future\error($e);
+            }
+            catch (Throwable $e) {
+                return Future\error($e);
+            }
         };
     }
     protected function getNextFilterHandler(Closure $next, /*callable*/ $handler) {
         return function(/*string*/ $request, stdClass $context) use ($next, $handler) {
             try {
-                return Future\toPromise(call_user_func($handler, $request, $context, $next));
+                $result = call_user_func($handler, $request, $context, $next);
+                if (class_exists("\\Generator")) {
+                    return Future\co($result);
+                }
+                else {
+                    return Future\toFuture($result);
+                }
             }
             catch (Exception $e) {
                 return Future\error($e);

@@ -14,7 +14,7 @@
  *                                                        *
  * hprose formatter class for php 5.3+                    *
  *                                                        *
- * LastModified: Jul 11, 2016                             *
+ * LastModified: Jul 16, 2016                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -26,11 +26,15 @@ class Formatter {
         $stream = new BytesIO();
         $writer = new Writer($stream, $simple);
         $writer->serialize($var);
-        return $stream->toString();
+        $data = $stream->toString();
+        $stream->close();
+        return $data;
     }
     public static function unserialize($data, $simple = false) {
         $stream = new BytesIO($data);
         $reader = new Reader($stream, $simple);
-        return $reader->unserialize();
+        $result = $reader->unserialize();
+        $stream->close();
+        return $result;
     }
 }

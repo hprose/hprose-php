@@ -14,15 +14,15 @@
  *                                                        *
  * hprose http server class for php 5.3+                  *
  *                                                        *
- * LastModified: Apr 20, 2015                             *
+ * LastModified: Jul 17, 2016                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
 
-namespace Hprose\Http {
-    class Server extends Service {
-        public function start() {
-            $this->handle();
-        }
+namespace Hprose\Http;
+
+class Server extends Service {
+    public function start() {
+        $this->handle();
     }
 }

@@ -14,7 +14,7 @@
  *                                                        *
  * some helper functions for php 5.3+                     *
  *                                                        *
- * LastModified: Jul 11, 2016                             *
+ * LastModified: Dec 5, 2016                              *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -127,12 +127,8 @@ function toPromise($obj) {
     return Future\toPromise($obj);
 }
 
-function arrayToPromise(array $array) {
-    return all(array_map("\\Hprose\\Future\\toPromise", $array));
-}
-
-function objectToPromise($obj) {
-    return Future\objectToPromise($obj);
+function promisify($fn) {
+    return Future\promisify($fn);
 }
 
 if (class_exists("\\Generator")) {

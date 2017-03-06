@@ -3,4 +3,6 @@ vendor
 composer.phar
 composer.lock
 /netbeans
-/nbproject/private/
+/nbproject
+/examples/nbproject
+.idea/

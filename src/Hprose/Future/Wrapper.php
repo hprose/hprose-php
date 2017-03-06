@@ -14,12 +14,14 @@
  *                                                        *
  * Future Wrapper for php 5.3+                            *
  *                                                        *
- * LastModified: Jul 11, 2016                             *
+ * LastModified: Dec 9, 2016                              *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
 
 namespace Hprose\Future;
+
+use ReflectionMethod;
 
 class Wrapper {
     protected $obj;
@@ -28,7 +30,13 @@ class Wrapper {
     }
     public function __call($name, array $arguments) {
         $method = array($this->obj, $name);
-        return all($arguments)->then(function($args) use ($method) {
+        return all($arguments)->then(function($args) use ($method, $name) {
+            if (class_exists("\\Generator")) {
+                $m = new ReflectionMethod($this->obj, $name);
+                if ($m->isGenerator()) {
+                    return co(call_user_func_array($method, $args));
+                }
+            }
             return call_user_func_array($method, $args);
         });
     }

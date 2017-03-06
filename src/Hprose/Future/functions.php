@@ -14,7 +14,7 @@
  *                                                        *
  * some helper functions for php 5.3+                     *
  *                                                        *
- * LastModified: Jul 11, 2016                             *
+ * LastModified: Dec 22, 2016                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -25,6 +25,9 @@ use Hprose\Future;
 use Exception;
 use Throwable;
 use RangeException;
+use ReflectionFunction;
+use ReflectionMethod;
+use ReflectionObject;
 
 function isFuture($obj) {
     return $obj instanceof Future;
@@ -91,21 +94,24 @@ function all($array) {
                 return value($result);
             }
             $future = new Future();
-            $onfulfilled = function($index) use ($future, &$result, &$n, $keys) {
-                return function($value) use ($index, $future, &$result, &$n, $keys) {
-                    $result[$index] = $value;
-                    if (--$n === 0) {
-                        $array = array();
-                        foreach($keys as $key) {
-                            $array[$key] = $result[$key];
-                        }
-                        $future->resolve($array);
-                    }
-                };
+            $resolve = function() use ($future, &$result, $keys) {
+                $array = array();
+                foreach($keys as $key) {
+                    $array[$key] = $result[$key];
+                }
+                $future->resolve($array);
             };
-            $onrejected = array($future, "reject");
+            $reject = array($future, "reject");
             foreach ($array as $index => $element) {
-                toFuture($element)->then($onfulfilled($index), $onrejected);
+                toFuture($element)->then(
+                    function($value) use ($index, &$n, &$result, $resolve) {
+                        $result[$index] = $value;
+                        if (--$n === 0) {
+                            $resolve();
+                        }
+                    },
+                    $reject
+                );
             }
             return $future;
         }
@@ -138,22 +144,24 @@ function any($array) {
             }
             $reasons = array();
             $future = new Future();
-            $onfulfilled = array($future, "resolve");
-            $onrejected = function($index) use ($future, &$reasons, &$n, $keys) {
-                return function($reason) use ($index, $future, &$reasons, &$n, $keys) {
-                    $reasons[$index] = $reason;
-                    if (--$n === 0) {
-                        $array = array();
-                        foreach($keys as $key) {
-                            $array[$key] = $reasons[$key];
-                        }
-                        $future->reject($array);
-                    }
-                };
+            $resolve = array($future, "resolve");
+            $reject = function() use ($future, &$reasons, $keys) {
+                $array = array();
+                foreach($keys as $key) {
+                    $array[$key] = $reasons[$key];
+                }
+                $future->reject($array);
             };
             foreach ($array as $index => $element) {
-                $f = toFuture($element);
-                $f->then($onfulfilled, $onrejected($index));
+                toFuture($element)->then(
+                    $resolve,
+                    function($reason) use ($index, &$reasons, &$n, $reject) {
+                        $reasons[$index] = $reason;
+                        if (--$n === 0) {
+                            $reject();
+                        }
+                    }
+                );
             }
             return $future;
         }
@@ -170,21 +178,23 @@ function settle($array) {
                 return value($result);
             }
             $future = new Future();
-            $oncomplete = function($index, $f) use ($future, &$result, &$n, $keys) {
-                return function() use ($index, $f, $future, &$result, &$n, $keys) {
-                    $result[$index] = $f->inspect();
-                    if (--$n === 0) {
-                        $array = array();
-                        foreach($keys as $key) {
-                            $array[$key] = $result[$key];
-                        }
-                        $future->resolve($array);
-                    }
-                };
+            $resolve = function() use ($future, &$result, $keys) {
+                $array = array();
+                foreach($keys as $key) {
+                    $array[$key] = $result[$key];
+                }
+                $future->resolve($array);
             };
             foreach ($array as $index => $element) {
                 $f = toFuture($element);
-                $f->whenComplete($oncomplete($index, $f));
+                $f->whenComplete(
+                    function() use ($index, $f, &$result, &$n, $resolve) {
+                        $result[$index] = $f->inspect();
+                        if (--$n === 0) {
+                            $resolve();
+                        }
+                    }
+                );
             }
             return $future;
         }
@@ -201,6 +211,23 @@ function run($handler/*, arg1, arg2, ... */) {
 }
 
 function wrap($handler) {
+    if (class_exists("\\Generator") && is_callable($handler)) {
+        if (is_array($handler)) {
+            $m = new ReflectionMethod($handler[0], $handler[1]);
+        }
+        else {
+            $m = new ReflectionFunction($handler);
+        }
+        if ($m->isGenerator()) {
+            return function() use ($handler) {
+                return all(func_get_args())->then(
+                    function($args) use ($handler) {
+                        return co(call_user_func_array($handler, $args));
+                    }
+                );
+            };
+        }
+    }
     if (is_object($handler)) {
         if (is_callable($handler)) {
             return new CallableWrapper($handler);
@@ -220,20 +247,51 @@ function wrap($handler) {
 }
 
 function each($array, $callback) {
+    if (is_array($callback)) {
+        $f = new ReflectionMethod($callback[0], $callback[1]);
+    }
+    else {
+        $f = new ReflectionFunction($callback);
+    }
+    $n = $f->getNumberOfParameters();
     return all($array)->then(
-        function($array) use ($callback) {
+        function($array) use ($n, $callback) {
             foreach ($array as $key => $value) {
-                call_user_func($callback, $value, $key, $array);
+                switch ($n) {
+                    case 1: call_user_func($callback, $value); break;
+                    case 2: call_user_func($callback, $value, $key); break;
+                    default: call_user_func($callback, $value, $key, $array); break;
+                }
             }
         }
     );
 }
 
 function every($array, $callback) {
+    if (is_array($callback)) {
+        $f = new ReflectionMethod($callback[0], $callback[1]);
+    }
+    else {
+        $f = new ReflectionFunction($callback);
+    }
+    $n = $f->getNumberOfParameters();
     return all($array)->then(
-        function($array) use ($callback) {
+        function($array) use ($n, $callback) {
             foreach ($array as $key => $value) {
-                if (!call_user_func($callback, $value, $key, $array)) return false;
+                switch ($n) {
+                    case 1: {
+                        if (!call_user_func($callback, $value)) return false;
+                        break;
+                    }
+                    case 2: {
+                        if (!call_user_func($callback, $value, $key)) return false;
+                        break;
+                    }
+                    default: {
+                        if (!call_user_func($callback, $value, $key, $array)) return false;
+                        break;
+                    }
+                }
             }
             return true;
         }
@@ -241,10 +299,30 @@ function every($array, $callback) {
 }
 
 function some($array, $callback) {
+    if (is_array($callback)) {
+        $f = new ReflectionMethod($callback[0], $callback[1]);
+    }
+    else {
+        $f = new ReflectionFunction($callback);
+    }
+    $n = $f->getNumberOfParameters();
     return all($array)->then(
-        function($array) use ($callback) {
+        function($array) use ($n, $callback) {
             foreach ($array as $key => $value) {
-                if (call_user_func($callback, $value, $key, $array)) return true;
+                switch ($n) {
+                    case 1: {
+                        if (call_user_func($callback, $value)) return true;
+                        break;
+                    }
+                    case 2: {
+                        if (call_user_func($callback, $value, $key)) return true;
+                        break;
+                    }
+                    default: {
+                        if (call_user_func($callback, $value, $key, $array)) return true;
+                        break;
+                    }
+                }
             }
             return false;
         }
@@ -252,16 +330,43 @@ function some($array, $callback) {
 }
 
 function filter($array, $callback, $preserveKeys = false) {
+    if (is_array($callback)) {
+        $f = new ReflectionMethod($callback[0], $callback[1]);
+    }
+    else {
+        $f = new ReflectionFunction($callback);
+    }
+    $n = $f->getNumberOfParameters();
     return all($array)->then(
-        function($array) use ($callback, $preserveKeys) {
+        function($array) use ($n, $callback, $preserveKeys) {
             $result = array();
+            $setResult = function($key, $value) use (&$result, $preserveKeys) {
+                if ($preserveKeys) {
+                    $result[$key] = $value;
+                }
+                else {
+                    $result[] = $value;
+                }
+            };
             foreach ($array as $key => $value) {
-                if (call_user_func($callback, $value, $key, $array)) {
-                    if ($preserveKeys) {
-                        $result[$key] = $value;
+                switch ($n) {
+                    case 1: {
+                        if (call_user_func($callback, $value)) {
+                            $setResult($key, $value);
+                        }
+                        break;
                     }
-                    else {
-                        $result[] = $value;
+                    case 2: {
+                        if (call_user_func($callback, $value, $key)) {
+                            $setResult($key, $value);
+                        }
+                        break;
+                    }
+                    default: {
+                        if (call_user_func($callback, $value, $key, $array)) {
+                            $setResult($key, $value);
+                        }
+                        break;
                     }
                 }
             }
@@ -271,9 +376,26 @@ function filter($array, $callback, $preserveKeys = false) {
 }
 
 function map($array, $callback) {
+    if (is_array($callback)) {
+        $f = new ReflectionMethod($callback[0], $callback[1]);
+    }
+    else {
+        $f = new ReflectionFunction($callback);
+    }
+    $n = $f->getNumberOfParameters();
     return all($array)->then(
-        function($array) use ($callback) {
-            return array_map($callback, $array);
+        function($array) use ($n, $callback) {
+            switch ($n) {
+                case 1: return array_map($callback, $array);
+                case 2: return array_map($callback, $array, array_keys($array));
+                default: {
+                    $result = array();
+                    foreach ($array as $key => $value) {
+                        $result[$key] = call_user_func($callback, $value, $key, $array);
+                    }
+                    return $result;
+                }
+            }
         }
     );
 }
@@ -350,65 +472,90 @@ function udiff(/*$array1, $array2, $...*/) {
     );
 }
 
-function toPromise($obj) {
-    if (isFuture($obj)) return $obj;
-    if (class_exists("\\Generator") && ($obj instanceof \Generator)) return co($obj);
-    if (is_array($obj)) return arrayToPromise($obj);
-    if (is_object($obj)) return objectToPromise($obj);
-    return value($obj);
-}
-
-function arrayToPromise(array $array) {
-    return all(array_map("\\Hprose\\Future\\toPromise", $array));
-}
-
-function objectToPromise($obj) {
-    $result = clone $obj;
-    $values = array();
-    foreach ($result as $key => $value) {
-        $values[] = toPromise($value)->then(function($v) use ($result, $key) {
-            $result->$key = $v; 
-        });
-    }
-    return all($values)->then(function() use ($result) {
-        return $result;
-    });
+function promisify($fn) {
+    return function() use ($fn) {
+        $args = func_get_args();
+        $future = new Future();
+        $args[] = function() use ($future) {
+            switch (func_num_args()) {
+                case 0: $future->resolve(NULL); break;
+                case 1: $future->resolve(func_get_arg(0)); break;
+                default: $future->resolve(func_get_args()); break;
+            }
+        };
+        try {
+            call_user_func_array($fn, $args);
+        }
+        catch (\Exception $e) {
+            $future->reject($e);
+        }
+        catch (\Throwable $e) {
+            $future->reject($e);
+        }
+        return $future;
+    };
 }
 
 if (class_exists("\\Generator")) {
+    function toPromise($obj) {
+        if (isFuture($obj)) {
+            return $obj;
+        }
+        if ($obj instanceof \Generator) {
+            return co($obj);
+        }
+        return value($obj);
+    }
+
     function co($generator/*, arg1, arg2...*/) {
         if (is_callable($generator)) {
             $args = array_slice(func_get_args(), 1);
             $generator = call_user_func_array($generator, $args);
         }
         if (!($generator instanceof \Generator)) {
-            return value($generator);
+            return toFuture($generator);
         }
-        $next = function($yield) use ($generator, &$next) {
-            if ($generator->valid()) {
-                return toPromise($yield)->then(function($value) use ($generator, &$next) {
-                    $yield = $generator->send($value);
-                    if ($generator->valid()) {
-                        return $next($yield);
-                    }
-                    if (method_exists($generator, "getReturn")) {
-                        return $generator->getReturn();
-                    }
-                    return $value;
-                },
-                function($e) use ($generator, &$next) {
-                    return $next($generator->throw($e));
-                });
-            }
-            else {
-                if (method_exists($generator, "getReturn")) {
-                    return value($generator->getReturn());
+        $future = new Future();
+        $onfulfilled = function($value) use (&$onfulfilled, &$onrejected, $generator, $future) {
+            try {
+                $next = $generator->send($value);
+                if ($generator->valid()) {
+                    toPromise($next)->then($onfulfilled, $onrejected);
                 }
                 else {
-                    return value(null);
+                    if (method_exists($generator, "getReturn")) {
+                        $ret = $generator->getReturn();
+                        $future->resolve(($ret === null) ? $value : $ret);
+                    }
+                    else {
+                        $future->resolve($value);
+                    }
                 }
             }
+            catch(\Exception $e) {
+                $future->reject($e);
+            }
+            catch(\Throwable $e) {
+                $future->reject($e);
+            }
         };
-        return $next($generator->current());
+        $onrejected = function($err) use (&$onfulfilled, $generator, $future) {
+            try {
+                $onfulfilled($generator->throw($err));
+            }
+            catch(\Exception $e) {
+                $future->reject($e);
+            }
+            catch(\Throwable $e) {
+                $future->reject($e);
+            }
+        };
+        toPromise($generator->current())->then($onfulfilled, $onrejected);
+        return $future;
+    }
+}
+else {
+    function toPromise($obj) {
+        return toFuture($obj);
     }
 }
