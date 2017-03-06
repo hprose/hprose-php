@@ -5,3 +5,4 @@ composer.lock
 /netbeans
 /nbproject
 /examples/nbproject
+.idea/

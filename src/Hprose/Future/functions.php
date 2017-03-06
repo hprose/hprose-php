@@ -210,15 +210,21 @@ function run($handler/*, arg1, arg2, ... */) {
     );
 }
 
-function wrap($handler) {
+function wrap($handler, $check_gen = true) {
     if (class_exists("\\Generator") && is_callable($handler)) {
-        if (is_array($handler)) {
-            $m = new ReflectionMethod($handler[0], $handler[1]);
+        if( $check_gen )
+        {
+            if (is_array($handler)) {
+                $m = new ReflectionMethod($handler[0], $handler[1]);
+            }
+            else {
+                $m = new ReflectionFunction($handler);
+            }
+            if ($m->isGenerator()) {
+                $check_gen = false;
+            }
         }
-        else {
-            $m = new ReflectionFunction($handler);
-        }
-        if ($m->isGenerator()) {
+        if(!$check_gen) {
             return function() use ($handler) {
                 return all(func_get_args())->then(
                     function($args) use ($handler) {
