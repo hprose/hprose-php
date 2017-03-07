@@ -14,7 +14,7 @@
  *                                                        *
  * hprose service class for php 5.3+                      *
  *                                                        *
- * LastModified: Feb 16, 2017                             *
+ * LastModified: Mar 7, 2017                              *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -608,7 +608,7 @@ abstract class Service extends HandlerManager {
             $this->names[] = $alias;
         }
         if (class_exists("\\Generator")) {
-            $func = Future\wrap($func, false);
+            $func = Future\wrap($func);
         }
         $call = new stdClass();
         $call->method = $func;

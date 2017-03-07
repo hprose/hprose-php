@@ -14,7 +14,7 @@
  *                                                        *
  * some helper functions for php 5.3+                     *
  *                                                        *
- * LastModified: Dec 22, 2016                             *
+ * LastModified: Mar 7, 2017                              *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -210,21 +210,18 @@ function run($handler/*, arg1, arg2, ... */) {
     );
 }
 
-function wrap($handler, $check_gen = true) {
-    if (class_exists("\\Generator") && is_callable($handler)) {
-        if( $check_gen )
-        {
-            if (is_array($handler)) {
-                $m = new ReflectionMethod($handler[0], $handler[1]);
+function wrap($handler) {
+    if (is_object($handler)) {
+        if (is_callable($handler)) {
+            if (class_exists("\\Generator") && ($handler instanceof \Generator)) {
+                return co($handler);
             }
-            else {
-                $m = new ReflectionFunction($handler);
-            }
-            if ($m->isGenerator()) {
-                $check_gen = false;
-            }
+            return new CallableWrapper($handler);
         }
-        if(!$check_gen) {
+        return new Wrapper($handler);
+    }
+    if (is_callable($handler)) {
+        if (class_exists("\\Generator")) {
             return function() use ($handler) {
                 return all(func_get_args())->then(
                     function($args) use ($handler) {
@@ -233,14 +230,6 @@ function wrap($handler, $check_gen = true) {
                 );
             };
         }
-    }
-    if (is_object($handler)) {
-        if (is_callable($handler)) {
-            return new CallableWrapper($handler);
-        }
-        return new Wrapper($handler);
-    }
-    if (is_callable($handler)) {
         return function() use ($handler) {
             return all(func_get_args())->then(
                 function($args) use ($handler) {
