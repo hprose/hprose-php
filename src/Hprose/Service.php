@@ -14,7 +14,7 @@
  *                                                        *
  * hprose service class for php 5.3+                      *
  *                                                        *
- * LastModified: Mar 7, 2017                              *
+ * LastModified: Mar 10, 2017                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -639,7 +639,7 @@ abstract class Service extends HandlerManager {
     public function addFunctions(array $funcs,
                                  array $aliases = array(),
                                  array $options = array()) {
-        if (!empty($aliases) && empty($options) && (array_keys($funcs) != array_key($aliases))) {
+        if (!empty($aliases) && empty($options) && (array_keys($funcs) != array_keys($aliases))) {
             $options = $aliases;
             $aliases = array();
         }
@@ -662,7 +662,7 @@ abstract class Service extends HandlerManager {
     public function addAsyncFunctions(array $funcs,
                                       array $aliases = array(),
                                       array $options = array()) {
-        if (!empty($aliases) && empty($options) && (array_keys($funcs) != array_key($aliases))) {
+        if (!empty($aliases) && empty($options) && (array_keys($funcs) != array_keys($aliases))) {
             $options = $aliases;
             $aliases = array();
         }
@@ -701,7 +701,7 @@ abstract class Service extends HandlerManager {
             }
             $aliases = array();
         }
-        else if (!empty($aliases) && empty($options) && (array_keys($methods) != array_key($aliases))) {
+        else if (!empty($aliases) && empty($options) && (array_keys($methods) != array_keys($aliases))) {
             $options = $aliases;
             $aliases = array();
         }
@@ -733,7 +733,7 @@ abstract class Service extends HandlerManager {
             }
             $aliases = array();
         }
-        else if (!empty($aliases) && empty($options) && (array_keys($methods) != array_key($aliases))) {
+        else if (!empty($aliases) && empty($options) && (array_keys($methods) != array_keys($aliases))) {
             $options = $aliases;
             $aliases = array();
         }
