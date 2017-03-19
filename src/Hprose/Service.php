@@ -14,7 +14,7 @@
  *                                                        *
  * hprose service class for php 5.3+                      *
  *                                                        *
- * LastModified: Mar 10, 2017                             *
+ * LastModified: Mar 19, 2017                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -238,7 +238,11 @@ abstract class Service extends HandlerManager {
         $stream = new BytesIO();
         $writer = new Writer($stream, true);
         $stream->write(Tags::TagError);
-        $writer->writeString($this->debug ? $error->getTraceAsString() : $error->getMessage());
+        $errmsg = $error->getMessage();
+        if ($this->debug) {
+            $errmsg .= "\r\n" . $error->getTraceAsString();
+        }
+        $writer->writeString($errmsg);
         return $stream;
     }
     public function endError($error, stdClass $context) {
