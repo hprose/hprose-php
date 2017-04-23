@@ -1215,4 +1215,11 @@ abstract class Service extends HandlerManager {
             $this->internalPush($topic, $id, $result);
         }
     }
+
+    /**
+     * @return array
+     */
+    public function getNames(){
+        return $this->names;
+    }
 }
