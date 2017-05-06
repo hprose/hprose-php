@@ -336,6 +336,11 @@ class Client extends \Hprose\Client {
                         --$count;
                         if ($msgs_in_queue === 0) break;
                     }
+
+                    // See https://bugs.php.net/bug.php?id=61141
+                    if (curl_multi_select($multicurl) === -1) {
+                        usleep(100);
+                    }
                 }
             }
             catch (Exception $e) {
