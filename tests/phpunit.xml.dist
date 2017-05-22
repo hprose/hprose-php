@@ -6,7 +6,7 @@
     </testsuites>
     <filter>
         <whitelist>
-            <directory>..</directory>
+            <directory>../src</directory>
             <exclude>
                 <directory>../vendor/</directory>
             </exclude>
