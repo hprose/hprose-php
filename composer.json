@@ -54,6 +54,11 @@
         "phpunit/phpunit": ">=4.0.0"
     },
     "autoload": {
-        "files": ["src/Hprose.php"]
+        "files": [
+            "src/init.php"
+        ],
+        "psr-4": {
+            "Hprose\\": "src/Hprose"
+        }
     }
 }
