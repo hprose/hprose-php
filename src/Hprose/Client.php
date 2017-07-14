@@ -14,7 +14,7 @@
  *                                                        *
  * hprose client class for php 5.3+                       *
  *                                                        *
- * LastModified: Nov 14, 2016                             *
+ * LastModified: Jul 14, 2017                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -561,7 +561,11 @@ abstract class Client extends HandlerManager {
             $n = $f->getNumberOfParameters();
             $onError = $this->onError;
             return Future\all($args)->then(function($args) use ($invokeHandler, $name, $context, $n, $callback, $onError) {
-                $result = Future\toFuture($invokeHandler($name, $args, $context));
+                try {
+                    $result = Future\toFuture($invokeHandler($name, $args, $context));
+                }
+                catch (Exception $e) { $result = Future\error($e); }
+                catch (Throwable $e) { $result = Future\error($e); }
                 $result->then(
                     function($result) use ($n, $callback, $args) {
                         switch($n) {
@@ -574,7 +578,6 @@ abstract class Client extends HandlerManager {
                     function($error) use ($n, $callback, $args, $name, $onError) {
                         switch($n) {
                             case 0:
-                                call_user_func($callback);
                                 if (is_callable($onError)) {
                                     call_user_func($onError, $name, $error);
                                 }
