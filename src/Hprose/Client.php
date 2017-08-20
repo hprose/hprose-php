@@ -14,7 +14,7 @@
  *                                                        *
  * hprose client class for php 5.3+                       *
  *                                                        *
- * LastModified: Jul 14, 2017                             *
+ * LastModified: Aug 20, 2017                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -661,7 +661,8 @@ abstract class Client extends HandlerManager {
             });
             return;
         }
-        if (!is_int($timeout)) $timeout = $this->timeout;
+        // Default subscribe timeout is 5 minutes.
+        if (!is_int($timeout)) $timeout = 300000;
         $topic = $this->getTopic($name, $id);
         if ($topic === null) {
             $topic = new stdClass();
