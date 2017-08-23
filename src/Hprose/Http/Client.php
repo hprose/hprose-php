@@ -21,10 +21,9 @@
 
 namespace Hprose\Http;
 
-use stdClass;
 use Exception;
-use Throwable;
 use Hprose\Future;
+use stdClass;
 
 class Client extends \Hprose\Client {
     private static $cookieManager = array();
@@ -38,9 +37,9 @@ class Client extends \Hprose\Client {
     private $options;
     private $curl;
     private $curlVersionLittleThan720;
-    private $results = array();
-    private $curls = array();
-    private $contexts = array();
+    private static $results = array();
+    private static $curls = array();
+    private static $contexts = array();
     public static function keepSession() {
         if (isset($_SESSION['HPROSE_COOKIE_MANAGER'])) {
             self::$cookieManager = $_SESSION['HPROSE_COOKIE_MANAGER'];
@@ -279,13 +278,20 @@ class Client extends \Hprose\Client {
         curl_close($curl);
         return $data;
     }
+
+    private static $curlMulti = null;
     private function asyncSendAndReceive($request, stdClass $context) {
+        if (!self::$curlMulti) {
+            self::$curlMulti = curl_multi_init();
+        }
+        $key = $request . microtime(true);
         $result = new Future();
         $curl = curl_init();
         $this->initCurl($curl, $request, $context);
-        $this->curls[] = $curl;
-        $this->results[] = $result;
-        $this->contexts[] = $context;
+        self::$curls[$key] = $curl;
+        self::$results[$key] = $result;
+        self::$contexts[$key] = $context;
+        curl_multi_add_handle(self::$curlMulti, $curl);
         return $result;
     }
     protected function sendAndReceive($request, stdClass $context) {
@@ -304,57 +310,43 @@ class Client extends \Hprose\Client {
         return curl_multi_exec($multicurl, $active);
     }
     public function loop() {
-        $self = $this;
-        $multicurl = curl_multi_init();
-        while (($count = count($this->curls)) > 0) {
-            $curls = $this->curls;
-            $this->curls = array();
-            $results = $this->results;
-            $this->results = array();
-            $contexts = $this->contexts;
-            $this->contexts = array();
-            foreach ($curls as $curl) {
-                curl_multi_add_handle($multicurl, $curl);
-            }
-            $err = null;
-            try {
-                $active = null;
-                $status = $this->curlMultiExec($multicurl, $active);
-                while ($status === CURLM_OK && $count > 0) {
-                    $status = $this->curlMultiExec($multicurl, $active);
-                    $msgs_in_queue = null;
-                    while ($info = curl_multi_info_read($multicurl, $msgs_in_queue)) {
-                        $handle = $info['handle'];
-                        $index = array_search($handle, $curls, true);
-                        $context = $contexts[$index];
-                        $results[$index]->resolve(Future\sync(function() use ($self, $info, $handle, $context) {
-                            if ($info['result'] === CURLM_OK) {
-                                return $self->getContents(curl_multi_getcontent($handle), $context);
-                            }
-                            throw new Exception($info['result'] . ": " . curl_error($handle));
-                        }));
-                        --$count;
-                        if ($msgs_in_queue === 0) break;
-                    }
+        if (self::$curlMulti === null) {
+            return;
+        }
 
-                    // See https://bugs.php.net/bug.php?id=61141
-                    if (curl_multi_select($multicurl) === -1) {
-                        usleep(100);
-                    }
+        $active = null;
+        $status = $this->curlMultiExec(self::$curlMulti, $active);
+        while ($status === CURLM_OK && count(self::$curls) > 0) {
+            $status = $this->curlMultiExec(self::$curlMulti, $active);
+            $msgs_in_queue = null;
+            while ($info = curl_multi_info_read(self::$curlMulti, $msgs_in_queue)) {
+                $handle = $info['handle'];
+                $index = array_search($handle, self::$curls, true);
+                $context = self::$contexts[$index];
+                if ($info['result'] === CURLM_OK) {
+                    self::$results[$index]->resolve(Future\sync(function () use ($info, $handle, $context) {
+                        return $this->getContents(curl_multi_getcontent($handle), $context);
+                    }));
+                } else {
+                    self::$results[$index]->reject(new Exception($info['result'] . ": " . curl_error($handle)));
                 }
+
+                curl_multi_remove_handle(self::$curlMulti, self::$curls[$index]);
+                curl_close($handle);
+                unset(self::$curls[$index]);
+                unset(self::$contexts[$index]);
+                unset(self::$results[$index]);
+
+                if ($msgs_in_queue === 0) break;
             }
-            catch (Exception $e) {
-                $err = $e;
-            }
-            catch (Throwable $e) {
-                $err = $e;
-            }
-            foreach($curls as $index => $curl) {
-                curl_multi_remove_handle($multicurl, $curl);
-                curl_close($curl);
-                if ($err !== null) $results[$index]->reject($err);
+
+            // See https://bugs.php.net/bug.php?id=61141
+            if (curl_multi_select(self::$curlMulti) === -1) {
+                usleep(100);
             }
         }
-        curl_multi_close($multicurl);
+
+        curl_multi_close(self::$curlMulti);
+        self::$curlMulti = null;
     }
 }
