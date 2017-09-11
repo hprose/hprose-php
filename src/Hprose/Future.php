@@ -97,7 +97,7 @@ class Future {
             $value->fill($this);
             return;
         }
-        if (($value !== NULL) and is_object($value) or is_string($value)) {
+        if (($value !== NULL) and is_object($value) or (is_string($value) and class_exists($value,false))) {
             if (method_exists($value, 'then')) {
                 $then = array($value, 'then');
                 $notrun = true;
