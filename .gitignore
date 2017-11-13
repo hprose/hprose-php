@@ -6,3 +6,4 @@ composer.lock
 /nbproject
 /examples/nbproject
 .idea/
+*.DS_Store
