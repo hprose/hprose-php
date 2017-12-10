@@ -14,7 +14,7 @@
  *                                                        *
  * hprose http service class for php 5.3+                 *
  *                                                        *
- * LastModified: Sep 9, 2016                              *
+ * LastModified: Dec 10, 2017                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -108,15 +108,15 @@ class Service extends \Hprose\Service {
         $this->get = $enable;
     }
     public function addAccessControlAllowOrigin($origin) {
-        $count = count($origin);
-        if (($count > 0) && ($origin[$count - 1] === "/")) {
+        $count = strlen($origin);
+        if (($count > 0) && ($origin{$count - 1} === "/")) {
             $origin = substr($origin, 0, -1);
         }
         $this->origins[strtolower($origin)] = true;
     }
     public function removeAccessControlAllowOrigin($origin) {
-        $count = count($origin);
-        if (($count > 0) && ($origin[$count - 1] === "/")) {
+        $count = strlen($origin);
+        if (($count > 0) && ($origin{$count - 1} === "/")) {
             $origin = substr($origin, 0, -1);
         }
         unset($this->origins[strtolower($origin)]);
