@@ -14,7 +14,7 @@
  *                                                        *
  * hprose future class for php 5.3+                       *
  *                                                        *
- * LastModified: Dec 7, 2016                              *
+ * LastModified: Jan 9, 2018                              *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -262,6 +262,9 @@ class Future {
     }
 
     public function __get($key) {
+        if ($key == 'state') {
+            return $this->state;
+        }
         return $this->then(
             function($result) use ($key) {
                 return $result->$key;
