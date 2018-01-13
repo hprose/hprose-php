@@ -14,7 +14,7 @@
  *                                                        *
  * hprose socket Service library for php 5.3+             *
  *                                                        *
- * LastModified: Dec 21, 2016                             *
+ * LastModified: Jan 14, 2018                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -144,7 +144,7 @@ class Service extends \Hprose\Service {
                 $self->removeSocket($sockets, $socket);
             }
             else {
-                $sent = @fwrite($socket, $bytes, $len);
+                $sent = fwrite($socket, $bytes, $len);
                 if ($sent === false) {
                     $self->error($server, $socket, 'Unknown write error');
                 }
@@ -178,7 +178,7 @@ class Service extends \Hprose\Service {
         $userFatalErrorHandler = &$this->userFatalErrorHandler;
         return function()
                 use ($self, $server, $socket, &$bytes, &$headerLength, &$dataLength, &$id, &$userFatalErrorHandler, $send) {
-            $data = @fread($socket, $self->readBuffer);
+            $data = fread($socket, $self->readBuffer);
             if ($data === false) {
                 $self->error($server, $socket, 'Unknown read error');
                 return;
@@ -226,14 +226,14 @@ class Service extends \Hprose\Service {
         };
     }
     private function accept($server) {
-        $socket = @stream_socket_accept($server, 0);
+        $socket = stream_socket_accept($server, 0);
         if ($socket === false) return;
-        if (@stream_set_blocking($socket, false) === false) {
+        if (stream_set_blocking($socket, false) === false) {
             $this->error($server, $socket, 'Unkown error');
             return;
         }
-        @stream_set_read_buffer($socket, $this->readBuffer);
-        @stream_set_write_buffer($socket, $this->writeBuffer);
+        stream_set_read_buffer($socket, $this->readBuffer);
+        stream_set_write_buffer($socket, $this->writeBuffer);
         $onAccept = $this->onAccept;
         if (is_callable($onAccept)) {
             try {
@@ -264,7 +264,7 @@ class Service extends \Hprose\Service {
         $this->removeSocket($this->readableSockets, $socket);
         unset($this->onReceives[(int)$socket]);
         unset($this->onSends[(int)$socket]);
-        @stream_socket_shutdown($socket, STREAM_SHUT_RDWR);
+        stream_socket_shutdown($socket, STREAM_SHUT_RDWR);
         $onClose = $this->onClose;
         if (is_callable($onClose)) {
             try {
@@ -318,7 +318,7 @@ class Service extends \Hprose\Service {
             $read = array_values($readableSockets);
             $write = array_values($writeableSockets);
             $except = NULL;
-            $n = @stream_select($read, $write, $except, $sec, $usec);
+            $n = stream_select($read, $write, $except, $sec, $usec);
             if ($n === false) {
                 foreach ($servers as $server) {
                     $this->error($server, $server, 'Unknown select error');

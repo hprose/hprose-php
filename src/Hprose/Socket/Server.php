@@ -14,7 +14,7 @@
  *                                                        *
  * hprose socket server library for php 5.3+              *
  *                                                        *
- * LastModified: Aug 6, 2016                              *
+ * LastModified: Jan 14, 2018                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -57,8 +57,8 @@ class Server extends Service {
         }
         $errno = 0;
         $errstr = '';
-        $context = @stream_context_create($this->settings);
-        $server = @stream_socket_server($uri, $errno, $errstr,
+        $context = stream_context_create($this->settings);
+        $server = stream_socket_server($uri, $errno, $errstr,
                 STREAM_SERVER_BIND | STREAM_SERVER_LISTEN, $context);
         if (function_exists('socket_import_stream')) {
             if (($scheme === 'tcp') || ($scheme === 'unix')) {
