@@ -14,7 +14,7 @@
  *                                                        *
  * hprose service class for php 5.3+                      *
  *                                                        *
- * LastModified: Jul 14, 2017                             *
+ * LastModified: Feb 26, 2018                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -235,6 +235,9 @@ abstract class Service extends HandlerManager {
         catch (Exception $e) {
             $error = $e;
         }
+        catch (Throwable $e) {
+            $error = $e;
+        }
         $stream = new BytesIO();
         $writer = new Writer($stream, true);
         $stream->write(Tags::TagError);
@@ -279,6 +282,9 @@ abstract class Service extends HandlerManager {
         catch (Exception $error) {
             return $this->sendError($error, $context);
         }
+        catch (Throwable $error) {
+            return $this->sendError($error, $context);
+        }
     }
     /*
         This method is a protected method.
@@ -310,7 +316,7 @@ abstract class Service extends HandlerManager {
         }
         else {
             if ($passContext) $args[] = $context;
-            return Future\toFuture($this->callService($args, $context));
+            return $this->callService($args, $context);
         }
     }
     /*
@@ -500,6 +506,9 @@ abstract class Service extends HandlerManager {
         catch (Exception $error) {
             $response = $this->delayError($error, $context);
         }
+        catch (Throwable $error) {
+            $response = $this->delayError($error, $context);
+        }
         return $response->then(function($value) use ($self, $context) {
             return $self->outputFilter($value, $context);
         });
@@ -526,6 +535,10 @@ abstract class Service extends HandlerManager {
             }
         }
         catch (Exception $e) {
+            $stream->close();
+            return Future\error($e);
+        }
+        catch (Throwable $e) {
             $stream->close();
             return Future\error($e);
         }

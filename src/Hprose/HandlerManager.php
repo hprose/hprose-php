@@ -14,7 +14,7 @@
  *                                                        *
  * hprose HandlerManager class for php 5.3+               *
  *                                                        *
- * LastModified: Aug 7, 2016                              *
+ * LastModified: Feb 26, 2018                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -28,22 +28,64 @@ abstract class HandlerManager {
     private $invokeHandlers = array();
     private $beforeFilterHandlers = array();
     private $afterFilterHandlers = array();
-    private $defaultInvokeHandler;
-    private $defaultBeforeFilterHandler;
-    private $defaultAfterFilterHandler;
+    protected $defaultInvokeHandler;
+    protected $defaultBeforeFilterHandler;
+    protected $defaultAfterFilterHandler;
     protected $invokeHandler;
     protected $beforeFilterHandler;
     protected $afterFilterHandler;
     public function __construct() {
         $self = $this;
         $this->defaultInvokeHandler = function(/*string*/ $name, array &$args, stdClass $context) use ($self) {
-            return $self->invokeHandler($name, $args, $context);
+            try {
+                $result = $self->invokeHandler($name, $args, $context);
+                if (class_exists("\\Generator")) {
+                    return Future\co($result);
+                }
+                else {
+                    return Future\toFuture($result);
+                }
+            }
+            catch (Exception $e) {
+                return Future\error($e);
+            }
+            catch (Throwable $e) {
+                return Future\error($e);
+            }
         };
         $this->defaultBeforeFilterHandler = function(/*string*/ $request, stdClass $context) use ($self) {
-            return $self->beforeFilterHandler($request, $context);
+            try {
+                $result = $self->beforeFilterHandler($request, $context);
+                if (class_exists("\\Generator")) {
+                    return Future\co($result);
+                }
+                else {
+                    return Future\toFuture($result);
+                }
+            }
+            catch (Exception $e) {
+                return Future\error($e);
+            }
+            catch (Throwable $e) {
+                return Future\error($e);
+            }
         };
         $this->defaultAfterFilterHandler = function(/*string*/ $request, stdClass $context) use ($self) {
-            return $self->afterFilterHandler($request, $context);
+            try {
+                $result = $self->afterFilterHandler($request, $context);
+                if (class_exists("\\Generator")) {
+                    return Future\co($result);
+                }
+                else {
+                    return Future\toFuture($result);
+                }
+            }
+            catch (Exception $e) {
+                return Future\error($e);
+            }
+            catch (Throwable $e) {
+                return Future\error($e);
+            }
         };
         $this->invokeHandler = $this->defaultInvokeHandler;
         $this->beforeFilterHandler = $this->defaultBeforeFilterHandler;

@@ -14,7 +14,7 @@
  *                                                        *
  * hprose client class for php 5.3+                       *
  *                                                        *
- * LastModified: Aug 20, 2017                             *
+ * LastModified: Feb 26, 2018                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -97,6 +97,20 @@ abstract class Client extends HandlerManager {
             }
         }
         $this->async = $async;
+        if (!$this->async) {
+            $this->defaultInvokeHandler = function(/*string*/ $name, array &$args, stdClass $context) use ($self) {
+                return $self->invokeHandler($name, $args, $context);
+            };
+            $this->defaultBeforeFilterHandler = function(/*string*/ $request, stdClass $context) use ($self) {
+                return $self->beforeFilterHandler($request, $context);
+            };
+            $this->defaultAfterFilterHandler = function(/*string*/ $request, stdClass $context) use ($self) {
+                return $self->afterFilterHandler($request, $context);
+            };
+            $this->invokeHandler = $this->defaultInvokeHandler;
+            $this->beforeFilterHandler = $this->defaultBeforeFilterHandler;
+            $this->afterFilterHandler = $this->defaultAfterFilterHandler;
+        }
     }
 
     public function __destruct() {
@@ -447,15 +461,7 @@ abstract class Client extends HandlerManager {
     }
 
     private function asyncInvokeHandler($name, array &$args, stdClass $context) {
-        try {
-            $request = $this->encode($name, $args, $context);
-        }
-        catch (Exception $e) {
-            return Future\error($e);
-        }
-        catch (Throwable $e) {
-            return Future\error($e);
-        }
+        $request = $this->encode($name, $args, $context);
         $self = $this;
         $beforeFilterHandler = $this->beforeFilterHandler;
         return $beforeFilterHandler($request, $context)->then(function($response) use ($self, &$args, $context) {
