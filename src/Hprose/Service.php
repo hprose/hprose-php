@@ -1044,8 +1044,9 @@ abstract class Service extends HandlerManager {
             $timer = $this->timer->setTimeout(function() use ($future) {
                 $future->reject(new TimeoutException('timeout'));
             }, $timeout);
-            $request->whenComplete(function() use ($self, $timer) {
-                $self->timer->clearTimeout($timer);
+            $request->whenComplete(function() use ($self, $topic, $id) {
+                $topics = $self->getTopics($topic);
+                $self->delTimer($topics, $id);
             })->fill($future);
             return $future->catchError(function($e) use ($self, $topics, $topic, $id) {
                 if ($e instanceof TimeoutException) {
