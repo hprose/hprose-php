@@ -14,7 +14,7 @@
  *                                                        *
  * hprose client class for php 5.3+                       *
  *                                                        *
- * LastModified: Feb 26, 2018                             *
+ * LastModified: Mar 15, 2018                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -98,6 +98,7 @@ abstract class Client extends HandlerManager {
         }
         $this->async = $async;
         if (!$this->async) {
+            $self = $this;
             $this->defaultInvokeHandler = function(/*string*/ $name, array &$args, stdClass $context) use ($self) {
                 return $self->invokeHandler($name, $args, $context);
             };
