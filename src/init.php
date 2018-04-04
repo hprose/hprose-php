@@ -2,9 +2,9 @@
 
 require_once __DIR__ . '/Throwable.php';
 require_once __DIR__ . '/TypeError.php';
+require_once __DIR__ . '/Hprose/functions.php';
 require_once __DIR__ . '/Hprose/Future/functions.php';
 require_once __DIR__ . '/Hprose/Promise/functions.php';
-require_once __DIR__ . '/Hprose/functions.php';
 require_once __DIR__ . '/functions.php';
 
 // Deprecated

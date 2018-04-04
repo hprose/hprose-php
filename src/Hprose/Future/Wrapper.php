@@ -21,8 +21,6 @@
 
 namespace Hprose\Future;
 
-use ReflectionMethod;
-
 class Wrapper {
     protected $obj;
     public function __construct($obj) {
@@ -31,7 +29,7 @@ class Wrapper {
     public function __call($name, array $arguments) {
         $method = array($this->obj, $name);
         return all($arguments)->then(function($args) use ($method, $name) {
-            if (class_exists("\\Generator")) {
+            if (HaveGenerator) {
                 return co(call_user_func_array($method, $args));
             }
             return call_user_func_array($method, $args);

@@ -655,7 +655,7 @@ abstract class Service extends HandlerManager {
         if (!array_key_exists($name, $this->calls)) {
             $this->names[] = $alias;
         }
-        if (class_exists("\\Generator")) {
+        if (HaveGenerator) {
             if (is_array($func)) {
                 $f = new ReflectionMethod($func[0], $func[1]);
             }

@@ -34,14 +34,12 @@ abstract class HandlerManager {
     protected $invokeHandler;
     protected $beforeFilterHandler;
     protected $afterFilterHandler;
-    public static $haveGenerator;
     public function __construct() {
         $self = $this;
-        self::$haveGenerator = class_exists("\\Generator", false);
         $this->defaultInvokeHandler = function(/*string*/ $name, array &$args, stdClass $context) use ($self) {
             try {
                 $result = $self->invokeHandler($name, $args, $context);
-                if (HandlerManager::$haveGenerator) {
+                if (HaveGenerator) {
                     return Future\co($result);
                 }
                 else {
@@ -58,7 +56,7 @@ abstract class HandlerManager {
         $this->defaultBeforeFilterHandler = function(/*string*/ $request, stdClass $context) use ($self) {
             try {
                 $result = $self->beforeFilterHandler($request, $context);
-                if (HandlerManager::$haveGenerator) {
+                if (HaveGenerator) {
                     return Future\co($result);
                 }
                 else {
@@ -75,7 +73,7 @@ abstract class HandlerManager {
         $this->defaultAfterFilterHandler = function(/*string*/ $request, stdClass $context) use ($self) {
             try {
                 $result = $self->afterFilterHandler($request, $context);
-                if (HandlerManager::$haveGenerator) {
+                if (HaveGenerator) {
                     return Future\co($result);
                 }
                 else {
@@ -116,7 +114,7 @@ abstract class HandlerManager {
             try {
                 $array = array($name, &$args, $context, $next);
                 $result = call_user_func_array($handler, $array);
-                if (HandlerManager::$haveGenerator) {
+                if (HaveGenerator) {
                     return Future\co($result);
                 }
                 else {
@@ -135,7 +133,7 @@ abstract class HandlerManager {
         return function(/*string*/ $request, stdClass $context) use ($next, $handler) {
             try {
                 $result = call_user_func($handler, $request, $context, $next);
-                if (HandlerManager::$haveGenerator) {
+                if (HaveGenerator) {
                     return Future\co($result);
                 }
                 else {
