@@ -137,7 +137,10 @@ class Service extends \Hprose\Service {
             }
         }
         elseif ($this->isPost($context)) {
+            ob_start();
+            ob_implicit_flush(0);
             $result = $this->defaultHandle($this->readRequest($context), $context);
+            @ob_end_clean();
         }
         else {
             $result = $this->doFunctionList();
