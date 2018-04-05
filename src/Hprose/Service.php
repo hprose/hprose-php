@@ -67,12 +67,42 @@ abstract class Service extends HandlerManager {
     public $onUnsubscribe = null;
     private $topics = array();
     private $nextid = 0;
+
+    /**
+     * Last ErrorException
+     *
+     * @var null|ErrorException
+     */
+    public static $lastError = null;
+
+    /**
+     * trace error
+     *
+     * @var bool
+     */
+    protected static $trackError = false;
+
+    /**
+     * @var null|callable
+     */
+    protected static $_lastErrorHandler = null;
+
     public function __construct() {
         parent::__construct();
         $this->errorTypes = error_reporting();
         register_shutdown_function(array($this, 'fatalErrorHandler'));
         $this->addMethod('getNextId', $this, '#', array('simple' => true));
+        self::$_lastErrorHandler = set_error_handler(array($this, 'errorHandler'), $this->errorTypes);
     }
+
+    public function errorHandler($errno, $errstr, $errfile, $errline) {
+        if (self::$trackError) {
+            self::$lastError = new ErrorException($errstr, 0, $errno, $errfile, $errline);
+        } else if (self::$_lastErrorHandler){
+            call_user_func(self::$_lastErrorHandler, $errno, $errstr, $errfile, $errline);
+        }
+    }
+
     public function getNextId() {
         if (function_exists('com_create_guid')) {
             return trim(com_create_guid(), '{}');
@@ -544,24 +574,20 @@ abstract class Service extends HandlerManager {
         }
     }
     public function defaultHandle($request, stdClass $context) {
-        $error = null;
-        set_error_handler(function($errno, $errstr, $errfile, $errline) use (&$error) {
-            $error = new ErrorException($errstr, 0, $errno, $errfile, $errline);
-        }, $this->errorTypes);
-        ob_start();
-        ob_implicit_flush(0);
-        $context->clients = $this;
-        $context->methods = $this->calls;
+        self::$trackError    = true;
+        self::$lastError     = null;
+        $context->clients    = $this;
+        $context->methods    = $this->calls;
         $beforeFilterHandler = $this->beforeFilterHandler;
-        $response = $beforeFilterHandler($request, $context);
-        $self = $this;
-        return $response->then(function($result) use ($self, &$error, $context) {
-            @ob_end_clean();
-            restore_error_handler();
-            if ($error === null) {
+        $response            = $beforeFilterHandler($request, $context);
+        $self                = $this;
+
+        return $response->then(function($result) use ($self, $context) {
+            Service::$trackError = false;
+            if (Service::$lastError === null) {
                 return $result;
             }
-            return $self->endError($error, $context);
+            return $self->endError(Service::$lastError, $context);
         });
     }
     private static function getDeclaredOnlyMethods($class) {
@@ -629,7 +655,7 @@ abstract class Service extends HandlerManager {
         if (!array_key_exists($name, $this->calls)) {
             $this->names[] = $alias;
         }
-        if (class_exists("\\Generator")) {
+        if (HaveGenerator) {
             if (is_array($func)) {
                 $f = new ReflectionMethod($func[0], $func[1]);
             }

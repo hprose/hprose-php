@@ -24,3 +24,5 @@ namespace Hprose;
 function deferred() {
     return new Deferred();
 }
+
+define('HaveGenerator', class_exists("\\Generator", false));

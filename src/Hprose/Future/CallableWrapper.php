@@ -25,7 +25,7 @@ class CallableWrapper extends Wrapper {
     public function __invoke() {
         $obj = $this->obj;
         return all(func_get_args())->then(function($args) use ($obj) {
-            if (class_exists("\\Generator")) {
+            if (HaveGenerator) {
                 return co(call_user_func_array($obj, $args));
             }
             return call_user_func_array($obj, $args);

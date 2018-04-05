@@ -39,7 +39,7 @@ abstract class HandlerManager {
         $this->defaultInvokeHandler = function(/*string*/ $name, array &$args, stdClass $context) use ($self) {
             try {
                 $result = $self->invokeHandler($name, $args, $context);
-                if (class_exists("\\Generator")) {
+                if (HaveGenerator) {
                     return Future\co($result);
                 }
                 else {
@@ -56,7 +56,7 @@ abstract class HandlerManager {
         $this->defaultBeforeFilterHandler = function(/*string*/ $request, stdClass $context) use ($self) {
             try {
                 $result = $self->beforeFilterHandler($request, $context);
-                if (class_exists("\\Generator")) {
+                if (HaveGenerator) {
                     return Future\co($result);
                 }
                 else {
@@ -73,7 +73,7 @@ abstract class HandlerManager {
         $this->defaultAfterFilterHandler = function(/*string*/ $request, stdClass $context) use ($self) {
             try {
                 $result = $self->afterFilterHandler($request, $context);
-                if (class_exists("\\Generator")) {
+                if (HaveGenerator) {
                     return Future\co($result);
                 }
                 else {
@@ -114,7 +114,7 @@ abstract class HandlerManager {
             try {
                 $array = array($name, &$args, $context, $next);
                 $result = call_user_func_array($handler, $array);
-                if (class_exists("\\Generator")) {
+                if (HaveGenerator) {
                     return Future\co($result);
                 }
                 else {
@@ -133,7 +133,7 @@ abstract class HandlerManager {
         return function(/*string*/ $request, stdClass $context) use ($next, $handler) {
             try {
                 $result = call_user_func($handler, $request, $context, $next);
-                if (class_exists("\\Generator")) {
+                if (HaveGenerator) {
                     return Future\co($result);
                 }
                 else {
@@ -149,7 +149,7 @@ abstract class HandlerManager {
         };
     }
     public function addInvokeHandler(/*callable*/ $handler) {
-        if ($handler == null) return;
+        if ($handler == null) return null;
         $this->invokeHandlers[] = $handler;
         $next = $this->defaultInvokeHandler;
         for ($i = count($this->invokeHandlers) - 1; $i >= 0; --$i) {
@@ -169,7 +169,7 @@ abstract class HandlerManager {
         return $this;
     }
     public function addAfterFilterHandler(/*callable*/ $handler) {
-        if ($handler == null) return;
+        if ($handler == null) return null;
         $this->afterFilterHandlers[] = $handler;
         $next = $this->defaultAfterFilterHandler;
         for ($i = count($this->afterFilterHandlers) - 1; $i >= 0; --$i) {
