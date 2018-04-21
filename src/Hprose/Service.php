@@ -226,7 +226,7 @@ abstract class Service extends HandlerManager {
         }
         return call_user_func_array($context->method, $args);
     }
-    private function inputFilter($data, stdClass $context) {
+    protected function inputFilter($data, stdClass $context) {
         for ($i = count($this->filters) - 1; $i >= 0; $i--) {
             $data = $this->filters[$i]->inputFilter($data, $context);
         }
@@ -285,7 +285,7 @@ abstract class Service extends HandlerManager {
         $stream->close();
         return $data;
     }
-    private function beforeInvoke($name, array &$args, stdClass $context) {
+    protected function beforeInvoke($name, array &$args, stdClass $context) {
         try {
             $self = $this;
             if ($this->onBeforeInvoke !== null) {
@@ -428,7 +428,7 @@ abstract class Service extends HandlerManager {
         $stream->close();
         return $data;
     }
-    private function doInvoke(BytesIO $stream, stdClass $context) {
+    protected function doInvoke(BytesIO $stream, stdClass $context) {
         $results = array();
         $reader = new Reader($stream);
         do {
