@@ -14,7 +14,7 @@
  *                                                        *
  * hprose service class for php 5.3+                      *
  *                                                        *
- * LastModified: Feb 26, 2018                             *
+ * LastModified: Apr 21, 2018                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -327,7 +327,7 @@ abstract class Service extends HandlerManager {
         }
         $passContext = $context->passContext;
         if ($passContext === null) {
-            $passContext = $this->passContext;
+            $context->passContext = $passContext = $this->passContext;
         }
         if ($context->async) {
             $self = $this;
@@ -370,11 +370,11 @@ abstract class Service extends HandlerManager {
         But PHP 5.3 can't call private method in closure,
         so we comment the private keyword.
     */
-    /*private*/ function afterInvoke($name, array $args, stdClass $context, $result) {
-        if ($context->async && is_callable($args[count($args) - 1])) {
+    /*private*/ function afterInvoke($name, array &$args, stdClass $context, $result) {
+        if ($context->async && (count($args) > 0) && is_callable($args[count($args) - 1])) {
             unset($args[count($args) - 1]);
         }
-        if ($context->passContext && ($args[count($args) - 1] === $context)) {
+        if ($context->passContext && (count($args) > 0) && ($args[count($args) - 1] === $context)) {
             unset($args[count($args) - 1]);
         }
         if ($this->onAfterInvoke !== null) {
