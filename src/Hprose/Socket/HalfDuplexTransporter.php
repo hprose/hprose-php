@@ -14,7 +14,7 @@
  *                                                        *
  * hprose socket HalfDuplexTransporter class for php 5.3+ *
  *                                                        *
- * LastModified: Jan 14, 2018                             *
+ * LastModified: Feb 24, 2018                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -43,7 +43,7 @@ class HalfDuplexTransporter extends Transporter {
             $this->free($o, $index);
         }
         unset($o->responses[(integer)$stream]);
-        fclose($stream);
+        @fclose($stream);
         $this->removeStream($stream, $o->readpool);
     }
     protected function getBodyLength($stream) {
