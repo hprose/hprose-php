@@ -31,12 +31,12 @@ function error($e) {
     return Future\error($e);
 }
 
-function value($v) {
-    return Future\value($v);
+function value($v, $context = null) {
+    return Future\value($v, $context);
 }
 
-function resolve($value) {
-    return value($value);
+function resolve($value, $context = null) {
+    return value($value, $context);
 }
 function reject($reason) {
     return error($reason);
@@ -50,24 +50,24 @@ function promise($executor) {
     return new Promise($executor);
 }
 
-function all($array) {
-    return Future\all($array);
+function all($array, $context = null) {
+    return Future\all($array, $context);
 }
 
 function join() {
     return all(func_get_args());
 }
 
-function race($array) {
-    return Future\race($array);
+function race($array, $context = null) {
+    return Future\race($array, $context);
 }
 
-function any($array) {
-    return Future\any($array);
+function any($array, $context = null) {
+    return Future\any($array, $context);
 }
 
-function settle($array) {
-    return Future\settle($array);
+function settle($array, $context = null) {
+    return Future\settle($array, $context);
 }
 
 function run($handler/*, arg1, arg2, ... */) {
@@ -79,8 +79,8 @@ function run($handler/*, arg1, arg2, ... */) {
     );
 }
 
-function wrap($handler) {
-    return Future\wrap($handler);
+function wrap($handler, $context = null) {
+    return Future\wrap($handler, $context);
 }
 
 function each($array, $callback) {
@@ -123,16 +123,16 @@ function udiff(/*$array1, $array2, $...*/) {
     return call_user_func_array("\\Hprose\\Future\\udiff", func_get_args());
 }
 
-function toPromise($obj) {
-    return Future\toPromise($obj);
+function toPromise($obj, $context = null) {
+    return Future\toPromise($obj, $context);
 }
 
-function promisify($fn) {
-    return Future\promisify($fn);
+function promisify($fn, $context = null) {
+    return Future\promisify($fn, $context);
 }
 
 if (class_exists("\\Generator")) {
-    function co(/*$generator, arg1, arg2...*/) {
-        return call_user_func_array("\\Hprose\\Future\\co", func_get_args());
+    function co($generator, $context = null) {
+        return \Hprose\Future\co($generator, $context);
     }
 }

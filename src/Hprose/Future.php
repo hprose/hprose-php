@@ -22,6 +22,7 @@
 namespace Hprose;
 
 use Exception;
+use Hprose\Future\SysCall;
 use Throwable;
 use TypeError;
 use Hprose\Future\UncatchableException;
@@ -35,9 +36,11 @@ class Future {
     private $state = Future::PENDING;
     private $value;
     private $reason;
+    private $context = null;
     private $subscribers = array();
 
-    public function __construct($computation = NULL) {
+    public function __construct($computation = NULL, $context = null) {
+        $this->context = $context;
         if (is_callable($computation)) {
             try {
                 $this->resolve(call_user_func($computation));
@@ -70,6 +73,12 @@ class Future {
         }
     }
 
+    /**
+     * @param $onfulfill
+     * @param Future $next
+     * @param $x
+     * @throws Exception
+     */
     private function privateResolve($onfulfill, $next, $x) {
         if (is_callable($onfulfill)) {
             $this->privateCall($onfulfill, $next, $x);
@@ -94,8 +103,18 @@ class Future {
             return;
         }
         if (Future\isFuture($value)) {
+            /**
+             * @var $value $this
+             */
             $value->fill($this);
             return;
+        }
+        if (Future\isSysCall($value))
+        {
+            /**
+             * @var SysCall $value
+             */
+            $value = $value($this);
         }
         if (($value !== NULL) and is_object($value) or (is_string($value) and class_exists($value,false))) {
             if (method_exists($value, 'then')) {
@@ -163,10 +182,15 @@ class Future {
         }
     }
 
+    /**
+     * @param callable $onfulfill
+     * @param callable $onreject
+     * @return Future
+     */
     public function then($onfulfill, $onreject = NULL) {
         if (!is_callable($onfulfill)) { $onfulfill = NULL; }
         if (!is_callable($onreject)) { $onreject = NULL; }
-        $next = new Future();
+        $next = new Future(null, $this->context);
         if ($this->state === self::FULFILLED) {
             $this->privateResolve($onfulfill, $next, $this->value);
         }
@@ -180,6 +204,7 @@ class Future {
                 'next' => $next
             ));
         }
+
         return $next;
     }
 
@@ -261,6 +286,24 @@ class Future {
         );
     }
 
+    /**
+     * @param $context
+     * @return $this
+     */
+    public function setContext($context)
+    {
+        $this->context = $context;
+        return $this;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getContext()
+    {
+        return $this->context;
+    }
+
     public function __get($key) {
         if ($key == 'state') {
             return $this->state;
@@ -276,9 +319,10 @@ class Future {
         if ($args === NULL) {
             $args = array();
         }
+        $context = $this->context;
         return $this->then(
-            function($result) use ($method, $args) {
-                return Future\all($args)->then(
+            function($result) use ($method, $args, $context) {
+                return Future\all($args, $context)->then(
                     function($args) use ($result, $method) {
                         return call_user_func_array(array($result, $method), $args);
                     }

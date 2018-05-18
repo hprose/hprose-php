@@ -27,10 +27,12 @@ use Throwable;
 use RangeException;
 use ReflectionFunction;
 use ReflectionMethod;
-use ReflectionObject;
 
 function isFuture($obj) {
     return $obj instanceof Future;
+}
+function isSysCall($obj) {
+    return $obj instanceof SysCall;
 }
 
 function error($e) {
@@ -39,8 +41,8 @@ function error($e) {
     return $future;
 }
 
-function value($v) {
-    $future = new Future();
+function value($v, $context = null) {
+    $future = new Future(null, $context);
     $future->resolve($v);
     return $future;
 }
@@ -80,12 +82,15 @@ function promise($executor) {
     return $future;
 }
 
-function toFuture($obj) {
-    return isFuture($obj) ? $obj : value($obj);
+function toFuture($obj, $context = null) {
+    /**
+     * @var Future $obj
+     */
+    return isFuture($obj) ? (null !== $context ? $obj->setContext($context) : $obj) : value($obj, $context);
 }
 
-function all($array) {
-    return toFuture($array)->then(
+function all($array, $context = null) {
+    return toFuture($array, $context)->then(
         function($array) {
             $keys = array_keys($array);
             $n = count($array);
@@ -122,8 +127,8 @@ function join() {
     return all(func_get_args());
 }
 
-function race($array) {
-    return toFuture($array)->then(
+function race($array, $context = null) {
+    return toFuture($array, $context)->then(
         function($array) {
             $future = new Future();
             foreach ($array as $element) {
@@ -134,7 +139,7 @@ function race($array) {
     );
 }
 
-function any($array) {
+function any($array, $context = null) {
     return toFuture($array)->then(
         function($array) {
             $keys = array_keys($array);
@@ -168,8 +173,8 @@ function any($array) {
     );
 }
 
-function settle($array) {
-    return toFuture($array)->then(
+function settle($array, $context = null) {
+    return toFuture($array, $context)->then(
         function($array) {
             $keys = array_keys($array);
             $n = count($array);
@@ -210,10 +215,10 @@ function run($handler/*, arg1, arg2, ... */) {
     );
 }
 
-function wrap($handler) {
+function wrap($handler, $context = null) {
     if (is_object($handler)) {
         if (is_callable($handler)) {
-            if (class_exists("\\Generator") && ($handler instanceof \Generator)) {
+            if (HaveGenerator && ($handler instanceof \Generator)) {
                 return co($handler);
             }
             return new CallableWrapper($handler);
@@ -221,17 +226,17 @@ function wrap($handler) {
         return new Wrapper($handler);
     }
     if (is_callable($handler)) {
-        if (class_exists("\\Generator")) {
-            return function() use ($handler) {
+        if (HaveGenerator) {
+            return function() use ($handler, $context) {
                 return all(func_get_args())->then(
-                    function($args) use ($handler) {
-                        return co(call_user_func_array($handler, $args));
+                    function($args) use ($handler, $context) {
+                        return co(call_user_func_array($handler, $args), $context);
                     }
                 );
             };
         }
-        return function() use ($handler) {
-            return all(func_get_args())->then(
+        return function() use ($handler, $context) {
+            return all(func_get_args(), $context)->then(
                 function($args) use ($handler) {
                     return call_user_func_array($handler, $args);
                 }
@@ -467,10 +472,10 @@ function udiff(/*$array1, $array2, $...*/) {
     );
 }
 
-function promisify($fn) {
-    return function() use ($fn) {
+function promisify($fn, $context = null) {
+    return function() use ($fn, $context) {
         $args = func_get_args();
-        $future = new Future();
+        $future = new Future(null, $context);
         $args[] = function() use ($future) {
             switch (func_num_args()) {
                 case 0: $future->resolve(NULL); break;
@@ -491,26 +496,25 @@ function promisify($fn) {
     };
 }
 
-if (class_exists("\\Generator")) {
-    function toPromise($obj) {
+if (HaveGenerator) {
+    function toPromise($obj, $context = null) {
         if (isFuture($obj)) {
             return $obj;
         }
         if ($obj instanceof \Generator) {
-            return co($obj);
+            return co($obj, $context);
         }
-        return value($obj);
+        return value($obj, $context);
     }
 
-    function co($generator/*, arg1, arg2...*/) {
+    function co($generator, $context = null) {
         if (is_callable($generator)) {
-            $args = array_slice(func_get_args(), 1);
-            $generator = call_user_func_array($generator, $args);
+            $generator = call_user_func($generator);
         }
         if (!($generator instanceof \Generator)) {
-            return toFuture($generator);
+            return toFuture($generator, $context);
         }
-        $future = new Future();
+        $future = new Future(null, $context);
         $onfulfilled = function($value) use (&$onfulfilled, &$onrejected, $generator, $future) {
             try {
                 $next = $generator->send($value);
@@ -545,12 +549,12 @@ if (class_exists("\\Generator")) {
                 $future->reject($e);
             }
         };
-        toPromise($generator->current())->then($onfulfilled, $onrejected);
+        toPromise($generator->current(), $context)->then($onfulfilled, $onrejected);
         return $future;
     }
 }
 else {
-    function toPromise($obj) {
-        return toFuture($obj);
+    function toPromise($obj, $context = null) {
+        return toFuture($obj, $context);
     }
 }
