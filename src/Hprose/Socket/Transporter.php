@@ -205,15 +205,15 @@ abstract class Transporter {
                 );
             }
             if (($stream !== false) &&
-                (stream_set_blocking($stream, false) !== false)) {
-                stream_set_read_buffer($stream, $client->readBuffer);
-                stream_set_write_buffer($stream, $client->writeBuffer);
+                (@stream_set_blocking($stream, false) != false)) {
+                @stream_set_read_buffer($stream, $client->readBuffer);
+                @stream_set_write_buffer($stream, $client->writeBuffer);
                 if (function_exists('socket_import_stream')) {
                     if (($scheme === 'tcp') || ($scheme === 'unix')) {
-                        $socket = socket_import_stream($stream);
-                        socket_set_option($socket, SOL_SOCKET, SO_KEEPALIVE, (int)$client->keepAlive);
+                        $socket = @socket_import_stream($stream);
+                        @socket_set_option($socket, SOL_SOCKET, SO_KEEPALIVE, (int)$client->keepAlive);
                         if ($scheme === 'tcp') {
-                            socket_set_option($socket, SOL_TCP, TCP_NODELAY, (int)$client->noDelay);
+                            @socket_set_option($socket, SOL_TCP, TCP_NODELAY, (int)$client->noDelay);
                         }
                     }
                 }
@@ -348,18 +348,18 @@ abstract class Transporter {
                 }
             }
             $stream = $this->stream;
-            stream_set_read_buffer($stream, $client->readBuffer);
-            stream_set_write_buffer($stream, $client->writeBuffer);
+            @stream_set_read_buffer($stream, $client->readBuffer);
+            @stream_set_write_buffer($stream, $client->writeBuffer);
             if (function_exists('socket_import_stream')) {
                 if (($scheme === 'tcp') || ($scheme === 'unix')) {
-                    $socket = socket_import_stream($stream);
-                    socket_set_option($socket, SOL_SOCKET, SO_KEEPALIVE, (int)$client->keepAlive);
+                    $socket = @socket_import_stream($stream);
+                    @socket_set_option($socket, SOL_SOCKET, SO_KEEPALIVE, (int)$client->keepAlive);
                     if ($scheme === 'tcp') {
-                        socket_set_option($socket, SOL_TCP, TCP_NODELAY, (int)$client->noDelay);
+                        @socket_set_option($socket, SOL_TCP, TCP_NODELAY, (int)$client->noDelay);
                     }
                 }
             }
-            if (stream_set_timeout($stream, $sec, $usec) == false) {
+            if (@stream_set_timeout($stream, $sec, $usec) == false) {
                 $this->stream = null;
                 if ($trycount > 0) {
                     throw $this->getLastError("unknown error");
