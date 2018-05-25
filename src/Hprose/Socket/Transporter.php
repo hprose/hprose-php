@@ -14,7 +14,7 @@
  *                                                        *
  * hprose socket Transporter class for php 5.3+           *
  *                                                        *
- * LastModified: Apr 24, 2018                             *
+ * LastModified: May 25, 2018                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -360,6 +360,7 @@ abstract class Transporter {
                 }
             }
             if (stream_set_timeout($stream, $sec, $usec) == false) {
+                $this->stream = null;
                 if ($trycount > 0) {
                     throw $this->getLastError("unknown error");
                 }
