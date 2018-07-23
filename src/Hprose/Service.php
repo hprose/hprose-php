@@ -68,31 +68,24 @@ abstract class Service extends HandlerManager {
     private $topics = array();
     private $nextid = 0;
 
-    /**
-     * Last ErrorException
-     *
-     * @var null|ErrorException
-     */
-    public static $lastError = null;
+    private static $lastError = null;
+    private static $trackError = false;
+    private static $lastErrorHandler = null;
+    public static $currentContext = null;
 
-    /**
-     * trace error
-     *
-     * @var bool
-     */
-    protected static $trackError = false;
-
-    /**
-     * @var null|callable
-     */
-    protected static $_lastErrorHandler = null;
+    // please DON'T use Service::getCurrentContext() out of service method/function.
+    // You'd better to get the current context on the first line of your service method/function
+    // by Service::getCurrentContext(). Otherwise you may get the wrong context.
+    public static function getCurrentContext() {
+        return self::$currentContext;
+    }
 
     public function __construct() {
         parent::__construct();
         $this->errorTypes = error_reporting();
         register_shutdown_function(array($this, 'fatalErrorHandler'));
         $this->addMethod('getNextId', $this, '#', array('simple' => true));
-        self::$_lastErrorHandler = set_error_handler(array($this, 'errorHandler'), $this->errorTypes);
+        self::$lastErrorHandler = set_error_handler(array($this, 'errorHandler'), $this->errorTypes);
     }
 
     public function errorHandler($errno, $errstr, $errfile, $errline) {
@@ -101,8 +94,8 @@ abstract class Service extends HandlerManager {
                 self::$lastError = new ErrorException($errstr, 0, $errno, $errfile, $errline);
             }
         }
-        else if (self::$_lastErrorHandler){
-            call_user_func(self::$_lastErrorHandler, $errno, $errstr, $errfile, $errline);
+        else if (self::$lastErrorHandler){
+            call_user_func(self::$lastErrorHandler, $errno, $errstr, $errfile, $errline);
         }
     }
 
@@ -217,6 +210,7 @@ abstract class Service extends HandlerManager {
         if ($context->oneway) {
             $this->nextTick(function() use ($args, $context) {
                 try {
+                    $self::$currentContext = $context;
                     call_user_func_array($context->method, $args);
                 }
                 catch (Exception $e) {}
@@ -227,6 +221,7 @@ abstract class Service extends HandlerManager {
             }
             return null;
         }
+        $self::$currentContext = $context;
         return call_user_func_array($context->method, $args);
     }
     protected function inputFilter($data, stdClass $context) {
