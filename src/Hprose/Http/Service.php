@@ -14,7 +14,7 @@
  *                                                        *
  * hprose http service class for php 5.3+                 *
  *                                                        *
- * LastModified: Dec 10, 2017                             *
+ * LastModified: Jul 23, 2018                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -140,7 +140,9 @@ class Service extends \Hprose\Service {
             ob_start();
             ob_implicit_flush(0);
             $result = $this->defaultHandle($this->readRequest($context), $context);
+            $message = @ob_get_contents();
             @ob_end_clean();
+            error_log($message);
         }
         else {
             $result = $this->doFunctionList();
