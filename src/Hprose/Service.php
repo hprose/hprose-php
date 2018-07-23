@@ -14,7 +14,7 @@
  *                                                        *
  * hprose service class for php 5.3+                      *
  *                                                        *
- * LastModified: Apr 21, 2018                             *
+ * LastModified: Jul 23, 2018                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -97,8 +97,11 @@ abstract class Service extends HandlerManager {
 
     public function errorHandler($errno, $errstr, $errfile, $errline) {
         if (self::$trackError) {
-            self::$lastError = new ErrorException($errstr, 0, $errno, $errfile, $errline);
-        } else if (self::$_lastErrorHandler){
+            if (error_reporting() !== 0) {
+                self::$lastError = new ErrorException($errstr, 0, $errno, $errfile, $errline);
+            }
+        }
+        else if (self::$_lastErrorHandler){
             call_user_func(self::$_lastErrorHandler, $errno, $errstr, $errfile, $errline);
         }
     }
