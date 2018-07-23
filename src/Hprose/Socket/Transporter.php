@@ -14,7 +14,7 @@
  *                                                        *
  * hprose socket Transporter class for php 5.3+           *
  *                                                        *
- * LastModified: May 25, 2018                             *
+ * LastModified: Jul 23, 2018                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -192,15 +192,24 @@ abstract class Transporter {
         for ($i = 0; $i < $n; $i++) {
             $scheme = parse_url($client->uri, PHP_URL_SCHEME);
             if ($scheme == 'unix') {
-                $stream = pfsockopen('unix://' . parse_url($client->uri, PHP_URL_PATH));
+                if ($client->fullDuplex) {
+                    $stream = pfsockopen('unix://' . parse_url($client->uri, PHP_URL_PATH));
+                }
+                else {
+                    $stream = fsockopen('unix://' . parse_url($client->uri, PHP_URL_PATH));
+                }
             }
             else {
+                $flag = STREAM_CLIENT_CONNECT;
+                if ($client->fullDuplex) {
+                    $flag |= STREAM_CLIENT_PERSISTENT;
+                }
                 $stream = stream_socket_client(
                     $client->uri . '/' . $i,
                     $errno,
                     $errstr,
                     max(0, $o->deadlines[$i] - microtime(true)),
-                    STREAM_CLIENT_CONNECT | STREAM_CLIENT_PERSISTENT,
+                    $flag,
                     $context
                 );
             }
@@ -291,12 +300,18 @@ abstract class Transporter {
     private function write($stream, $request) {
         $buffer = $this->appendHeader($request);
         $length = strlen($buffer);
-        while (true) {
+        $retry = 3;
+        while ($retry > 0) {
             $sent = fwrite($stream, $buffer, $length);
             if ($sent === false) {
                 return false;
             }
-            if ($sent < $length) {
+            if ($sent == 0) {
+                time_nanosleep(0, 1000);
+                $retry--;
+            }
+            else if ($sent < $length) {
+                $retry = 3;
                 $buffer = substr($buffer, $sent);
                 $length -= $sent;
             }
@@ -304,6 +319,7 @@ abstract class Transporter {
                 return true;
             }
         }
+        return false;
     }
     private function read($stream) {
         $length = $this->getBodyLength($stream);
@@ -330,15 +346,24 @@ abstract class Transporter {
             $scheme = parse_url($client->uri, PHP_URL_SCHEME);
             if ($this->stream === null) {
                 if ($scheme == 'unix') {
-                    $this->stream = pfsockopen('unix://' . parse_url($client->uri, PHP_URL_PATH));
+                    if ($client->fullDuplex) {
+                        $this->stream = pfsockopen('unix://' . parse_url($client->uri, PHP_URL_PATH));
+                    }
+                    else {
+                        $this->stream = fsockopen('unix://' . parse_url($client->uri, PHP_URL_PATH));
+                    }
                 }
                 else {
+                    $flag = STREAM_CLIENT_CONNECT;
+                    if ($client->fullDuplex) {
+                        $flag |= STREAM_CLIENT_PERSISTENT;
+                    }
                     $this->stream = stream_socket_client(
                         $client->uri,
                         $errno,
                         $errstr,
                         $timeout,
-                        STREAM_CLIENT_CONNECT | STREAM_CLIENT_PERSISTENT,
+                        $flag,
                         stream_context_create($client->options)
                     );
                 }
