@@ -30,8 +30,7 @@ class Service extends \Hprose\Service {
     public $crossDomain = false;
     public $p3p = false;
     public $get = true;
-    protected $origins = array();
-    protected $cleanHandleOutput = true;
+    private $origins = array();
 
     public function header($name, $value, $context) {
         header("$name: $value");
@@ -138,15 +137,10 @@ class Service extends \Hprose\Service {
             }
         }
         elseif ($this->isPost($context)) {
-            if (true === $this->cleanHandleOutput) {
-                ob_start();
-                ob_implicit_flush(0);
-                $result = $this->defaultHandle($this->readRequest($context), $context);
-                @ob_end_clean();
-            }
-            else {
-                $result = $this->defaultHandle($this->readRequest($context), $context);
-            }
+            ob_start();
+            ob_implicit_flush(0);
+            $result = $this->defaultHandle($this->readRequest($context), $context);
+            @ob_end_clean();
         }
         else {
             $result = $this->doFunctionList();

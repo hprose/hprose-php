@@ -28,6 +28,7 @@ use Throwable;
 use ArrayObject;
 use SplQueue;
 use ReflectionMethod;
+use ReflectionFunction;
 
 abstract class Service extends HandlerManager {
     private static $magicMethods = array(
@@ -86,11 +87,6 @@ abstract class Service extends HandlerManager {
      */
     protected static $_lastErrorHandler = null;
 
-    /**
-     * @var \stdClass
-     */
-    protected static $_currentContext = null;
-
     public function __construct() {
         parent::__construct();
         $this->errorTypes = error_reporting();
@@ -101,9 +97,7 @@ abstract class Service extends HandlerManager {
 
     public function errorHandler($errno, $errstr, $errfile, $errline) {
         if (self::$trackError) {
-            if(error_reporting()!==0){
-                self::$lastError = new ErrorException($errstr, 0, $errno, $errfile, $errline);
-            }
+            self::$lastError = new ErrorException($errstr, 0, $errno, $errfile, $errline);
         } else if (self::$_lastErrorHandler){
             call_user_func(self::$_lastErrorHandler, $errno, $errstr, $errfile, $errline);
         }
@@ -218,50 +212,19 @@ abstract class Service extends HandlerManager {
     */
     /*private*/ function callService(array $args, stdClass $context) {
         if ($context->oneway) {
-            $self = $this;
-            $this->nextTick(function() use ($args, $context, $self) {
+            $this->nextTick(function() use ($args, $context) {
                 try {
-                    Service::$_currentContext = $context;
-                    $rs = call_user_func_array($context->method, $args);
-                    Service::$_currentContext = null;
-                    if (is_object($rs) && $rs instanceof \Generator)
-                    {
-                        return $self->coroutineScheduler($rs, $context);
-                    }
+                    call_user_func_array($context->method, $args);
                 }
                 catch (Exception $e) {}
                 catch (Throwable $e) {}
             });
             if ($context->async) {
-                self::$_currentContext = $context;
-                $rs = call_user_func($args[count($args) - 1], null);
-                self::$_currentContext = null;
-                if (is_object($rs) && $rs instanceof \Generator)
-                {
-                    $this->coroutineScheduler($rs, $context);
-                }
+                call_user_func($args[count($args) - 1], null);
             }
             return null;
         }
-        self::$_currentContext = $context;
-        $rs = call_user_func_array($context->method, $args);
-        self::$_currentContext = null;
-        if (is_object($rs) && $rs instanceof \Generator)
-        {
-            return $this->coroutineScheduler($rs, $context);
-        }
-        return $rs;
-    }
-    /**
-     * coroutine scheduler
-     *
-     * @param \Generator $co
-     * @param stdClass|mixed $context
-     * @return mixed
-     */
-    protected function coroutineScheduler(\Generator $co, $context = null)
-    {
-        return Future\co($co, $context);
+        return call_user_func_array($context->method, $args);
     }
     protected function inputFilter($data, stdClass $context) {
         for ($i = count($this->filters) - 1; $i >= 0; $i--) {
@@ -386,13 +349,11 @@ abstract class Service extends HandlerManager {
             return $this->callService($args, $context);
         }
     }
-    /**
-     * This method is a private method.
-     * But PHP 5.3 can't call private method in closure,
-     * so we comment the private keyword.
-     *
-     * @return Future
-    **/
+    /*
+        This method is a private method.
+        But PHP 5.3 can't call private method in closure,
+        so we comment the private keyword.
+    */
     /*private*/ function invoke($name, array &$args, stdClass $context) {
         $invokeHandler = $this->invokeHandler;
         $self = $this;
@@ -694,13 +655,24 @@ abstract class Service extends HandlerManager {
         if (!array_key_exists($name, $this->calls)) {
             $this->names[] = $alias;
         }
-        $call               = new stdClass();
-        $call->method       = $func;
-        $call->mode         = isset($options['mode']) ? $options['mode'] : ResultMode::Normal;
-        $call->simple       = isset($options['simple']) ? $options['simple'] : null;
-        $call->oneway       = isset($options['oneway']) ? $options['oneway'] : false;
-        $call->async        = isset($options['async']) ? $options['async'] : false;
-        $call->passContext  = isset($options['passContext']) ? $options['passContext'] : null;
+        if (HaveGenerator) {
+            if (is_array($func)) {
+                $f = new ReflectionMethod($func[0], $func[1]);
+            }
+            else {
+                $f = new ReflectionFunction($func);
+            }
+            if ($f->isGenerator()) {
+                $func = Future\wrap($func);
+            }
+        }
+        $call = new stdClass();
+        $call->method = $func;
+        $call->mode = isset($options['mode']) ? $options['mode'] : ResultMode::Normal;
+        $call->simple = isset($options['simple']) ? $options['simple'] : null;
+        $call->oneway = isset($options['oneway']) ? $options['oneway'] : false;
+        $call->async = isset($options['async']) ? $options['async'] : false;
+        $call->passContext = isset($options['passContext']) ? $options['passContext']: null;
         $this->calls[$name] = $call;
         return $this;
     }
@@ -1302,35 +1274,5 @@ abstract class Service extends HandlerManager {
      */
     public function getNames(){
         return $this->names;
-    }
-
-    /**
-     * get current context
-     *
-     * ```php
-     * $context = Hprose\Service::getCurrentContext();
-     * ```
-     *
-     * @return stdClass
-     */
-    public static function getCurrentContext()
-    {
-        return self::$_currentContext;
-    }
-
-    /**
-     * get current context in coroutine
-     *
-     * ```php
-     * $context = yield Hprose\Service::getCurrentContextCo();
-     * ```
-     *
-     * @return mixed
-     */
-    public static function getCurrentContextCo()
-    {
-        return new Future\SysCall(function(Future $future) {
-            return $future->getContext();
-        });
     }
 }
