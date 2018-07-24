@@ -14,7 +14,7 @@
  *                                                        *
  * hprose socket FullDuplexTransporter class for php 5.3+ *
  *                                                        *
- * LastModified: Apr 24, 2018                             *
+ * LastModified: Jul 24, 2018                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -22,9 +22,18 @@
 namespace Hprose\Socket;
 
 class FullDuplexTransporter extends Transporter {
-    private $id = 0;
+    private static $id = 0;
+    private static $idinited = false;
     private function getId() {
-        return $this->id++;
+        if (self::$idinited === false) {
+            self::$idinited = true;
+            $min = intval(date('i'), 10);
+            $sec = intval(date('s'), 10);
+            $msec = microtime(true);
+            $msec -= floor($msec);
+            self::$id = floor(($min * 60 + $sec + $msec) * 1000) * 1024;
+        }
+        return self::$id++;
     }
     protected function appendHeader($request, $id = null) {
         if ($id === null) {
