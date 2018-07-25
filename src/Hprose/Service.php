@@ -210,7 +210,7 @@ abstract class Service extends HandlerManager {
         if ($context->oneway) {
             $this->nextTick(function() use ($args, $context) {
                 try {
-                    $self::$currentContext = $context;
+                    self::$currentContext = $context;
                     call_user_func_array($context->method, $args);
                 }
                 catch (Exception $e) {}
@@ -221,7 +221,7 @@ abstract class Service extends HandlerManager {
             }
             return null;
         }
-        $self::$currentContext = $context;
+        self::$currentContext = $context;
         return call_user_func_array($context->method, $args);
     }
     protected function inputFilter($data, stdClass $context) {
