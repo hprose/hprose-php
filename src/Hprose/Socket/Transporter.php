@@ -14,7 +14,7 @@
  *                                                        *
  * hprose socket Transporter class for php 5.3+           *
  *                                                        *
- * LastModified: Jul 23, 2018                             *
+ * LastModified: Jul 25, 2018                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -192,24 +192,15 @@ abstract class Transporter {
         for ($i = 0; $i < $n; $i++) {
             $scheme = parse_url($client->uri, PHP_URL_SCHEME);
             if ($scheme == 'unix') {
-                if ($client->fullDuplex) {
-                    $stream = pfsockopen('unix://' . parse_url($client->uri, PHP_URL_PATH));
-                }
-                else {
-                    $stream = fsockopen('unix://' . parse_url($client->uri, PHP_URL_PATH));
-                }
+                $stream = fsockopen('unix://' . parse_url($client->uri, PHP_URL_PATH));
             }
             else {
-                $flag = STREAM_CLIENT_CONNECT;
-                if ($client->fullDuplex) {
-                    $flag |= STREAM_CLIENT_PERSISTENT;
-                }
                 $stream = stream_socket_client(
                     $client->uri . '/' . $i,
                     $errno,
                     $errstr,
                     max(0, $o->deadlines[$i] - microtime(true)),
-                    $flag,
+                    STREAM_CLIENT_CONNECT,
                     $context
                 );
             }
@@ -346,24 +337,15 @@ abstract class Transporter {
             $scheme = parse_url($client->uri, PHP_URL_SCHEME);
             if ($this->stream === null) {
                 if ($scheme == 'unix') {
-                    if ($client->fullDuplex) {
-                        $this->stream = pfsockopen('unix://' . parse_url($client->uri, PHP_URL_PATH));
-                    }
-                    else {
-                        $this->stream = fsockopen('unix://' . parse_url($client->uri, PHP_URL_PATH));
-                    }
+                    $this->stream = fsockopen('unix://' . parse_url($client->uri, PHP_URL_PATH));
                 }
                 else {
-                    $flag = STREAM_CLIENT_CONNECT;
-                    if ($client->fullDuplex) {
-                        $flag |= STREAM_CLIENT_PERSISTENT;
-                    }
                     $this->stream = stream_socket_client(
                         $client->uri,
                         $errno,
                         $errstr,
                         $timeout,
-                        $flag,
+                        STREAM_CLIENT_CONNECT,
                         stream_context_create($client->options)
                     );
                 }
