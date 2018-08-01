@@ -142,7 +142,7 @@ class Service extends \Hprose\Service {
             $result = $this->defaultHandle($this->readRequest($context), $context);
             $message = @ob_get_contents();
             @ob_end_clean();
-            error_log($message);
+            if ($message)$this->errorLog($message);
         }
         else {
             $result = $this->doFunctionList();
@@ -158,5 +158,9 @@ class Service extends \Hprose\Service {
             $this->writeResponse($result, $context);
        }
        return $context->response;
+    }
+
+    protected function errorLog($err) {
+        error_log($err);
     }
 }
