@@ -59,14 +59,15 @@ abstract class Service extends HandlerManager {
     public $simple = false;
     public $debug = false;
     public $passContext = false;
-    // for push service
+    /**
+     * @var \Hprose\Socket\Timer|null
+     */
     protected $timer = null;
     public $timeout = 120000;
     public $heartbeat = 3000;
     public $onSubscribe = null;
     public $onUnsubscribe = null;
-    private $topics = array();
-    private $nextid = 0;
+    protected $topics = array();
 
     private static $lastError = null;
     private static $trackError = false;
@@ -1005,6 +1006,10 @@ abstract class Service extends HandlerManager {
         But PHP 5.3 can't call private method in closure,
         so we comment the private keyword.
     */
+    /**
+     * @param $topic
+     * @return ArrayObject
+     */
     /*private*/ function getTopics($topic) {
         if (empty($this->topics[$topic])) {
             throw new Exception('topic "' + $topic + '" is not published.');
@@ -1069,7 +1074,7 @@ abstract class Service extends HandlerManager {
             $self = $this;
             $topics = $this->getTopics($topic);
             $future = new Future();
-            $timer = $this->timer->setTimeout(function() use ($future) {
+            $topics[$id]->timer = $this->timer->setTimeout(function() use ($future) {
                 $future->reject(new TimeoutException('timeout'));
             }, $timeout);
             $request->whenComplete(function() use ($self, $topic, $id) {
@@ -1093,6 +1098,24 @@ abstract class Service extends HandlerManager {
             });
         }
         return $request;
+    }
+    public function setOffline($topic, $id = null) {
+        $topics = $this->getTopics($topic);
+        if (null === $id) {
+            $ids = array();
+            foreach ($topics as $id => $tmp) {
+                $ids[] = $id;
+            }
+            unset($id, $tmp);
+            foreach ($ids as $id)
+            {
+                $this->offline($topics, $topic, $id);
+            }
+        }
+        else
+        {
+            $this->offline($topics, $topic, $id);
+        }
     }
     public function publish($topic, array $options = array()) {
         $this->checkPushService();
@@ -1232,10 +1255,18 @@ abstract class Service extends HandlerManager {
             $detector->then($callback);
         }
     }
-    // push($topic, $result)
-    // push($topic, $ids, $result)
-    // push($topic, $id, $result)
-    public function push($topic) {
+
+    /**
+     * push($topic, $result)
+     * push($topic, $ids, $result)
+     * push($topic, $id, $result)
+     *
+     * @param string $topic
+     * @param int|array|mixed $idOrIdsOrResult
+     * @param mixed $result
+     * @throws Exception
+     */
+    public function push($topic, $idOrIdsOrResult = null, $result = null) {
         $this->checkPushService();
         $args = func_get_args();
         $argc = func_num_args();
