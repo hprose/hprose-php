@@ -82,9 +82,13 @@ abstract class Service extends HandlerManager {
 
     public function __construct() {
         parent::__construct();
+        $this->addMethod('getNextId', $this, '#', array('simple' => true));
+        $this->registerErrorHandler();
+    }
+
+    protected function registerErrorHandler() {
         $this->errorTypes = error_reporting();
         register_shutdown_function(array($this, 'fatalErrorHandler'));
-        $this->addMethod('getNextId', $this, '#', array('simple' => true));
         self::$lastErrorHandler = set_error_handler(array($this, 'errorHandler'), $this->errorTypes);
     }
 
