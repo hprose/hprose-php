@@ -100,8 +100,9 @@ class Service extends \Hprose\Service {
         unset($this->deadlines[$id]);
     }
     private function runDelayTasks() {
+        $time = microtime(true);
         foreach ($this->deadlines as $id => $deadline) {
-            if (microtime(true) >= $deadline) {
+            if ($time >= $deadline) {
                 list($task, $once) = $this->delayTasks[$id];
                 call_user_func($task);
                 if ($once) {
