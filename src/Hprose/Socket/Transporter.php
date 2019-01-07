@@ -378,10 +378,14 @@ abstract class Transporter {
             }
         }
         if ($this->write($stream, $buffer) === false) {
+            @fclose($this->stream);
+            $this->stream = null;
             throw $this->getLastError("request write error");
         }
         $response = $this->read($stream, $buffer);
         if ($response === false) {
+            @fclose($this->stream);
+            $this->stream = null;
             throw $this->getLastError("response read error");
         }
         return $response;
