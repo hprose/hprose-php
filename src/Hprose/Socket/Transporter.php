@@ -68,7 +68,7 @@ abstract class Transporter {
         $header = '';
         do {
             $buffer = fread($stream, $n - strlen($header));
-            if ($buffer === false) {
+            if ($buffer === false || '' === $buffer) {
                 return false;
             }
             $header .= $buffer;
@@ -128,7 +128,7 @@ abstract class Transporter {
         }
         $remaining = $response->length - strlen($response->buffer);
         $buffer = fread($stream, $remaining);
-        if (empty($buffer)) {
+        if (false === $buffer || '' === $buffer) {
             $this->asyncReadError($o, $stream, $response->index);
             return;
         }
@@ -294,7 +294,7 @@ abstract class Transporter {
         $retry = 3;
         while ($retry > 0) {
             $sent = fwrite($stream, $buffer, $length);
-            if ($sent === false) {
+            if ($sent === false || 0 === $sent) {
                 return false;
             }
             if ($sent == 0) {
@@ -318,7 +318,7 @@ abstract class Transporter {
         $response = '';
         while (($remaining = $length - strlen($response)) > 0) {
             $buffer = fread($stream, $remaining);
-            if ($buffer === false) {
+            if ($buffer === false || '' === $buffer) {
                 return false;
             }
             $response .= $buffer;
