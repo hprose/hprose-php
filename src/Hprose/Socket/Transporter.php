@@ -14,7 +14,7 @@
  *                                                        *
  * hprose socket Transporter class for php 5.3+           *
  *                                                        *
- * LastModified: Jul 25, 2018                             *
+ * LastModified: Jan 10, 2019                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -42,12 +42,16 @@ abstract class Transporter {
     protected abstract function getResponse($stream, $o);
     protected abstract function afterRead($stream, $o, $response);
 
+    private function fclose($handle) {
+        if (is_resource($handle)) @fclose($handle);
+    }
+
     public function __construct(Client $client, $async) {
         $this->client = $client;
         $this->async = $async;
     }
     public function __destruct() {
-        if ($this->stream !== null) @fclose($this->stream);
+        if ($this->stream !== null) $this->fclose($this->stream);
     }
     protected function getLastError($error) {
         $e = error_get_last();
@@ -104,7 +108,7 @@ abstract class Transporter {
         if ($sent === false) {
             $o->results[$request->index]->reject($this->getLastError('request write error'));
             $this->free($o, $request->index);
-            @fclose($stream);
+            $this->fclose($stream);
             $this->removeStream($stream, $o->writepool);
             return;
         }
@@ -149,7 +153,7 @@ abstract class Transporter {
     private function removeStreamById($stream_id, &$pool) {
         foreach ($pool as $index => $stream) {
             if ((integer)$stream == $stream_id) {
-                @fclose($stream);
+                $this->fclose($stream);
                 unset($pool[$index]);
                 return;
             }
@@ -276,8 +280,8 @@ abstract class Transporter {
                     $o->writepool = $this->createPool($client, $o);
                 }
             }
-            foreach ($o->writepool as $stream) @fclose($stream);
-            foreach ($o->readpool as $stream) @fclose($stream);
+            foreach ($o->writepool as $stream) $this->fclose($stream);
+            foreach ($o->readpool as $stream) $this->fclose($stream);
         }
     }
     public function asyncSendAndReceive($buffer, stdClass $context) {
@@ -378,13 +382,13 @@ abstract class Transporter {
             }
         }
         if ($this->write($stream, $buffer) === false) {
-            @fclose($this->stream);
+            $this->fclose($this->stream);
             $this->stream = null;
             throw $this->getLastError("request write error");
         }
         $response = $this->read($stream, $buffer);
         if ($response === false) {
-            @fclose($this->stream);
+            $this->fclose($this->stream);
             $this->stream = null;
             throw $this->getLastError("response read error");
         }
