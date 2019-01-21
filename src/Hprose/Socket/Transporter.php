@@ -14,7 +14,7 @@
  *                                                        *
  * hprose socket Transporter class for php 5.3+           *
  *                                                        *
- * LastModified: Jan 10, 2019                             *
+ * LastModified: Jan 21, 2019                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -292,13 +292,13 @@ abstract class Transporter {
         $this->results[] = $result;
         return $result;
     }
-    private function write($stream, $request) {
+    private function write($stream, $request, $timeout) {
         $buffer = $this->appendHeader($request);
         $length = strlen($buffer);
-        $retry = 3;
+        $retry = $timeout;
         while ($retry > 0) {
             $sent = fwrite($stream, $buffer, $length);
-            if ($sent === false || 0 === $sent) {
+            if ($sent === false) {
                 return false;
             }
             if ($sent == 0) {
@@ -306,7 +306,7 @@ abstract class Transporter {
                 $retry--;
             }
             else if ($sent < $length) {
-                $retry = 3;
+                $retry = $timeout;
                 $buffer = substr($buffer, $sent);
                 $length -= $sent;
             }
@@ -381,7 +381,7 @@ abstract class Transporter {
                 break;
             }
         }
-        if ($this->write($stream, $buffer) === false) {
+        if ($this->write($stream, $buffer, $context->timeout) === false) {
             $this->fclose($this->stream);
             $this->stream = null;
             throw $this->getLastError("request write error");
