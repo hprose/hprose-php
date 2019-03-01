@@ -76,8 +76,7 @@ class Client extends \Hprose\Client {
     public function setHeader($name, $value) {
         $lname = strtolower($name);
         if ($lname != 'content-type' &&
-            $lname != 'content-length' &&
-            $lname != 'host') {
+            $lname != 'content-length') {
             if ($value) {
                 $this->header[$name] = $value;
             }
