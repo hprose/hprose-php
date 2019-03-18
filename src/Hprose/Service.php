@@ -47,9 +47,9 @@ abstract class Service extends HandlerManager {
         "__set_state",
         "__clone"
     );
-    private $calls = array();
-    private $names = array();
-    private $filters = array();
+    protected $calls = array();
+    protected $names = array();
+    protected $filters = array();
     protected $userFatalErrorHandler = null;
     public $onBeforeInvoke = null;
     public $onAfterInvoke = null;
