@@ -48,9 +48,7 @@ class Writer {
     }
     private static function isList(array $a) {
         $count = count($a);
-        return ($count === 0) ||
-               ((isset($a[0]) || array_key_exists(0, $a)) && (($count === 1) ||
-               (isset($a[$count - 1]) || array_key_exists($count - 1, $a))));
+        return ($count * ($count - 1) / 2) === array_sum(array_keys($a));
     }
     public function serialize($val) {
         if ($val === null) {
