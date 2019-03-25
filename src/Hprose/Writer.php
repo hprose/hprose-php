@@ -48,7 +48,13 @@ class Writer {
     }
     private static function isList(array $a) {
         $count = count($a);
-        return ($count * ($count - 1) / 2) === array_sum(array_keys($a));
+        ksort($a);
+        reset($a);
+        $start = key($a);
+        end($a);
+        $end = key($a);
+        $count = count($a);
+        return ($start === 0) && ($end === ($count - 1));
     }
     public function serialize($val) {
         if ($val === null) {
