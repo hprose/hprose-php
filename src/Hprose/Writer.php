@@ -48,13 +48,12 @@ class Writer {
     }
     private static function isList(array $a) {
         $count = count($a);
-        ksort($a);
-        reset($a);
-        $start = key($a);
-        end($a);
-        $end = key($a);
-        $count = count($a);
-        return ($start === 0) && ($end === ($count - 1));
+        $i = 0;
+        while ($i < $count){
+            if(!isset($a[$i])) return false;
+            $i++;
+        }
+        return true;
     }
     public function serialize($val) {
         if ($val === null) {
