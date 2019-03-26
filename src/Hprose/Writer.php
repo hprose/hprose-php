@@ -50,8 +50,8 @@ class Writer {
         $count = count($a);
         $i = 0;
         while ($i < $count){
-            if(!isset($a[$i])) return false;
-            $i++;
+            if(isset($a[$i]) || array_key_exists($i, $a)) { $i++; continue; };
+            return false;
         }
         return true;
     }
