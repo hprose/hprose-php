@@ -48,7 +48,15 @@ class Writer {
     }
     private static function isList(array $a) {
         $count = count($a);
-        return ($count * ($count - 1) / 2) === array_sum(array_keys($a));
+        $looper = $count > 100 ? [[0, 30], [intval($count/2) - 15, intval($count/2) + 15], [$count - 31, $count]] : [0, $count];
+        foreach($looper as $loop) {
+            $i = $loop[0];
+            while ($i < $loop[1]){
+                if(isset($a[$i]) || array_key_exists($i, $a)) { $i++; continue; };
+                return false;
+            }
+        }
+        return true;
     }
     public function serialize($val) {
         if ($val === null) {
