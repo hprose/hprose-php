@@ -48,10 +48,13 @@ class Writer {
     }
     private static function isList(array $a) {
         $count = count($a);
-        $i = 0;
-        while ($i < $count){
-            if(isset($a[$i]) || array_key_exists($i, $a)) { $i++; continue; };
-            return false;
+        $looper = $count > 100 ? [[0, 30], [intval($count/2) - 15, intval($count/2) + 15], [$count - 31, $count]] : [0, $count];
+        foreach($looper as $loop) {
+            $i = $loop[0];
+            while ($i < $loop[1]){
+                if(isset($a[$i]) || array_key_exists($i, $a)) { $i++; continue; };
+                return false;
+            }
         }
         return true;
     }
