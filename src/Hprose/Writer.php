@@ -48,7 +48,7 @@ class Writer {
     }
     private static function isList(array $a) {
         $count = count($a);
-        $looper = $count > 100 ? [[0, 30], [intval($count/2) - 15, intval($count/2) + 15], [$count - 31, $count]] : [0, $count];
+        $looper = $count > 100 ? [[0, 30], [intval($count/2) - 15, intval($count/2) + 15], [$count - 31, $count - 1]] : [[0, $count - 1]];
         foreach($looper as $loop) {
             $i = $loop[0];
             while ($i < $loop[1]){
