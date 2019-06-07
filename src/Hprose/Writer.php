@@ -14,7 +14,7 @@
  *                                                        *
  * hprose writer class for php 5.3+                       *
  *                                                        *
- * LastModified: Jul 11, 2016                             *
+ * LastModified: Jun 7, 2019                              *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
@@ -46,15 +46,11 @@ class Writer {
     private static function ustrlen($s) {
         return strlen(iconv('UTF-8', 'UTF-16LE', $s)) >> 1;
     }
-    private static function isList(array $a) {
-        $count = count($a);
-        $looper = $count > 100 ? [[0, 30], [intval($count/2) - 15, intval($count/2) + 15], [$count - 31, $count]] : [0, $count];
-        foreach($looper as $loop) {
-            $i = $loop[0];
-            while ($i < $loop[1]){
-                if(isset($a[$i]) || array_key_exists($i, $a)) { $i++; continue; };
-                return false;
-            }
+    private static function isList(&$array) {
+        $next = 0;
+        foreach ($array as $k => $v) {
+           if ($k !== $next) return false;
+           $next++;
         }
         return true;
     }
