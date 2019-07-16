@@ -107,7 +107,7 @@ class Client extends \Hprose\Client {
     public function getKeepAliveTimeout() {
         return $this->keepAliveTimeout;
     }
-    public function setTimeout($timeout) {
+    public function setTimeout($timeout = 300) {
         $this->timeout = $timeout;
     }
     public function getTimeout() {
