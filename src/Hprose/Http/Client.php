@@ -34,6 +34,7 @@ class Client extends \Hprose\Client {
     public $proxy = '';
     public $keepAlive = true;
     public $keepAliveTimeout = 300;
+    public $timeout = 300;
     private $header;
     private $options;
     private $curl;
@@ -105,6 +106,12 @@ class Client extends \Hprose\Client {
     }
     public function getKeepAliveTimeout() {
         return $this->keepAliveTimeout;
+    }
+    public function setTimeout($timeout) {
+        $this->timeout = $timeout;
+    }
+    public function getTimeout() {
+        return $this->timeout;
     }
     private function setCookie(array $headers) {
         foreach ($headers as $header) {
@@ -178,6 +185,7 @@ class Client extends \Hprose\Client {
         $this->path = isset($url['path']) ? $url['path'] : "/";
         $this->keepAlive = true;
         $this->keepAliveTimeout = 300;
+        $this->timeout = 300;
     }
     private function initCurl($curl, $request, $context) {
         $timeout = $context->timeout;
@@ -215,10 +223,10 @@ class Client extends \Hprose\Client {
             curl_setopt($curl, CURLOPT_PROXY, $this->proxy);
         }
         if (defined('CURLOPT_TIMEOUT_MS')) {
-            curl_setopt($curl, CURLOPT_TIMEOUT_MS, $timeout);
+            curl_setopt($curl, CURLOPT_TIMEOUT_MS, $this->timeout);
         }
         else {
-            curl_setopt($curl, CURLOPT_TIMEOUT, $timeout / 1000);
+            curl_setopt($curl, CURLOPT_TIMEOUT, $this->timeout / 1000);
         }
     }
     /*
