@@ -1112,7 +1112,7 @@ abstract class Service extends HandlerManager {
                 $this->offline($topics, $topic, $id);
             }
         }
-        else
+        elseif (isset($topics[$id]))
         {
             $this->offline($topics, $topic, $id);
         }
