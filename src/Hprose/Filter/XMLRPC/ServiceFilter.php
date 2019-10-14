@@ -72,11 +72,11 @@ class ServiceFilter implements Filter {
                             $result = $reader->unserialize();
                             break;
                         default:
-                            return xmlrpc_encode($result);
+                            return xmlrpc_encode_request(NULL, $result, array('encoding' => 'UTF-8', 'escaping' => 'markup'));
                     }
                 }
             }
-            $data = xmlrpc_encode($result);
+            $data = xmlrpc_encode_request(NULL, $result, array('encoding' => 'UTF-8', 'escaping' => 'markup'));
         }
         return $data;
     }
