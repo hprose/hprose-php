@@ -31,7 +31,7 @@ use Hprose\Tags;
 
 class ClientFilter implements Filter {
     public function inputFilter($data, stdClass $context) {
-        $result = xmlrpc_decode($data, "UTF-8");
+        $result = xmlrpc_decode($data);
         $stream = new BytesIO();
         $writer = new Writer($stream, true);
         if (isset($result['faultString'])) {
@@ -63,6 +63,6 @@ class ClientFilter implements Filter {
         else {
             throw new Exception("Error Processing Request", 1);
         }
-        return xmlrpc_encode_request($method, $params);
+        return xmlrpc_encode_request($method, $params, array('encoding' => 'UTF-8', 'escaping' => 'markup'));
     }
 }
