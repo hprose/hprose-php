@@ -138,14 +138,20 @@ class Service extends \Hprose\Service {
         $self = $this;
         $bytes = '';
         $sockets = &$this->writeableSockets;
-        return function($data = '') use ($server, $socket, $self, &$bytes, &$sockets) {
+        $writeBuffer = $this->writeBuffer;
+        return function($data = '') use ($server, $socket, $self, &$bytes, &$sockets, $writeBuffer) {
             $bytes .= $data;
             $len = strlen($bytes);
             if ($len === 0) {
                 $self->removeSocket($sockets, $socket);
             }
             else {
-                $sent = fwrite($socket, $bytes, $len);
+                $sent = 0;
+                while ($sent < $len) {
+                    $writeLength = fwrite($socket, $bytes, $writeBuffer);
+                    $sent += $writeLength;
+                    $bytes = substr($bytes, $writeLength);
+                }
                 if ($sent === false) {
                     $self->error($server, $socket, 'Unknown write error');
                 }
