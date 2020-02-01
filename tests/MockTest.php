@@ -63,4 +63,17 @@ class MockTest extends PHPUnit_Framework_TestCase {
         $this->assertEquals($result, 'hello["world"]');
         $server->close();
     }
+    public function testMissingMethod2() {
+        $service = new Service();
+        $service->addMissingMethod(function (string $name, array $args, Context $context): string {
+            return $name . json_encode($args) . $context->remoteAddress['address'];
+        });
+        $server = new MockServer('testMissingMethod2');
+        $service->bind($server);
+        $client = new Client(['mock://testMissingMethod2']);
+        $proxy = $client->useService();
+        $result = $proxy->hello('world');
+        $this->assertEquals($result, 'hello["world"]testMissingMethod2');
+        $server->close();
+    }
 }
