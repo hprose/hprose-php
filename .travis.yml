@@ -8,6 +8,7 @@ php:
 sudo: required
 
 before_script:
+  - pecl install hprose
   - composer install
   - cd tests
 
