@@ -102,4 +102,19 @@ class MockTest extends PHPUnit_Framework_TestCase {
         $this->assertTrue($context->responseHeaders['pong']);
         $server->close();
     }
+    public function testMaxRequestLength() {
+        $this->expectException('Exception');
+        $this->expectExceptionMessage('Request entity too large');
+        $service = new Service();
+        $service->maxRequestLength = 10;
+        $service->addCallable(function ($name) {
+            return 'hello ' . $name;
+        }, 'hello');
+        $server = new MockServer('testMaxRequestLength');
+        $service->bind($server);
+        $client = new Client(['mock://testMaxRequestLength']);
+        $proxy = $client->useService();
+        $proxy->hello('world');
+        $server->close();
+    }
 }
