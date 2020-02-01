@@ -50,7 +50,7 @@
     },
     "suggest": {},
     "require-dev": {
-        "phpunit/phpunit": ">=4.0.0"
+        "phpunit/phpunit": ">=8.0.0"
     },
     "autoload": {
         "psr-4": {
