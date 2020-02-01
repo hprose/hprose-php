@@ -1,0 +1,55 @@
+<?php
+/*--------------------------------------------------------*\
+|                                                          |
+|                          hprose                          |
+|                                                          |
+| Official WebSite: https://hprose.com                     |
+|                                                          |
+| Hprose/RPC/Core/Method.php                               |
+|                                                          |
+| Hprose Method for PHP 7.1+                               |
+|                                                          |
+| LastModified: Jan 31, 2020                               |
+| Author: Ma Bingyao <andot@hprose.com>                    |
+|                                                          |
+\*________________________________________________________*/
+
+namespace Hprose\RPC\Core;
+
+use InvalidArgumentException;
+
+class Method {
+    public $missing = false;
+    public $passContext = false;
+    public $options = [];
+    public $callable;
+    public $fullname;
+    public $paramTypes = [];
+    public function __construct(callable $callable, ?string $fullname = null) {
+        $this->callable = $callable;
+        $reflection = Utils::getReflectionCallable($callable);
+        if (empty($fullname)) {
+            $fullname = $reflection->getShortName();
+            if (empty($fullname)) {
+                throw new InvalidArgumentException('fullname must not be empty');
+            }
+        }
+        $this->fullname = $fullname;
+        $params = $reflection->getParameters();
+        foreach ($params as $param) {
+            $type = $param->getType();
+            if ($type === null) {
+                $this->paramTypes[] = null;
+            } else {
+                $this->paramTypes[] = $type->getName();
+            }
+        }
+        $lastParamType = end($this->paramTypes);
+        if ($lastParamType === 'Context' || $lastParamType === 'ServiceContext') {
+            $this->passContext = true;
+            array_pop($this->paramTypes);
+        } else {
+            reset($this->paramTypes);
+        }
+    }
+}

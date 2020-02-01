@@ -7,3 +7,5 @@ composer.lock
 /examples/nbproject
 .idea/
 *.DS_Store
+.vscode
+tests/.phpunit.result.cache

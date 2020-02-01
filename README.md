@@ -1,14 +1,10 @@
-<p align="center"><img src="http://hprose.com/banner.@2x.png" alt="Hprose" title="Hprose" width="650" height="200" /></p>
+<p align="center"><img src="https://hprose.com/banner.@2x.png" alt="Hprose" title="Hprose" width="650" height="200" /></p>
 
-<a href="https://promisesaplus.com/">
-    <img src="https://promisesaplus.com/assets/logo-small.png" alt="Promises/A+ logo" title="Promises/A+ 1.1 compliant" align="right" />
-</a>
-
-# Hprose for PHP
+# Hprose 3.0 for PHP
 
 [![Build Status](https://travis-ci.org/hprose/hprose-php.svg?branch=master)](https://travis-ci.org/hprose/hprose-php)
 [![Join the chat at https://gitter.im/hprose/hprose-php](https://img.shields.io/badge/GITTER-join%20chat-green.svg)](https://gitter.im/hprose/hprose-php?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
-![Supported PHP versions: 5.3 .. 7.1](https://img.shields.io/badge/php-5.3~7.1-blue.svg)
+![Supported PHP versions: =7.1+](https://img.shields.io/badge/php-7.1+-blue.svg)
 [![Packagist](https://img.shields.io/packagist/v/hprose/hprose.svg)](https://packagist.org/packages/hprose/hprose)
 [![Packagist Download](https://img.shields.io/packagist/dm/hprose/hprose.svg)](https://packagist.org/packages/hprose/hprose)
 [![License](https://img.shields.io/packagist/l/hprose/hprose.svg)](https://packagist.org/packages/hprose/hprose)
@@ -42,5 +38,3 @@ It is a modern, lightweight, cross-language, cross-platform, object-oriented, hi
 Through *Hprose*, You can conveniently and efficiently intercommunicate between those programming languages.
 
 This project is the implementation of Hprose for PHP.
-
-Hprose 2.0 for PHP Documents: https://github.com/hprose/hprose-php/wiki

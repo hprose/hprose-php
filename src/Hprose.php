@@ -1,25 +1,18 @@
 <?php
-/**********************************************************\
+/*--------------------------------------------------------*\
 |                                                          |
 |                          hprose                          |
 |                                                          |
-| Official WebSite: http://www.hprose.com/                 |
-|                   http://www.hprose.org/                 |
+| Official WebSite: https://hprose.com                     |
 |                                                          |
-\**********************************************************/
-
-/**********************************************************\
- *                                                        *
- * Hprose.php                                             *
- *                                                        *
- * hprose for php 5.3+                                    *
- *                                                        *
- * LastModified: Jul 10, 2017                             *
- * Author: Ma Bingyao <andot@hprose.com>                  *
- *                                                        *
-\**********************************************************/
-
-require_once __DIR__ . '/init.php';
+|  Hprose.php                                              |
+|                                                          |
+|  Hprose for PHP 7.1+                                     |
+|                                                          |
+|  LastModified: Jun 7, 2019                               |
+|  Author: Ma Bingyao <andot@hprose.com>                   |
+|                                                          |
+\*________________________________________________________*/
 
 // Autoload for non-composer applications
 spl_autoload_register(function ($className) {
