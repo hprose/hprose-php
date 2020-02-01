@@ -9,7 +9,7 @@
 |                                                          |
 | Hprose Client for PHP 7.1+                               |
 |                                                          |
-| LastModified: Jan 31, 2020                               |
+| LastModified: Feb 1, 2020                                |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -35,7 +35,7 @@ class Client {
     public $requestHeaders = [];
     /** @var ClientCodec $codec */
     public $codec;
-    public $timeout = 30000;
+    public $timeout = 30; // second
     private $urilist = [];
     public function getUris(): array{
         return $this->urilist;
@@ -131,8 +131,4 @@ class Client {
             $transport->abort();
         }
     }
-}
-
-if (!Client::isRegister('mock')) {
-    Client::register('mock', 'Hprose\\RPC\\Core\\MockTransport');
 }

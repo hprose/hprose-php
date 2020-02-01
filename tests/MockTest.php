@@ -1,12 +1,12 @@
 <?php
 declare (strict_types = 1);
 
-use Hprose\RPC\Core\Client;
+use Hprose\RPC\Client;
 use Hprose\RPC\Core\ClientContext;
 use Hprose\RPC\Core\Context;
-use Hprose\RPC\Core\MockServer;
-use Hprose\RPC\Core\Service;
+use Hprose\RPC\Mock\MockServer;
 use Hprose\RPC\Plugins\ExecuteTimeoutHandler;
+use Hprose\RPC\Service;
 
 class MockTest extends PHPUnit_Framework_TestCase {
     public function testHelloWorld() {
@@ -32,9 +32,9 @@ class MockTest extends PHPUnit_Framework_TestCase {
         $server = new MockServer('testClientTimeout');
         $service->bind($server);
         $client = new Client(['mock://testClientTimeout']);
-        $client->timeout = 1000;
+        $client->timeout = 1;
         $proxy = $client->useService();
-        $proxy->wait(2);
+        $proxy->wait(30);
         $server->close();
     }
     public function testServiceTimeout() {
@@ -44,12 +44,12 @@ class MockTest extends PHPUnit_Framework_TestCase {
         $service->addCallable(function ($time) {
             sleep($time);
         }, 'wait');
-        $service->use([new ExecuteTimeoutHandler(1000), 'handler']);
+        $service->use([new ExecuteTimeoutHandler(1), 'handler']);
         $server = new MockServer('testServiceTimeout');
         $service->bind($server);
         $client = new Client(['mock://testServiceTimeout']);
         $proxy = $client->useService();
-        $proxy->wait(2);
+        $proxy->wait(30);
         $server->close();
     }
     public function testMissingMethod() {

@@ -5,22 +5,26 @@
 |                                                          |
 | Official WebSite: https://hprose.com                     |
 |                                                          |
-| Hprose/RPC/Core/MockTransport.php                        |
+| Hprose/RPC/Mock/MockTransport.php                        |
 |                                                          |
 | Hprose MockTransport for PHP 7.1+                        |
 |                                                          |
-| LastModified: Jan 31, 2020                               |
+| LastModified: Feb 1, 2020                                |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
 
-namespace Hprose\RPC\Core;
+namespace Hprose\RPC\Mock;
+
+use Hprose\RPC\Core\Context;
+use Hprose\RPC\Core\TimeoutException;
+use Hprose\RPC\Core\Transport;
 
 class MockTransport implements Transport {
     public static $schemes = ['mock'];
     public function transport(string $request, Context $context): string {
         $uri = parse_url($context->uri);
-        $timeout = (int) ($context->timeout / 1000);
+        $timeout = $context->timeout;
         if ($timeout > 0) {
             $async = pcntl_async_signals();
             try {

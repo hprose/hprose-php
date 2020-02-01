@@ -5,16 +5,18 @@
 |                                                          |
 | Official WebSite: https://hprose.com                     |
 |                                                          |
-| Hprose/RPC/Core/MockAgent.php                            |
+| Hprose/RPC/Mock/MockAgent.php                            |
 |                                                          |
 | Hprose MockAgent for PHP 7.1+                            |
 |                                                          |
-| LastModified: Jan 31, 2020                               |
+| LastModified: Feb 1, 2020                                |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
 
-namespace Hprose\RPC\Core;
+namespace Hprose\RPC\Mock;
+
+use Exception;
 
 class MockAgent {
     private static $handlers = [];

@@ -9,7 +9,7 @@
 |                                                          |
 | Hprose Service for PHP 7.1+                              |
 |                                                          |
-| LastModified: Jan 31, 2020                               |
+| LastModified: Feb 1, 2020                                |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -159,8 +159,4 @@ class Service {
         $this->methodManager->addStaticMethods($class, $namespace);
         return $this;
     }
-}
-
-if (!Service::isRegister('mock')) {
-    Service::register('mock', 'Hprose\\RPC\\Core\\MockHandler');
 }

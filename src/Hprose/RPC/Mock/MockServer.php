@@ -5,16 +5,16 @@
 |                                                          |
 | Official WebSite: https://hprose.com                     |
 |                                                          |
-| Hprose/RPC/Core/MockServer.php                           |
+| Hprose/RPC/Mock/MockServer.php                           |
 |                                                          |
 | Hprose MockServer for PHP 7.1+                           |
 |                                                          |
-| LastModified: Jan 31, 2020                               |
+| LastModified: Feb 1, 2020                                |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
 
-namespace Hprose\RPC\Core;
+namespace Hprose\RPC\Mock;
 
 class MockServer {
     public $address;

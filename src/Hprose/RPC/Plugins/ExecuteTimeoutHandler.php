@@ -20,13 +20,13 @@ use Hprose\RPC\Core\Context;
 use Hprose\RPC\Core\TimeoutException;
 
 class ExecuteTimeoutHandler {
-    public $timeout;
-    public function __construct(int $timeout = 30000) {
+    public $timeout; // second
+    public function __construct(int $timeout = 30) {
         $this->timeout = $timeout;
     }
     public function handler(string $name, array &$args, Context $context, callable $next) {
         $timeout = $context->method->options['timeout'] ?? $this->timeout;
-        $timeout = (int) ($timeout / 1000);
+        $timeout = $timeout;
         if ($timeout > 0) {
             $async = pcntl_async_signals();
             try {

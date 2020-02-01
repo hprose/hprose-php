@@ -5,7 +5,7 @@
 |                                                          |
 | Official WebSite: https://hprose.com                     |
 |                                                          |
-| Hprose/RPC/Core/MockHandler.php                          |
+| Hprose/RPC/Mock/MockHandler.php                          |
 |                                                          |
 | Hprose MockHandler for PHP 7.1+                          |
 |                                                          |
@@ -14,14 +14,16 @@
 |                                                          |
 \*________________________________________________________*/
 
-namespace Hprose\RPC\Core;
+namespace Hprose\RPC\Mock;
 
 use Exception;
+use Hprose\RPC\Core\Handler;
+use Hprose\RPC\Core\Service;
 
 class MockHandler implements Handler {
-    public static $serverTypes = ['Hprose\\RPC\\Core\\MockServer'];
+    public static $serverTypes = ['Hprose\\RPC\\Mock\\MockServer'];
     public $service;
-    public function __construct($service) {
+    public function __construct(Service $service) {
         $this->service = $service;
     }
     public function bind($server): void {
