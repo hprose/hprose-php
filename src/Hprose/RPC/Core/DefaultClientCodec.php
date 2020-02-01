@@ -9,7 +9,7 @@
 |                                                          |
 | Hprose DefaultClientCodec for PHP 7.1+                   |
 |                                                          |
-| LastModified: Jan 31, 2020                               |
+| LastModified: Feb 1, 2020                                |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -54,7 +54,7 @@ class DefaultClientCodec implements ClientCodec {
             $headers = $reader->unserialize();
             $context->responseHeaders = array_merge($context->responseHeaders, $headers);
             $reader->reset();
-            $tag == $stream->getc();
+            $tag = $stream->getc();
         }
         switch ($tag) {
         case Tags::TagResult:
