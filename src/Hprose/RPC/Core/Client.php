@@ -16,6 +16,9 @@
 
 namespace Hprose\RPC\Core;
 
+use Exception;
+use InvalidArgumentException;
+
 class Client {
     private static $transportClasses = [];
     private static $schemes = [];
