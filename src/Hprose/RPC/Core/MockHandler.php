@@ -9,12 +9,14 @@
 |                                                          |
 | Hprose MockHandler for PHP 7.1+                          |
 |                                                          |
-| LastModified: Jan 31, 2020                               |
+| LastModified: Feb 1, 2020                                |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
 
 namespace Hprose\RPC\Core;
+
+use Exception;
 
 class MockHandler implements Handler {
     public static $serverTypes = ['Hprose\\RPC\\Core\\MockServer'];
