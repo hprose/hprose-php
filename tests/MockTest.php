@@ -1,4 +1,5 @@
 <?php
+declare (strict_types = 1);
 
 use Hprose\RPC\Core\Client;
 use Hprose\RPC\Core\MockServer;
@@ -55,5 +56,17 @@ class MockTest extends PHPUnit_Framework_TestCase {
         }
         $server->close();
     }
-
+    public function testMissingMethod() {
+        $service = new Service();
+        $service->addMissingMethod(function (string $name, array $args): string {
+            return $name . json_encode($args);
+        });
+        $server = new MockServer('test');
+        $service->bind($server);
+        $client = new Client(['mock://test']);
+        $proxy = $client->useService();
+        $result = $proxy->hello('world');
+        $this->assertEquals($result, 'hello["world"]');
+        $server->close();
+    }
 }
