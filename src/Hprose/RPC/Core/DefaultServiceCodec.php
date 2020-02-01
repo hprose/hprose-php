@@ -9,13 +9,14 @@
 |                                                          |
 | Hprose DefaultServiceCodec for PHP 7.1+                  |
 |                                                          |
-| LastModified: Jan 31, 2020                               |
+| LastModified: Feb 1, 2020                                |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
 
 namespace Hprose\RPC\Core;
 
+use Exception;
 use Hprose\BytesIO;
 use Hprose\Reader;
 use Hprose\Tags;
@@ -117,7 +118,7 @@ class DefaultServiceCodec implements ServiceCodec {
             $headers = $reader->unserialize();
             $context->requestHeaders = array_merge($context->requestHeaders, $headers);
             $reader->reset();
-            $tag == $stream->getc();
+            $tag = $stream->getc();
         }
         switch ($tag) {
         case Tags::TagCall:
