@@ -55,7 +55,7 @@ class MethodManager {
     public function addMissingMethod(callable $callable): void {
         $method = new Method($callable, '*');
         $method->missing = true;
-        if (Utils::getNumberOfParameters($method) === 3) {
+        if (Utils::getNumberOfParameters($callable) === 3) {
             $method->passContext = true;
         }
         $this->add($method);
