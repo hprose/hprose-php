@@ -2,6 +2,8 @@
 declare (strict_types = 1);
 
 use Hprose\RPC\Core\Client;
+use Hprose\RPC\Core\ClientContext;
+use Hprose\RPC\Core\Context;
 use Hprose\RPC\Core\MockServer;
 use Hprose\RPC\Core\Service;
 use Hprose\RPC\Plugins\ExecuteTimeoutHandler;
@@ -21,7 +23,7 @@ class MockTest extends PHPUnit_Framework_TestCase {
         $server->close();
     }
     public function testClientTimeout() {
-        $this->expectException(Exception::class);
+        $this->expectException('Exception');
         $this->expectExceptionMessage('timeout');
         $service = new Service();
         $service->addCallable(function ($time) {
@@ -36,7 +38,7 @@ class MockTest extends PHPUnit_Framework_TestCase {
         $server->close();
     }
     public function testServiceTimeout() {
-        $this->expectException(Exception::class);
+        $this->expectException('Exception');
         $this->expectExceptionMessage('timeout');
         $service = new Service();
         $service->addCallable(function ($time) {
@@ -74,6 +76,30 @@ class MockTest extends PHPUnit_Framework_TestCase {
         $proxy = $client->useService();
         $result = $proxy->hello('world');
         $this->assertEquals($result, 'hello["world"]testMissingMethod2');
+        $server->close();
+    }
+    public function testHeaders() {
+        $service = new Service();
+        $service->addCallable(function ($name) {
+            return 'hello ' . $name;
+        }, 'hello');
+        $service->use(function (string $fullname, array $args, Context $context, callable $next) {
+            if ($fullname === 'hello') {
+                $this->assertTrue($context->requestHeaders['ping']);
+            }
+            $result = $next($fullname, $args, $context);
+            $context->responseHeaders['pong'] = true;
+            return $result;
+        });
+        $server = new MockServer('testHeaders');
+        $service->bind($server);
+        $client = new Client(['mock://testHeaders']);
+        $proxy = $client->useService();
+        $context = new ClientContext();
+        $context->requestHeaders['ping'] = true;
+        $result = $proxy->hello('world', $context);
+        $this->assertEquals($result, 'hello world');
+        $this->assertTrue($context->responseHeaders['pong']);
         $server->close();
     }
 }
