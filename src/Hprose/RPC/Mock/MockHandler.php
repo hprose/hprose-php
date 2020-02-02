@@ -9,7 +9,7 @@
 |                                                          |
 | Hprose MockHandler for PHP 7.1+                          |
 |                                                          |
-| LastModified: Feb 1, 2020                                |
+| LastModified: Feb 2, 2020                                |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -19,6 +19,7 @@ namespace Hprose\RPC\Mock;
 use Exception;
 use Hprose\RPC\Core\Handler;
 use Hprose\RPC\Core\Service;
+use Hprose\RPC\Core\ServiceContext;
 
 class MockHandler implements Handler {
     public static $serverTypes = ['Hprose\\RPC\\Mock\\MockServer'];
@@ -33,8 +34,12 @@ class MockHandler implements Handler {
         if (strlen($request) > $this->service->maxRequestLength) {
             throw new Exception('Request entity too large');
         }
-        $context = new MockServiceContext($this->service);
-        $addressInfo = ['family' => 'mock', 'address' => $address, 'port' => 0];
+        $context = new ServiceContext($this->service);
+        $addressInfo = [
+            'family' => 'mock',
+            'address' => $address,
+            'port' => 0,
+        ];
         $context->remoteAddress = $addressInfo;
         $context->localAddress = $addressInfo;
         $context->handler = $this;
