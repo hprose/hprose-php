@@ -5,7 +5,7 @@ use Hprose\RPC\Client;
 use Hprose\RPC\Core\ClientContext;
 use Hprose\RPC\Core\Context;
 use Hprose\RPC\Mock\MockServer;
-use Hprose\RPC\Plugins\ExecuteTimeoutHandler;
+use Hprose\RPC\Plugins\ExecuteTimeout;
 use Hprose\RPC\Service;
 
 class MockTest extends PHPUnit_Framework_TestCase {
@@ -44,7 +44,7 @@ class MockTest extends PHPUnit_Framework_TestCase {
         $service->addCallable(function ($time) {
             sleep($time);
         }, 'wait');
-        $service->use([new ExecuteTimeoutHandler(1), 'handler']);
+        $service->use([new ExecuteTimeout(1), 'handler']);
         $server = new MockServer('testServiceTimeout');
         $service->bind($server);
         $client = new Client(['mock://testServiceTimeout']);

@@ -5,11 +5,11 @@
 |                                                          |
 | Official WebSite: https://hprose.com                     |
 |                                                          |
-| Hprose/RPC/Plugins/ExecuteTimeoutHandler.php             |
+| Hprose/RPC/Plugins/ExecuteTimeout.php                    |
 |                                                          |
-| Hprose ExecuteTimeoutHandler for PHP 7.1+                |
+| Hprose ExecuteTimeout plugin for PHP 7.1+                |
 |                                                          |
-| LastModified: Jan 31, 2020                               |
+| LastModified: Feb 8, 2020                                |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -19,7 +19,7 @@ namespace Hprose\RPC\Plugins;
 use Hprose\RPC\Core\Context;
 use Hprose\RPC\Core\TimeoutException;
 
-class ExecuteTimeoutHandler {
+class ExecuteTimeout {
     public $timeout; // second
     public function __construct(int $timeout = 30) {
         $this->timeout = $timeout;
