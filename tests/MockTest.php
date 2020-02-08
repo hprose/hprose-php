@@ -6,6 +6,7 @@ use Hprose\RPC\Core\ClientContext;
 use Hprose\RPC\Core\Context;
 use Hprose\RPC\Mock\MockServer;
 use Hprose\RPC\Plugins\ExecuteTimeout;
+use Hprose\RPC\Plugins\Log;
 use Hprose\RPC\Service;
 
 class MockTest extends PHPUnit_Framework_TestCase {
@@ -17,8 +18,11 @@ class MockTest extends PHPUnit_Framework_TestCase {
         $server = new MockServer('testHelloWorld');
         $service->bind($server);
         $client = new Client(['mock://testHelloWorld']);
+        $log = new Log();
+        $client->use([$log, 'invokeHandler'], [$log, 'ioHandler']);
         $proxy = $client->useService();
         $result = $proxy->hello('world');
+
         $this->assertEquals($result, 'hello world');
         $server->close();
     }
@@ -44,7 +48,7 @@ class MockTest extends PHPUnit_Framework_TestCase {
         $service->addCallable(function ($time) {
             sleep($time);
         }, 'wait');
-        $service->use([new ExecuteTimeout(1), 'handler']);
+        $service->use([new ExecuteTimeout(1), 'handler'], [new Log(), 'ioHandler']);
         $server = new MockServer('testServiceTimeout');
         $service->bind($server);
         $client = new Client(['mock://testServiceTimeout']);
