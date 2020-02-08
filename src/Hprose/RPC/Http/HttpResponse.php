@@ -5,22 +5,24 @@
 |                                                          |
 | Official WebSite: https://hprose.com                     |
 |                                                          |
-| Hprose/RPC/Client.php                                    |
+| Hprose/RPC/Http/HttpRequest.php                          |
 |                                                          |
-| Hprose Client for PHP 7.1+                               |
+| Hprose HttpRequest for PHP 7.1+                          |
 |                                                          |
-| LastModified: Feb 1, 2020                                |
+| LastModified: Feb 2, 2020                                |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
 
-namespace Hprose\RPC;
+namespace Hprose\RPC\Http;
 
-class_alias('Hprose\\RPC\\Core\\Client', 'Hprose\\RPC\\Client');
-
-if (!Client::isRegister('mock')) {
-    Client::register('mock', 'Hprose\\RPC\\Mock\\MockTransport');
-}
-if (!Client::isRegister('http')) {
-    Client::register('http', 'Hprose\\RPC\\Http\\HttpTransport');
+class HttpRequest {
+    public $headers = [];
+    public function end(int $code = 200, string $data = ''): void {
+        http_response_code($code);
+        foreach ($headers as $name => $value) {
+            header("$name: $value");
+        }
+        echo $data;
+    }
 }

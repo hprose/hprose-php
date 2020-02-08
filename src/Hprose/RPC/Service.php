@@ -21,3 +21,6 @@ class_alias('Hprose\\RPC\\Core\\Service', 'Hprose\\RPC\\Service');
 if (!Service::isRegister('mock')) {
     Service::register('mock', 'Hprose\\RPC\\Mock\\MockHandler');
 }
+if (!Service::isRegister('http')) {
+    Service::register('http', 'Hprose\\RPC\\Http\\HttpHandler');
+}
