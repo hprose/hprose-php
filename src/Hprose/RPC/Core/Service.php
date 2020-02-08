@@ -42,6 +42,7 @@ class Service {
     public $options = [];
     private $invokeManager;
     private $ioManager;
+    use PluginTrait;
     private $methodManager;
     private $handlers = [];
     public function __get(string $name): Handler {
@@ -80,13 +81,13 @@ class Service {
         }
     }
     public function handle(string $request, Context $context): string {
-        return call_user_func($this->ioManager->handler, $request, $context);
+        return call_user_func($this->ioManager->plugin, $request, $context);
     }
     public function process(string $request, Context $context): string {
         $result = null;
         try {
             [$name, $args] = $this->codec->decode($request, $context);
-            $result = call_user_func_array($this->invokeManager->handler, [$name, &$args, $context]);
+            $result = call_user_func_array($this->invokeManager->plugin, [$name, &$args, $context]);
         } catch (Throwable $e) {
             $result = $e;
         }
@@ -101,36 +102,6 @@ class Service {
             return call_user_func_array($method->callable, [$fullname, &$args]);
         }
         return call_user_func_array($method->callable, $args);
-    }
-    public function use (callable ...$handlers): self {
-        if (count($handlers) > 0) {
-            switch (Utils::getNumberOfParameters($handlers[0])) {
-            case 4:
-                $this->invokeManager->use(...$handlers);
-                break;
-            case 3:
-                $this->ioManager->use(...$handlers);
-                break;
-            default:
-                throw new InvalidArgumentException('Invalid parameter type');
-            }
-        }
-        return $this;
-    }
-    public function unuse(callable ...$handlers): self {
-        if (count($handlers) > 0) {
-            switch (Utils::getNumberOfParameters($handlers[0])) {
-            case 4:
-                $this->invokeManager->unuse(...$handlers);
-                break;
-            case 3:
-                $this->ioManager->unuse(...$handlers);
-                break;
-            default:
-                throw new InvalidArgumentException('Invalid parameter type');
-            }
-        }
-        return $this;
     }
     public function get(string $fullname): Method {
         return $this->methodManager->get($fullname);

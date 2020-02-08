@@ -9,7 +9,7 @@
 |                                                          |
 | Hprose Client for PHP 7.1+                               |
 |                                                          |
-| LastModified: Feb 1, 2020                                |
+| LastModified: Feb 8, 2020                                |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -17,7 +17,6 @@
 namespace Hprose\RPC\Core;
 
 use Exception;
-use InvalidArgumentException;
 
 class Client {
     private static $transportClasses = [];
@@ -48,6 +47,7 @@ class Client {
     }
     private $invokeManager;
     private $ioManager;
+    use PluginTrait;
     private $transports = [];
     public function __get(string $name): Transport {
         return $this->transports[$name];
@@ -69,36 +69,6 @@ class Client {
     public function useService(string $namespace = ''): Proxy {
         return new Proxy($this, $namespace);
     }
-    public function use (callable ...$handlers): self {
-        if (count($handlers) > 0) {
-            switch (Utils::getNumberOfParameters($handlers[0])) {
-            case 4:
-                $this->invokeManager->use(...$handlers);
-                break;
-            case 3:
-                $this->ioManager->use(...$handlers);
-                break;
-            default:
-                throw new InvalidArgumentException('Invalid parameter type');
-            }
-        }
-        return $this;
-    }
-    public function unuse(callable ...$handlers): self {
-        if (count($handlers) > 0) {
-            switch (Utils::getNumberOfParameters($handlers[0])) {
-            case 4:
-                $this->invokeManager->unuse(...$handlers);
-                break;
-            case 3:
-                $this->ioManager->unuse(...$handlers);
-                break;
-            default:
-                throw new InvalidArgumentException('Invalid parameter type');
-            }
-        }
-        return $this;
-    }
     public function invoke(string $fullname, array $args = [], $context = null) {
         if ($context === null) {
             $context = new ClientContext();
@@ -107,7 +77,7 @@ class Client {
             $context = new ClientContext($context);
         }
         $context->init($this);
-        return call_user_func_array($this->invokeManager->handler, [$fullname, &$args, $context]);
+        return call_user_func_array($this->invokeManager->plugin, [$fullname, &$args, $context]);
     }
     public function call(string $fullname, array $args, Context $context) {
         $request = $this->codec->encode($fullname, $args, $context);
@@ -115,7 +85,7 @@ class Client {
         return $this->codec->decode($response, $context);
     }
     public function request(string $request, Context $context): string {
-        return call_user_func($this->ioManager->handler, $request, $context);
+        return call_user_func($this->ioManager->plugin, $request, $context);
     }
     public function transport(string $request, Context $context): string {
         $uri = $context->uri;
