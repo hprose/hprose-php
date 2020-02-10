@@ -9,7 +9,7 @@
 |                                                          |
 | Hprose Client for PHP 7.1+                               |
 |                                                          |
-| LastModified: Feb 8, 2020                                |
+| LastModified: Feb 10, 2020                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -77,7 +77,7 @@ class Client {
             $context = new ClientContext($context);
         }
         $context->init($this);
-        return call_user_func_array($this->invokeManager->plugin, [$fullname, &$args, $context]);
+        return call_user_func_array($this->invokeManager->handler, [$fullname, &$args, $context]);
     }
     public function call(string $fullname, array $args, Context $context) {
         $request = $this->codec->encode($fullname, $args, $context);
@@ -85,7 +85,7 @@ class Client {
         return $this->codec->decode($response, $context);
     }
     public function request(string $request, Context $context): string {
-        return call_user_func($this->ioManager->plugin, $request, $context);
+        return call_user_func($this->ioManager->handler, $request, $context);
     }
     public function transport(string $request, Context $context): string {
         $uri = $context->uri;

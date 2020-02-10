@@ -9,7 +9,7 @@
 |                                                          |
 | Hprose Service for PHP 7.1+                              |
 |                                                          |
-| LastModified: Feb 1, 2020                                |
+| LastModified: Feb 10, 2020                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -81,13 +81,13 @@ class Service {
         }
     }
     public function handle(string $request, Context $context): string {
-        return call_user_func($this->ioManager->plugin, $request, $context);
+        return call_user_func($this->ioManager->handler, $request, $context);
     }
     public function process(string $request, Context $context): string {
         $result = null;
         try {
             [$name, $args] = $this->codec->decode($request, $context);
-            $result = call_user_func_array($this->invokeManager->plugin, [$name, &$args, $context]);
+            $result = call_user_func_array($this->invokeManager->handler, [$name, &$args, $context]);
         } catch (Throwable $e) {
             $result = $e;
         }

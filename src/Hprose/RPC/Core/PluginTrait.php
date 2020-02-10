@@ -9,7 +9,7 @@
 |                                                          |
 | PluginTrait for PHP 7.1+                                 |
 |                                                          |
-| LastModified: Feb 8, 2020                                |
+| LastModified: Feb 10, 2020                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -17,40 +17,40 @@
 namespace Hprose\RPC\Core;
 
 trait PluginTrait {
-    private function sortPlugins(array $plugins): array{
-        $invokePlugins = [];
-        $ioPlugins = [];
-        foreach ($plugins as $plugin) {
-            switch (Utils::getNumberOfParameters($plugin)) {
+    private function sortHandlers(array $handlers): array{
+        $invokeHandlers = [];
+        $ioHandlers = [];
+        foreach ($handlers as $handler) {
+            switch (Utils::getNumberOfParameters($handler)) {
             case 4:
-                $invokePlugins[] = $plugin;
+                $invokeHandlers[] = $handler;
                 break;
             case 3:
-                $ioPlugins[] = $plugin;
+                $ioHandlers[] = $handler;
                 break;
             default:
                 throw new InvalidArgumentException('Invalid parameter type');
             }
         }
-        return [$invokePlugins, $ioPlugins];
+        return [$invokeHandlers, $ioHandlers];
     }
-    public function use (callable ...$plugins): self {
-        [$invokePlugins, $ioPlugins] = $this->sortPlugins($plugins);
-        if (count($invokePlugins) > 0) {
-            $this->invokeManager->use(...$invokePlugins);
+    public function use (callable ...$handlers): self {
+        [$invokeHandlers, $ioHandlers] = $this->sortHandlers($handlers);
+        if (count($invokeHandlers) > 0) {
+            $this->invokeManager->use(...$invokeHandlers);
         }
-        if (count($ioPlugins) > 0) {
-            $this->ioManager->use(...$ioPlugins);
+        if (count($ioHandlers) > 0) {
+            $this->ioManager->use(...$ioHandlers);
         }
         return $this;
     }
-    public function unuse(callable ...$plugins): self {
-        [$invokePlugins, $ioPlugins] = $this->sortPlugins($plugins);
-        if (count($invokePlugins) > 0) {
-            $this->invokeManager->unuse(...$invokePlugins);
+    public function unuse(callable ...$handlers): self {
+        [$invokeHandlers, $ioHandlers] = $this->sortHandlers($handlers);
+        if (count($invokeHandlers) > 0) {
+            $this->invokeManager->unuse(...$invokeHandlers);
         }
-        if (count($ioPlugins) > 0) {
-            $this->ioManager->unuse(...$ioPlugins);
+        if (count($ioHandlers) > 0) {
+            $this->ioManager->unuse(...$ioHandlers);
         }
         return $this;
     }
