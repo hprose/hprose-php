@@ -7,8 +7,6 @@
 |                                                          |
 | Hprose/RPC/Core/ServiceContext.php                       |
 |                                                          |
-| Hprose ServiceContext for PHP 7.1+                       |
-|                                                          |
 | LastModified: Jan 24, 2020                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
