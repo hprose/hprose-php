@@ -7,8 +7,6 @@
 |                                                          |
 | Hprose/RPC/Core/Method.php                               |
 |                                                          |
-| Hprose Method for PHP 7.1+                               |
-|                                                          |
 | LastModified: Jan 31, 2020                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
@@ -45,7 +43,7 @@ class Method {
             }
         }
         $lastParamType = end($this->paramTypes);
-        if ($lastParamType === 'Context' || $lastParamType === 'ServiceContext') {
+        if ($lastParamType === 'Hprose\\RPC\\Core\\Context' || $lastParamType === 'Hprose\\RPC\\Core\\ServiceContext') {
             $this->passContext = true;
             array_pop($this->paramTypes);
         } else {
