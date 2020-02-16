@@ -7,8 +7,6 @@
 |                                                          |
 | Hprose/RPC/Core/ServiceCodec.php                         |
 |                                                          |
-| Hprose ServiceCodec for PHP 7.1+                         |
-|                                                          |
 | LastModified: Jan 29, 2020                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
