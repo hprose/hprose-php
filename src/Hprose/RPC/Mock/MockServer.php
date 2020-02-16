@@ -7,8 +7,6 @@
 |                                                          |
 | Hprose/RPC/Mock/MockServer.php                           |
 |                                                          |
-| Hprose MockServer for PHP 7.1+                           |
-|                                                          |
 | LastModified: Feb 1, 2020                                |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
