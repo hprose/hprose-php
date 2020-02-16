@@ -7,8 +7,6 @@
 |                                                          |
 | Hprose/RPC/Core/MethodManager.php                        |
 |                                                          |
-| Hprose MethodManager for PHP 7.1+                        |
-|                                                          |
 | LastModified: Jan 24, 2020                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
