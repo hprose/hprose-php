@@ -7,8 +7,6 @@
 |                                                          |
 | Hprose/RPC/Mock/MockHandler.php                          |
 |                                                          |
-| Hprose MockHandler for PHP 7.1+                          |
-|                                                          |
 | LastModified: Feb 2, 2020                                |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
