@@ -7,8 +7,6 @@
 |                                                          |
 | Hprose/RPC/Plugins/ExecuteTimeout.php                    |
 |                                                          |
-| Hprose ExecuteTimeout plugin for PHP 7.1+                |
-|                                                          |
 | LastModified: Feb 8, 2020                                |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
