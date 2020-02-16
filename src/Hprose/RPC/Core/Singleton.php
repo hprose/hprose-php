@@ -7,8 +7,6 @@
 |                                                          |
 | Hprose/RPC/Core/Singleton.php                            |
 |                                                          |
-| Singleton for PHP 7.1+                                   |
-|                                                          |
 | LastModified: Jun 7, 2019                                |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
