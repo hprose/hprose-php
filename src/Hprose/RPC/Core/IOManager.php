@@ -7,8 +7,6 @@
 |                                                          |
 | Hprose/RPC/Core/IOManager.php                            |
 |                                                          |
-| Hprose IOManager for PHP 7.1+                            |
-|                                                          |
 | LastModified: Feb 10, 2020                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
