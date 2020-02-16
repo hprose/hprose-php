@@ -7,8 +7,6 @@
 |                                                          |
 | Hprose/RPC/Core/Handler.php                              |
 |                                                          |
-| Hprose Service Handler for PHP 7.1+                      |
-|                                                          |
 | LastModified: Jan 24, 2020                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
