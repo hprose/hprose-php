@@ -7,8 +7,6 @@
 |                                                          |
 | Hprose/RPC/Core/Service.php                              |
 |                                                          |
-| Hprose Service for PHP 7.1+                              |
-|                                                          |
 | LastModified: Feb 10, 2020                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
