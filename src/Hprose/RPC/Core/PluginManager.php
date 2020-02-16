@@ -7,8 +7,6 @@
 |                                                          |
 | Hprose/RPC/Core/PluginManager.php                        |
 |                                                          |
-| Hprose PluginManager for PHP 7.1+                        |
-|                                                          |
 | LastModified: Jun 10, 2019                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
