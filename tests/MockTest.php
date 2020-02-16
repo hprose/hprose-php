@@ -5,8 +5,10 @@ use Hprose\RPC\Client;
 use Hprose\RPC\Core\ClientContext;
 use Hprose\RPC\Core\Context;
 use Hprose\RPC\Mock\MockServer;
+use Hprose\RPC\Plugins\CircuitBreaker;
 use Hprose\RPC\Plugins\ExecuteTimeout;
 use Hprose\RPC\Plugins\Log;
+use Hprose\RPC\Plugins\MockService;
 use Hprose\RPC\Plugins\NginxRoundRobinLoadBalance;
 use Hprose\RPC\Plugins\RandomLoadBalance;
 use Hprose\RPC\Plugins\RoundRobinLoadBalance;
@@ -317,5 +319,21 @@ class MockTest extends PHPUnit_Framework_TestCase {
         $server3->close();
         $server4->close();
     }
-
+    public function testCircuitBreaker() {
+        $client = new Client(['mock://CircuitBreaker']);
+        $circuitBreaker = new CircuitBreaker();
+        $circuitBreaker->mockService = new class implements MockService {
+            public function invoke(string $name, array &$args, Context $context) {
+                return $name;
+            }
+        };
+        $client->use([$circuitBreaker, 'invokeHandler'], [$circuitBreaker, 'ioHandler']);
+        $proxy = $client->useService();
+        for ($i = 0; $i < 10; ++$i) {
+            try {
+                $result = $proxy->hello();
+            } catch (Throwable $e) {}
+        }
+        $this->assertEquals($result, 'hello');
+    }
 }
