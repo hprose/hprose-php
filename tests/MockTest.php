@@ -10,6 +10,7 @@ use Hprose\RPC\Plugins\Log;
 use Hprose\RPC\Plugins\NginxRoundRobinLoadBalance;
 use Hprose\RPC\Plugins\RandomLoadBalance;
 use Hprose\RPC\Plugins\RoundRobinLoadBalance;
+use Hprose\RPC\Plugins\WeightedLeastActiveLoadBalance;
 use Hprose\RPC\Plugins\WeightedRandomLoadBalance;
 use Hprose\RPC\Plugins\WeightedRoundRobinLoadBalance;
 use Hprose\RPC\Service;
@@ -272,6 +273,38 @@ class MockTest extends PHPUnit_Framework_TestCase {
             'mock://testNginxRoundRobinLoadBalance2' => 2,
             'mock://testNginxRoundRobinLoadBalance3' => 3,
             'mock://testNginxRoundRobinLoadBalance4' => 4,
+        ]);
+        $client->use([$loadBalance, 'handler']);
+        $proxy = $client->useService();
+        for ($i = 0; $i < 10; ++$i) {
+            $result = $proxy->hello('world');
+        }
+        $this->assertEquals($result, 'hello world');
+        $server1->close();
+        $server2->close();
+        $server3->close();
+        $server4->close();
+    }
+    public function testWeightedLeastActiveLoadBalance() {
+        $service = new Service();
+        $service->addCallable(function (string $name, Context $context) {
+            error_log($context->remoteAddress['address']);
+            return 'hello ' . $name;
+        }, 'hello');
+        $server1 = new MockServer('testWeightedLeastActiveLoadBalance1');
+        $server2 = new MockServer('testWeightedLeastActiveLoadBalance2');
+        $server3 = new MockServer('testWeightedLeastActiveLoadBalance3');
+        $server4 = new MockServer('testWeightedLeastActiveLoadBalance4');
+        $service->bind($server1);
+        $service->bind($server2);
+        $service->bind($server3);
+        $service->bind($server4);
+        $client = new Client();
+        $loadBalance = new WeightedLeastActiveLoadBalance([
+            'mock://testWeightedLeastActiveLoadBalance1' => 1,
+            'mock://testWeightedLeastActiveLoadBalance2' => 2,
+            'mock://testWeightedLeastActiveLoadBalance3' => 3,
+            'mock://testWeightedLeastActiveLoadBalance4' => 4,
         ]);
         $client->use([$loadBalance, 'handler']);
         $proxy = $client->useService();
