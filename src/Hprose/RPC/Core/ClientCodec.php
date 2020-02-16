@@ -7,8 +7,6 @@
 |                                                          |
 | Hprose/RPC/Core/ClientCodec.php                          |
 |                                                          |
-| Hprose ClientCodec for PHP 7.1+                          |
-|                                                          |
 | LastModified: Jun 7, 2019                                |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
