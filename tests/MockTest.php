@@ -10,6 +10,7 @@ use Hprose\RPC\Plugins\Log;
 use Hprose\RPC\Plugins\RandomLoadBalance;
 use Hprose\RPC\Plugins\RoundRobinLoadBalance;
 use Hprose\RPC\Plugins\WeightedRandomLoadBalance;
+use Hprose\RPC\Plugins\WeightedRoundRobinLoadBalance;
 use Hprose\RPC\Service;
 
 class MockTest extends PHPUnit_Framework_TestCase {
@@ -207,6 +208,38 @@ class MockTest extends PHPUnit_Framework_TestCase {
             'mock://testRoundRobinLoadBalance3',
             'mock://testRoundRobinLoadBalance4']);
         $loadBalance = new RoundRobinLoadBalance();
+        $client->use([$loadBalance, 'handler']);
+        $proxy = $client->useService();
+        for ($i = 0; $i < 10; ++$i) {
+            $result = $proxy->hello('world');
+        }
+        $this->assertEquals($result, 'hello world');
+        $server1->close();
+        $server2->close();
+        $server3->close();
+        $server4->close();
+    }
+    public function testWeightedRoundRobinLoadBalance() {
+        $service = new Service();
+        $service->addCallable(function (string $name, Context $context) {
+            error_log($context->remoteAddress['address']);
+            return 'hello ' . $name;
+        }, 'hello');
+        $server1 = new MockServer('testWeightedRoundRobinLoadBalance1');
+        $server2 = new MockServer('testWeightedRoundRobinLoadBalance2');
+        $server3 = new MockServer('testWeightedRoundRobinLoadBalance3');
+        $server4 = new MockServer('testWeightedRoundRobinLoadBalance4');
+        $service->bind($server1);
+        $service->bind($server2);
+        $service->bind($server3);
+        $service->bind($server4);
+        $client = new Client();
+        $loadBalance = new WeightedRoundRobinLoadBalance([
+            'mock://testWeightedRoundRobinLoadBalance1' => 1,
+            'mock://testWeightedRoundRobinLoadBalance2' => 2,
+            'mock://testWeightedRoundRobinLoadBalance3' => 3,
+            'mock://testWeightedRoundRobinLoadBalance4' => 4,
+        ]);
         $client->use([$loadBalance, 'handler']);
         $proxy = $client->useService();
         for ($i = 0; $i < 10; ++$i) {
