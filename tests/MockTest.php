@@ -8,6 +8,7 @@ use Hprose\RPC\Mock\MockServer;
 use Hprose\RPC\Plugins\ExecuteTimeout;
 use Hprose\RPC\Plugins\Log;
 use Hprose\RPC\Plugins\RandomLoadBalance;
+use Hprose\RPC\Plugins\RoundRobinLoadBalance;
 use Hprose\RPC\Plugins\WeightedRandomLoadBalance;
 use Hprose\RPC\Service;
 
@@ -142,8 +143,8 @@ class MockTest extends PHPUnit_Framework_TestCase {
             'mock://testRandomLoadBalance2',
             'mock://testRandomLoadBalance3',
             'mock://testRandomLoadBalance4']);
-        $randomLoadBalance = new RandomLoadBalance();
-        $client->use([$randomLoadBalance, 'handler']);
+        $loadBalance = new RandomLoadBalance();
+        $client->use([$loadBalance, 'handler']);
         $proxy = $client->useService();
         for ($i = 0; $i < 10; ++$i) {
             $result = $proxy->hello('world');
@@ -169,13 +170,44 @@ class MockTest extends PHPUnit_Framework_TestCase {
         $service->bind($server3);
         $service->bind($server4);
         $client = new Client();
-        $randomLoadBalance = new WeightedRandomLoadBalance([
+        $loadBalance = new WeightedRandomLoadBalance([
             'mock://testWeightedRandomLoadBalance1' => 1,
             'mock://testWeightedRandomLoadBalance2' => 2,
             'mock://testWeightedRandomLoadBalance3' => 3,
             'mock://testWeightedRandomLoadBalance4' => 4,
         ]);
-        $client->use([$randomLoadBalance, 'handler']);
+        $client->use([$loadBalance, 'handler']);
+        $proxy = $client->useService();
+        for ($i = 0; $i < 10; ++$i) {
+            $result = $proxy->hello('world');
+        }
+        $this->assertEquals($result, 'hello world');
+        $server1->close();
+        $server2->close();
+        $server3->close();
+        $server4->close();
+    }
+    public function testRoundRobinLoadBalance() {
+        $service = new Service();
+        $service->addCallable(function (string $name, Context $context) {
+            error_log($context->remoteAddress['address']);
+            return 'hello ' . $name;
+        }, 'hello');
+        $server1 = new MockServer('testRoundRobinLoadBalance1');
+        $server2 = new MockServer('testRoundRobinLoadBalance2');
+        $server3 = new MockServer('testRoundRobinLoadBalance3');
+        $server4 = new MockServer('testRoundRobinLoadBalance4');
+        $service->bind($server1);
+        $service->bind($server2);
+        $service->bind($server3);
+        $service->bind($server4);
+        $client = new Client([
+            'mock://testRoundRobinLoadBalance1',
+            'mock://testRoundRobinLoadBalance2',
+            'mock://testRoundRobinLoadBalance3',
+            'mock://testRoundRobinLoadBalance4']);
+        $loadBalance = new RoundRobinLoadBalance();
+        $client->use([$loadBalance, 'handler']);
         $proxy = $client->useService();
         for ($i = 0; $i < 10; ++$i) {
             $result = $proxy->hello('world');
