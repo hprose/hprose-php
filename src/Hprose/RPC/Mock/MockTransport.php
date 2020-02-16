@@ -7,8 +7,6 @@
 |                                                          |
 | Hprose/RPC/Mock/MockTransport.php                        |
 |                                                          |
-| Hprose MockTransport for PHP 7.1+                        |
-|                                                          |
 | LastModified: Feb 1, 2020                                |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
