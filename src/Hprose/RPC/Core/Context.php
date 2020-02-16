@@ -7,8 +7,6 @@
 |                                                          |
 | Hprose/RPC/Core/Context.php                              |
 |                                                          |
-| Hprose Context for PHP 7.1+                              |
-|                                                          |
 | LastModified: Jan 31, 2020                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
