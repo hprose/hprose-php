@@ -46,7 +46,7 @@
     ],
     "require": {
         "php": ">=7.1.0",
-        "ext-hprose": ">=1.7.0"
+        "ext-hprose": ">=1.8.0"
     },
     "suggest": {},
     "require-dev": {
