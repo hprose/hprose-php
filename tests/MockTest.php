@@ -6,6 +6,7 @@ use Hprose\RPC\Core\ClientContext;
 use Hprose\RPC\Core\Context;
 use Hprose\RPC\Mock\MockServer;
 use Hprose\RPC\Plugins\CircuitBreaker;
+use Hprose\RPC\Plugins\ErrorToException;
 use Hprose\RPC\Plugins\ExecuteTimeout;
 use Hprose\RPC\Plugins\Log;
 use Hprose\RPC\Plugins\MockService;
@@ -335,5 +336,25 @@ class MockTest extends PHPUnit_Framework_TestCase {
             } catch (Throwable $e) {}
         }
         $this->assertEquals($result, 'hello');
+    }
+    public function testErrorToException() {
+        $error_handler = set_error_handler(NULL);
+        try {
+            $this->expectException('Exception');
+            $this->expectExceptionMessage('Undefined variable: i');
+            $service = new Service();
+            $service->addCallable(function ($name) {
+                return $name + $i;
+            }, 'echo');
+            $service->use([new ErrorToException(), 'handler']);
+            $server = new MockServer('testErrorToException');
+            $service->bind($server);
+            $client = new Client(['mock://testErrorToException']);
+            $proxy = $client->useService();
+            $proxy->echo("Hello");
+            $server->close();
+        } finally {
+            set_error_handler($error_handler);
+        }
     }
 }

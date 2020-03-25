@@ -7,13 +7,14 @@
 |                                                          |
 | Hprose/RPC/Core/DefaultServiceCodec.php                  |
 |                                                          |
-| LastModified: Feb 1, 2020                                |
+| LastModified: Mar 25, 2020                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
 
 namespace Hprose\RPC\Core;
 
+use ErrorException;
 use Exception;
 use Hprose\BytesIO;
 use Hprose\Reader;
@@ -23,6 +24,7 @@ use Throwable;
 
 class DefaultServiceCodec implements ServiceCodec {
     use Singleton;
+    use ErrorLevel;
     public $debug = false;
     public $simple = false;
     public function encode($result, ServiceContext $context): string {
@@ -37,7 +39,14 @@ class DefaultServiceCodec implements ServiceCodec {
             $writer->serialize($headers);
             $writer->reset();
         }
-        if ($result instanceof Throwable) {
+        if ($result instanceof ErrorException) {
+            $stream->write(Tags::TagError);
+            $writer->serialize(
+                $this->debug ?
+                $this->errorLevel[$result->getSeverity()] . ": '" . $result->getMessage() . "'" . " in " . $result->getFile() . ":" . $result->getLine() :
+                $result->getMessage()
+            );
+        } else if ($result instanceof Throwable) {
             $stream->write(Tags::TagError);
             $writer->serialize(
                 $this->debug ?
