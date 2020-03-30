@@ -1,5 +1,14 @@
 language: php
+jobs:
+  include:
+    - php: 5.3
+      dist: precise
+    - php: 5.4
+      dist: trusty
+    - php: 5.5
+      dist: trusty
 php:
+  - 5.3
   - 5.4
   - 5.5
   - 5.6
