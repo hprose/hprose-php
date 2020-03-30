@@ -14,23 +14,23 @@
  *                                                        *
  * xml-rpc service filter class for php 5.3+              *
  *                                                        *
- * LastModified: Jul 11, 2016                             *
+ * LastModified: Mar 30, 2020                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
 
 namespace Hprose\Filter\XMLRPC;
 
-use stdClass;
-use Hprose\Filter;
 use Hprose\BytesIO;
-use Hprose\Writer;
+use Hprose\Filter;
 use Hprose\Reader;
 use Hprose\Tags;
+use Hprose\Writer;
+use stdClass;
 
 class ServiceFilter implements Filter {
     public function inputFilter($data, stdClass $context) {
-        if ($data !== "" && $data{0} === '<') {
+        if ($data !== "" && $data[0] === '<') {
             $context->userdata->format = "xmlrpc";
             $method = null;
             $params = xmlrpc_decode_request($data, $method, "UTF-8");
@@ -58,21 +58,21 @@ class ServiceFilter implements Filter {
                 while (($tag = $stream->getc()) !== Tags::TagEnd) {
                     $reader->reset();
                     switch ($tag) {
-                        case Tags::TagResult:
-                            $result = $reader->unserialize();
-                            break;
-                        case Tags::TagError:
-                            $lasterror = error_get_last();
-                            $result = array(
-                                "faultCode" => $lasterror["type"],
-                                "faultString" => $reader->unserialize()
-                            );
-                            break;
-                        case Tags::TagFunctions:
-                            $result = $reader->unserialize();
-                            break;
-                        default:
-                            return xmlrpc_encode($result);
+                    case Tags::TagResult:
+                        $result = $reader->unserialize();
+                        break;
+                    case Tags::TagError:
+                        $lasterror = error_get_last();
+                        $result = array(
+                            "faultCode" => $lasterror["type"],
+                            "faultString" => $reader->unserialize(),
+                        );
+                        break;
+                    case Tags::TagFunctions:
+                        $result = $reader->unserialize();
+                        break;
+                    default:
+                        return xmlrpc_encode($result);
                     }
                 }
             }

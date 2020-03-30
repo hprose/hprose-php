@@ -14,33 +14,31 @@
  *                                                        *
  * json rpc service filter class for php 5.3+             *
  *                                                        *
- * LastModified: Jul 11, 2016                             *
+ * LastModified: Mar 30, 2020                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
 
 namespace Hprose\Filter\JSONRPC;
 
-use stdClass;
-use Hprose\Filter;
 use Hprose\BytesIO;
-use Hprose\Writer;
+use Hprose\Filter;
 use Hprose\Reader;
 use Hprose\Tags;
+use Hprose\Writer;
+use stdClass;
 
 class ServiceFilter implements Filter {
     function inputFilter($data, stdClass $context) {
-        if ($data !== "" && ($data{0} === '[' || $data{0} === '{')) {
+        if ($data !== "" && ($data[0] === '[' || $data[0] === '{')) {
             try {
                 $requests = json_decode($data);
-            }
-            catch (Exception $e) {
+            } catch (Exception $e) {
                 return $data;
             }
-            if ($data{0} === '{') {
+            if ($data[0] === '{') {
                 $requests = array($requests);
-            }
-            else if (count($requests) === 0) {
+            } else if (count($requests) === 0) {
                 return $data;
             }
             $stream = new BytesIO();
@@ -50,17 +48,14 @@ class ServiceFilter implements Filter {
                 $jsonrpc = new stdClass();
                 if (isset($request->id)) {
                     $jsonrpc->id = $request->id;
-                }
-                else {
+                } else {
                     $jsonrpc->id = null;
                 }
                 if (isset($request->version)) {
                     $jsonrpc->version = $request->version;
-                }
-                else if (isset($request->jsonrpc)) {
+                } else if (isset($request->jsonrpc)) {
                     $jsonrpc->version = $request->jsonrpc;
-                }
-                else {
+                } else {
                     $jsonrpc->version = '1.0';
                 }
                 $context->userdata->jsonrpc[] = $jsonrpc;
@@ -71,8 +66,7 @@ class ServiceFilter implements Filter {
                         count($request->params) > 0) {
                         $writer->writeArray($request->params);
                     }
-                }
-                else {
+                } else {
                     unset($context->userdata->jsonrpc);
                     return $data;
                 }
@@ -101,24 +95,21 @@ class ServiceFilter implements Filter {
                     }
                     $response->result = null;
                     $response->error = null;
-                }
-                else {
+                } else {
                     $response->jsonrpc = '2.0';
                 }
                 if ($tag !== Tags::TagEnd) {
                     $reader->reset();
                     if ($tag === Tags::TagResult) {
                         $response->result = $reader->unserialize();
-                    }
-                    else if ($tag === Tags::TagError) {
+                    } else if ($tag === Tags::TagError) {
                         $lasterror = error_get_last();
                         $response->error = new stdClass();
                         $response->error->code = $lasterror['type'];
                         $response->error->message = $reader->unserialize();
                     }
                     $tag = $stream->getc();
-                }
-                else {
+                } else {
                     $response->result = null;
                 }
                 if ($response->id !== null) {
