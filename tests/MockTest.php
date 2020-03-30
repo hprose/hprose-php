@@ -18,7 +18,7 @@ use Hprose\RPC\Plugins\WeightedRandomLoadBalance;
 use Hprose\RPC\Plugins\WeightedRoundRobinLoadBalance;
 use Hprose\RPC\Service;
 
-class MockTest extends PHPUnit_Framework_TestCase {
+class MockTest extends \PHPUnit\Framework\TestCase {
     public function testHelloWorld() {
         $service = new Service();
         $service->addCallable(function ($name) {
