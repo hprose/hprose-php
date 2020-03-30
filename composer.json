@@ -51,7 +51,7 @@
         "ext-hprose": "Faster serialize and unserialize hprose extension."
     },
     "require-dev": {
-        "phpunit/phpunit": ">=9.0.0"
+        "phpunit/phpunit": ">=4.0.0"
     },
     "autoload": {
         "files": [
