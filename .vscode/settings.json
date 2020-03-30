@@ -1,0 +1,7 @@
+{
+    "php.executablePath": "/usr/local/opt/php/bin/php",
+    "php.validate.executablePath": "/usr/local/opt/php/bin/php",
+    "phpfmt.php_bin": "/usr/local/opt/php/bin/php",
+    "phpfmt.psr1": true,
+    "phpfmt.psr2": false,
+}
