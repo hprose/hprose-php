@@ -14,15 +14,15 @@
  *                                                        *
  * hprose http service class for php 5.3+                 *
  *                                                        *
- * LastModified: Jul 23, 2018                             *
+ * LastModified: Mar 30, 2020                             *
  * Author: Ma Bingyao <andot@hprose.com>                  *
  *                                                        *
 \**********************************************************/
 
 namespace Hprose\Http;
 
-use stdClass;
 use Hprose\Future;
+use stdClass;
 
 class Service extends \Hprose\Service {
     const ORIGIN = 'HTTP_ORIGIN';
@@ -70,9 +70,9 @@ class Service extends \Hprose\Service {
         $this->header('Content-Type', 'text/plain', $context);
         if ($this->p3p) {
             $this->header('P3P', 'CP="CAO DSP COR CUR ADM DEV TAI PSA PSD ' .
-                   'IVAi IVDi CONi TELo OTPi OUR DELi SAMi OTRi ' .
-                   'UNRi PUBi IND PHY ONL UNI PUR FIN COM NAV ' .
-                   'INT DEM CNT STA POL HEA PRE GOV"', $context);
+                'IVAi IVDi CONi TELo OTPi OUR DELi SAMi OTRi ' .
+                'UNRi PUBi IND PHY ONL UNI PUR FIN COM NAV ' .
+                'INT DEM CNT STA POL HEA PRE GOV"', $context);
         }
         if ($this->crossDomain) {
             if ($this->hasAttribute(static::ORIGIN, $context) &&
@@ -83,8 +83,7 @@ class Service extends \Hprose\Service {
                     $this->header('Access-Control-Allow-Origin', $origin, $context);
                     $this->header('Access-Control-Allow-Credentials', 'true', $context);
                 }
-            }
-            else {
+            } else {
                 $this->header('Access-Control-Allow-Origin', '*', $context);
             }
         }
@@ -109,14 +108,14 @@ class Service extends \Hprose\Service {
     }
     public function addAccessControlAllowOrigin($origin) {
         $count = strlen($origin);
-        if (($count > 0) && ($origin{$count - 1} === "/")) {
+        if (($count > 0) && ($origin[$count - 1] === "/")) {
             $origin = substr($origin, 0, -1);
         }
         $this->origins[strtolower($origin)] = true;
     }
     public function removeAccessControlAllowOrigin($origin) {
         $count = strlen($origin);
-        if (($count > 0) && ($origin{$count - 1} === "/")) {
+        if (($count > 0) && ($origin[$count - 1] === "/")) {
             $origin = substr($origin, 0, -1);
         }
         unset($this->origins[strtolower($origin)]);
@@ -124,7 +123,7 @@ class Service extends \Hprose\Service {
     public function handle($request = null, $response = null) {
         $context = $this->createContext($request, $response);
         $self = $this;
-        $this->userFatalErrorHandler = function($error) use ($self, $context) {
+        $this->userFatalErrorHandler = function ($error) use ($self, $context) {
             $self->writeResponse($self->endError($error, $context), $context);
         };
 
@@ -135,29 +134,29 @@ class Service extends \Hprose\Service {
             if ($this->get) {
                 $result = $this->doFunctionList();
             }
-        }
-        elseif ($this->isPost($context)) {
+        } elseif ($this->isPost($context)) {
             ob_start();
             ob_implicit_flush(0);
             $result = $this->defaultHandle($this->readRequest($context), $context);
             $message = @ob_get_contents();
             @ob_end_clean();
-            if ($message)$this->errorLog($message);
-        }
-        else {
+            if ($message) {
+                $this->errorLog($message);
+            }
+
+        } else {
             $result = $this->doFunctionList();
         }
         if (Future\isFuture($result)) {
-            $result->then(function($result) use ($self, $context) {
+            $result->then(function ($result) use ($self, $context) {
                 $self->header('Content-Length', strlen($result), $context);
                 $self->writeResponse($result, $context);
             });
-        }
-        else {
+        } else {
             $this->header('Content-Length', strlen($result), $context);
             $this->writeResponse($result, $context);
-       }
-       return $context->response;
+        }
+        return $context->response;
     }
 
     protected function errorLog($err) {
