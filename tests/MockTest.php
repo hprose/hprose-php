@@ -8,6 +8,7 @@ use Hprose\RPC\Mock\MockServer;
 use Hprose\RPC\Plugins\CircuitBreaker;
 use Hprose\RPC\Plugins\ErrorToException;
 use Hprose\RPC\Plugins\ExecuteTimeout;
+use Hprose\RPC\Plugins\Forward;
 use Hprose\RPC\Plugins\Log;
 use Hprose\RPC\Plugins\MockService;
 use Hprose\RPC\Plugins\NginxRoundRobinLoadBalance;
@@ -356,5 +357,28 @@ class MockTest extends \PHPUnit\Framework\TestCase {
         } finally {
             set_error_handler($error_handler);
         }
+    }
+    public function testForward() {
+        $service = new Service();
+        $service->addCallable(function (Context $context) {
+            return $context->localAddress['address'];
+        }, 'getAddress');
+        $server = new MockServer('testAddress');
+        $service->bind($server);
+
+        $service2 = new Service();
+        $server2 = new MockServer('testForward');
+        $service2->use([new Forward(['mock://testAddress']), 'ioHandler']);
+        $service2->bind($server2);
+
+        $client = new Client(['mock://testForward']);
+        $log = new Log();
+        $client->use([$log, 'invokeHandler'], [$log, 'ioHandler']);
+        $proxy = $client->useService();
+        $result = $proxy->getAddress();
+
+        $this->assertEquals($result, 'testAddress');
+        $server2->close();
+        $server->close();
     }
 }
