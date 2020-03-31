@@ -26,7 +26,6 @@ class ErrorToException {
         $error_handler = set_error_handler(function (int $errno, string $errstr, string $errfile, int $errline) {
             throw new ErrorException($errstr, 0, $errno, $errfile, $errline);
         });
-        var_dump($error_handler);
         try {
             return $next($request, $context);
         } finally {
