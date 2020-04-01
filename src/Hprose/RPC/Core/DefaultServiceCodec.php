@@ -7,7 +7,7 @@
 |                                                          |
 | Hprose/RPC/Core/DefaultServiceCodec.php                  |
 |                                                          |
-| LastModified: Mar 25, 2020                               |
+| LastModified: Apr 1, 2020                                |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -69,7 +69,7 @@ class DefaultServiceCodec implements ServiceCodec {
         $context->method = $method;
         return $method;
     }
-    private function decodeArguments(Method $method, BytesIO $stream, Reader $reader, ServiceContext $context): array{
+    private function decodeArguments(Method $method, BytesIO $stream, Reader $reader): array{
         $tag = $stream->getc();
         if ($method->missing) {
             if ($tag === Tags::TagList) {
@@ -107,9 +107,6 @@ class DefaultServiceCodec implements ServiceCodec {
                 }
             }
         }
-        if ($method->passContext) {
-            $args[] = $context;
-        }
         return $args;
     }
 
@@ -133,7 +130,7 @@ class DefaultServiceCodec implements ServiceCodec {
                 $reader = new Reader($stream, true);
             }
             $fullname = $reader->readString();
-            $args = $this->decodeArguments($this->decodeMethod($fullname, $context), $stream, $reader, $context);
+            $args = $this->decodeArguments($this->decodeMethod($fullname, $context), $stream, $reader);
             return [$fullname, $args];
         case Tags::TagEnd:
             $this->decodeMethod('~', $context);
