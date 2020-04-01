@@ -5,9 +5,9 @@
 |                                                          |
 | Official WebSite: https://hprose.com                     |
 |                                                          |
-| Hprose/RPC/Http/HttpTransport.php                        |
+| HttpHandler.php                                          |
 |                                                          |
-| LastModified: Feb 8, 2020                                |
+| LastModified: Apr 1, 2020                                |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/

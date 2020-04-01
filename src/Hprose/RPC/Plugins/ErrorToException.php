@@ -5,9 +5,9 @@
 |                                                          |
 | Official WebSite: https://hprose.com                     |
 |                                                          |
-| Hprose/RPC/Plugins/ErrorToException.php                  |
+| ErrorToException.php                                     |
 |                                                          |
-| LastModified: Mar 25, 2020                               |
+| LastModified: Apr 1, 2020                                |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/

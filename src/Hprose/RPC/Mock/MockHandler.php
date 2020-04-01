@@ -5,9 +5,9 @@
 |                                                          |
 | Official WebSite: https://hprose.com                     |
 |                                                          |
-| Hprose/RPC/Mock/MockHandler.php                          |
+| MockHandler.php                                          |
 |                                                          |
-| LastModified: Feb 2, 2020                                |
+| LastModified: Apr 1, 2020                                |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/

@@ -5,9 +5,9 @@
 |                                                          |
 | Official WebSite: https://hprose.com                     |
 |                                                          |
-| Hprose/RPC/Core/Singleton.php                            |
+| Singleton.php                                            |
 |                                                          |
-| LastModified: Jun 7, 2019                                |
+| LastModified: Apr 1, 2020                                |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/

@@ -5,9 +5,9 @@
 |                                                          |
 | Official WebSite: https://hprose.com                     |
 |                                                          |
-| Hprose/RPC/Core/ServiceCodec.php                         |
+| ServiceCodec.php                                         |
 |                                                          |
-| LastModified: Jan 29, 2020                               |
+| LastModified: Apr 1, 2020                                |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/

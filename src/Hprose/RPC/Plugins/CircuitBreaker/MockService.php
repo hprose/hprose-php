@@ -5,22 +5,17 @@
 |                                                          |
 | Official WebSite: https://hprose.com                     |
 |                                                          |
-| Hprose/RPC/Plugins/RandomLoadBalance.php                 |
+| MockService.php                                          |
 |                                                          |
-| LastModified: Feb 16, 2020                               |
+| LastModified: Apr 1, 2020                                |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
 
-namespace Hprose\RPC\Plugins;
+namespace Hprose\RPC\Plugins\CircuitBreaker;
 
 use Hprose\RPC\Core\Context;
 
-class RandomLoadBalance {
-    public function handler(string $request, Context $context, callable $next): string {
-        $uris = $context->client->getUris();
-        $n = count($uris);
-        $context->uri = $uris[random_int(0, $n - 1)];
-        return $next($request, $context);
-    }
+interface MockService {
+    function invoke(string $name, array &$args, Context $context);
 }

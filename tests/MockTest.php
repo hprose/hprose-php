@@ -5,18 +5,18 @@ use Hprose\RPC\Client;
 use Hprose\RPC\Core\ClientContext;
 use Hprose\RPC\Core\Context;
 use Hprose\RPC\Mock\MockServer;
-use Hprose\RPC\Plugins\CircuitBreaker;
+use Hprose\RPC\Plugins\CircuitBreaker\CircuitBreaker;
+use Hprose\RPC\Plugins\CircuitBreaker\MockService;
 use Hprose\RPC\Plugins\ErrorToException;
 use Hprose\RPC\Plugins\ExecuteTimeout;
 use Hprose\RPC\Plugins\Forward;
+use Hprose\RPC\Plugins\LoadBalance\NginxRoundRobinLoadBalance;
+use Hprose\RPC\Plugins\LoadBalance\RandomLoadBalance;
+use Hprose\RPC\Plugins\LoadBalance\RoundRobinLoadBalance;
+use Hprose\RPC\Plugins\LoadBalance\WeightedLeastActiveLoadBalance;
+use Hprose\RPC\Plugins\LoadBalance\WeightedRandomLoadBalance;
+use Hprose\RPC\Plugins\LoadBalance\WeightedRoundRobinLoadBalance;
 use Hprose\RPC\Plugins\Log;
-use Hprose\RPC\Plugins\MockService;
-use Hprose\RPC\Plugins\NginxRoundRobinLoadBalance;
-use Hprose\RPC\Plugins\RandomLoadBalance;
-use Hprose\RPC\Plugins\RoundRobinLoadBalance;
-use Hprose\RPC\Plugins\WeightedLeastActiveLoadBalance;
-use Hprose\RPC\Plugins\WeightedRandomLoadBalance;
-use Hprose\RPC\Plugins\WeightedRoundRobinLoadBalance;
 use Hprose\RPC\Service;
 
 class MockTest extends \PHPUnit\Framework\TestCase {

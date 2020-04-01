@@ -5,7 +5,7 @@
 |                                                          |
 | Official WebSite: https://hprose.com                     |
 |                                                          |
-| Hprose/RPC/Plugins/Log.php                               |
+| Log.php                                                  |
 |                                                          |
 | LastModified: Apr 1, 2020                                |
 | Author: Ma Bingyao <andot@hprose.com>                    |

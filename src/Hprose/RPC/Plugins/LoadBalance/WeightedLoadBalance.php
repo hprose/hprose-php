@@ -5,14 +5,14 @@
 |                                                          |
 | Official WebSite: https://hprose.com                     |
 |                                                          |
-| Hprose/RPC/Plugins/WeightedLoadBalance.php               |
+| WeightedLoadBalance.php                                  |
 |                                                          |
-| LastModified: Feb 16, 2020                               |
+| LastModified: Apr 1, 2020                                |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
 
-namespace Hprose\RPC\Plugins;
+namespace Hprose\RPC\Plugins\LoadBalance;
 
 use Hprose\RPC\Core\Context;
 use InvalidArgumentException;

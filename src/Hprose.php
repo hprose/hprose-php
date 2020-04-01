@@ -7,7 +7,7 @@
 |                                                          |
 |  Hprose.php                                              |
 |                                                          |
-|  LastModified: Jun 7, 2019                               |
+| LastModified: Apr 1, 2020                                |
 |  Author: Ma Bingyao <andot@hprose.com>                   |
 |                                                          |
 \*________________________________________________________*/
