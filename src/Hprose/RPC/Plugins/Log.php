@@ -7,7 +7,7 @@
 |                                                          |
 | Hprose/RPC/Plugins/Log.php                               |
 |                                                          |
-| LastModified: Feb 8, 2020                                |
+| LastModified: Apr 1, 2020                                |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -41,13 +41,8 @@ class Log {
             return $next($name, $args, $context);
         }
         try {
-            $result = $next($name, $args, $context);
             $a = $args;
-            if (empty($a)) {
-                $a = [];
-            } elseif (end($a) instanceof Context) {
-                array_pop($a);
-            }
+            $result = $next($name, $args, $context);
             error_log("$name(" . substr(json_encode($a), 1, -1) . ') = ' . json_encode($result), $this->message_type, $this->destination, $this->extra_headers);
         } catch (Throwable $e) {
             error_log($e->getMessage() . "\n" . $e->getTraceAsString(), $this->message_type, $this->destination, $this->extra_headers);
