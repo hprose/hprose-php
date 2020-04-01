@@ -7,7 +7,7 @@
 |                                                          |
 | Hprose/RPC/Core/Service.php                              |
 |                                                          |
-| LastModified: Feb 10, 2020                               |
+| LastModified: Apr 1, 2020                                |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -98,6 +98,9 @@ class Service {
                 return call_user_func_array($method->callable, [$fullname, &$args, $context]);
             }
             return call_user_func_array($method->callable, [$fullname, &$args]);
+        }
+        if ($method->passContext) {
+            $args[] = $context;
         }
         return call_user_func_array($method->callable, $args);
     }
