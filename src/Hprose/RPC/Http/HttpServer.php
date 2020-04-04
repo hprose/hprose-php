@@ -7,7 +7,7 @@
 |                                                          |
 | HttpServer.php                                           |
 |                                                          |
-| LastModified: Apr 1, 2020                                |
+| LastModified: Apr 4, 2020                                |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -22,7 +22,6 @@ class HttpServer {
     public $address;
     public $port;
     public function __construct() {
-        $this->headers = $this->getHeaders();
         $this->address = $_SERVER['SERVER_ADDR'] ?? '';
         $this->port = $_SERVER['SERVER_PORT'] ?? 80;
     }
