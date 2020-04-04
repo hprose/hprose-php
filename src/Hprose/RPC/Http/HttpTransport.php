@@ -60,10 +60,12 @@ class HttpTransport implements Transport {
         foreach ($this->httpRequestHeaders as $name => $value) {
             $headers[] = $name . ': ' . $value;
         }
-        foreach ($context->httpRequestHeaders as $name => $value) {
-            $headers[] = $name . ': ' . $value;
+        if (is_array($context->httpRequestHeaders)) {
+            foreach ($context->httpRequestHeaders as $name => $value) {
+                $headers[] = $name . ': ' . $value;
+            }
         }
-        curl_setopt($curl, CURLOPT_HTTPHEADER, $headers);
+        curl_setopt($this->curl, CURLOPT_HTTPHEADER, $headers);
         if (!ini_get('safe_mode')) {
             curl_setopt($this->curl, CURLOPT_FOLLOWLOCATION, true);
         }
