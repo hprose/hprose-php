@@ -7,7 +7,7 @@
 |                                                          |
 | HttpTransport.php                                        |
 |                                                          |
-| LastModified: Apr 1, 2020                                |
+| LastModified: Apr 4, 2020                                |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -29,7 +29,7 @@ class HttpTransport implements Transport {
     public function __destruct() {
         curl_close($this->curl);
     }
-    public function setKeepAlive(int $timeout, int $max = 0) {
+    public function setKeepAlive(int $timeout, int $max = 0): void {
         if ($timeout > 0) {
             $this->httpRequestHeaders['Connection'] = 'keep-alive';
             $this->httpRequestHeaders['Keep-Alive'] = 'timeout=' . $timeout;
@@ -45,7 +45,7 @@ class HttpTransport implements Transport {
             curl_setopt($this->curl, CURLOPT_FORBID_REUSE, true);
         }
     }
-    public function setOptions(array $options) {
+    public function setOptions(array $options): void {
         curl_setopt_array($this->curl, $options);
     }
     public function transport(string $request, Context $context): string {

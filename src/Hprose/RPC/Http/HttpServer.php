@@ -25,11 +25,11 @@ class HttpServer {
         $this->address = $_SERVER['SERVER_ADDR'] ?? '';
         $this->port = $_SERVER['SERVER_PORT'] ?? 80;
     }
-    public function onRequest(callable $handler) {
-        $this->$handler = $handler;
+    public function onRequest(callable $handler): void {
+        $this->handler = $handler;
     }
-    public function listen() {
+    public function listen(): void {
         call_user_func($this->handler, new HttpRequest($this), new HttpResponse());
     }
-    public function close() {}
+    public function close(): void {}
 }

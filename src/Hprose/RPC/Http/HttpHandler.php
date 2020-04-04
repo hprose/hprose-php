@@ -7,7 +7,7 @@
 |                                                          |
 | HttpHandler.php                                          |
 |                                                          |
-| LastModified: Apr 1, 2020                                |
+| LastModified: Apr 4, 2020                                |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -32,7 +32,7 @@ class HttpHandler implements Handler {
     public function bind($server): void {
         $server->onRequest([$this, 'handler']);
     }
-    private function header($request, $response) {
+    private function header($request, $response): void {
         $response->headers['Content-Type'] = 'text/plain';
         if ($this->p3p) {
             $response->headers['P3P'] =
@@ -59,8 +59,9 @@ class HttpHandler implements Handler {
         }
     }
     public function handler($request, $response): void {
-        header($request, $response);
-        if (strlen($request) > $this->service->maxRequestLength) {
+        $this->header($request, $response);
+        $body = $request->body();
+        if (strlen($body) > $this->service->maxRequestLength) {
             $response->end(413);
             return;
         }
@@ -82,7 +83,7 @@ class HttpHandler implements Handler {
             'port' => $request->server->port,
         ];
         $context->handler = $this;
-        $data = $this->service->handle($request->body(), $context);
+        $data = $this->service->handle($body, $context);
         $response->end(200, $data);
     }
 }

@@ -7,7 +7,7 @@
 |                                                          |
 | HttpRequest.php                                          |
 |                                                          |
-| LastModified: Apr 1, 2020                                |
+| LastModified: Apr 4, 2020                                |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
@@ -29,10 +29,10 @@ class HttpRequest {
         $this->port = $_SERVER['REMOTE_PORT'] ?? 0;
         $this->path = $_SERVER['REQUEST_URI'] ?? '/';
     }
-    public function body() {
+    public function body(): string {
         return file_get_contents("php://input");
     }
-    private function getHeaders() {
+    private function getHeaders(): array{
         $headers = [];
         foreach ($_SERVER as $name => $value) {
             if (substr($name, 0, 5) === 'HTTP_') {
