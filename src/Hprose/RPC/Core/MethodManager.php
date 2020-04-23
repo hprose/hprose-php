@@ -7,12 +7,14 @@
 |                                                          |
 | MethodManager.php                                        |
 |                                                          |
-| LastModified: Apr 1, 2020                                |
+| LastModified: Apr 23, 2020                               |
 | Author: Ma Bingyao <andot@hprose.com>                    |
 |                                                          |
 \*________________________________________________________*/
 
 namespace Hprose\RPC\Core;
+
+use ReflectionMethod;
 
 class MethodManager {
     private static $magicMethods = array(
