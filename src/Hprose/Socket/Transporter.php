@@ -261,7 +261,7 @@ abstract class Transporter {
                 $except = null;
                 $timeout = max(0, min($o->deadlines) - microtime(true));
                 $tv_sec = floor($timeout);
-                $tv_usec = ($timeout - $tv_sec) * 1000;
+                $tv_usec = ($timeout - $tv_sec) * 1000000;
                 $n = stream_select($read, $write, $except, $tv_sec, $tv_usec);
                 if ($n === false) {
                     $e = $this->getLastError('unkown io error.');
@@ -302,7 +302,7 @@ abstract class Transporter {
                 return false;
             }
             if ($sent == 0) {
-                time_nanosleep(0, 1000);
+                time_nanosleep(0, 1000000);
                 $retry--;
             }
             else if ($sent < $length) {
