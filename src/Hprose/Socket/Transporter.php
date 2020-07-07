@@ -302,7 +302,7 @@ abstract class Transporter {
                 return false;
             }
             if ($sent == 0) {
-                time_nanosleep(0, 1000000);
+                time_nanosleep(0, 1000);
                 $retry--;
             }
             else if ($sent < $length) {
@@ -333,7 +333,7 @@ abstract class Transporter {
         $client = $this->client;
         $timeout = ($context->timeout / 1000);
         $sec = floor($timeout);
-        $usec = ($timeout - $sec) * 1000;
+        $usec = ($timeout - $sec) * 1000000;
         $trycount = 0;
         $errno = 0;
         $errstr = '';
