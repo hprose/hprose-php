@@ -82,9 +82,9 @@ class HttpTransport implements Transport {
             $headers = explode("\r\n", $header);
             $firstline = array_shift($headers);
             $matches = [];
-            if (preg_match('@^HTTP/[0-9]\.[0-9]\s([0-9]{3})\s(.*)@', $firstline, $matches)) {
-                $code = $matches[1];
-                $status = trim($matches[2]);
+            if (preg_match('@^HTTP/[0-9]+(\.?[0-9]+)?\s([0-9]{3})\s(.*)@', $firstline, $matches)) {
+                $code = $matches[2];
+                $status = trim($matches[3]);
             } else {
                 $code = "500";
                 $status = "Internal Server Error";
