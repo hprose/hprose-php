@@ -79,16 +79,19 @@ class Service {
         }
     }
     public function handle(string $request, Context $context): string {
-        return call_user_func($this->ioManager->handler, $request, $context);
+        try {
+            $response = call_user_func($this->ioManager->handler, $request, $context);
+            if ($response == null) {
+                $response = $this->codec->encode(null, $context);
+            }
+            return $response;
+        } catch (Throwable $e) {
+            return $this->codec->encode($e, $context);
+        }
     }
     public function process(string $request, Context $context): string {
-        $result = null;
-        try {
-            [$name, $args] = $this->codec->decode($request, $context);
-            $result = call_user_func_array($this->invokeManager->handler, [$name, &$args, $context]);
-        } catch (Throwable $e) {
-            $result = $e;
-        }
+        [$name, $args] = $this->codec->decode($request, $context);
+        $result = call_user_func_array($this->invokeManager->handler, [$name, &$args, $context]);
         return $this->codec->encode($result, $context);
     }
     public function execute(string $fullname, array &$args, Context $context) {
