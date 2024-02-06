@@ -232,13 +232,11 @@ class Client extends \Hprose\Client {
             $http_response_header = explode("\r\n", $response_headers);
             $http_response_firstline = array_shift($http_response_header);
             $matches = array();
-            if (preg_match('@^HTTP/[0-9]\.[0-9]\s([0-9]{3})\s(.*)@',
-                           $http_response_firstline, $matches)) {
-                $response_code = $matches[1];
-                $response_status = trim($matches[2]);
-            }
-            else {
-                $response_code = "500";
+            if (preg_match('@^HTTP/[0-9]+(\.?[0-9]+)?\s([0-9]{3})\s(.*)@', $http_response_firstline, $matches)) {
+                $response_code   = $matches[2];
+                $response_status = trim($matches[3]);
+            } else {
+                $response_code   = "500";
                 $response_status = "Unknown Error.";
             }
         } while (substr($response_code, 0, 1) == "1");
